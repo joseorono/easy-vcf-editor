@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { ContactPreviewEmptyState } from "@/components/contact-preview-empty-state";
 import {
   Mail,
   Phone,
@@ -12,7 +13,6 @@ import {
   Globe,
   Briefcase,
   Calendar,
-  FileText,
   Smartphone,
   MessageSquare,
   Users,
@@ -103,16 +103,7 @@ export function ContactPreview({ data }: ContactPreviewProps) {
     !hasAdditional;
 
   if (isEmpty) {
-    return (
-      <div className="flex h-full flex-col items-center justify-center py-12 text-center">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-secondary">
-          <FileText className="h-8 w-8 text-muted-foreground" />
-        </div>
-        <p className="mt-4 text-sm text-muted-foreground">
-          Start filling out the form to see a preview
-        </p>
-      </div>
-    );
+    return <ContactPreviewEmptyState />;
   }
 
   return (

@@ -5,7 +5,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { ContactPreview } from "@/components/contact-preview";
-import { generateVcf } from "@/lib/vcf-utils";
+import { CodePreviewEmptyState } from "@/components/code-preview-empty-state";
+import { buildFullName, generateVcf } from "@/lib/vcf-utils";
 import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
 import type { VCardData } from "@/types/vcard-types";
 import { Eye, Code, Clipboard, Check } from "lucide-react";
@@ -19,7 +20,25 @@ export function PreviewTabs({ data, version }: PreviewTabsProps) {
   const [activeTab, setActiveTab] = useState("visual");
   const { copied, copy } = useCopyToClipboard();
 
-  const vcfContent = activeTab === "code" ? generateVcf(data, version) : "";
+  const fullName = buildFullName(data);
+  const hasContactInfo =
+    data.emails?.some((e) => e.value) || data.phones?.some((p) => p.value);
+  const hasAddresses = data.addresses?.some((a) => a.street || a.city);
+  const hasWorkInfo =
+    data.organization || data.title || data.role || data.department;
+  const hasUrls = data.urls?.some((u) => u.value);
+  const hasAdditional = data.note || data.categories || data.languages;
+
+  const isEmpty =
+    !fullName &&
+    !hasContactInfo &&
+    !hasAddresses &&
+    !hasWorkInfo &&
+    !hasUrls &&
+    !hasAdditional;
+
+  const vcfContent =
+    activeTab === "code" && !isEmpty ? generateVcf(data, version) : "";
 
   return (
     <Tabs
@@ -74,9 +93,13 @@ export function PreviewTabs({ data, version }: PreviewTabsProps) {
             </Button>
           </div>
           <ScrollArea className="h-full w-full">
-            <pre className="whitespace-pre-wrap break-words px-3 py-3 font-mono text-xs text-foreground">
-              {vcfContent}
-            </pre>
+            {isEmpty ? (
+              <CodePreviewEmptyState />
+            ) : (
+              <pre className="whitespace-pre-wrap break-words px-3 py-3 font-mono text-xs text-foreground">
+                {vcfContent}
+              </pre>
+            )}
           </ScrollArea>
         </div>
       </TabsContent>
