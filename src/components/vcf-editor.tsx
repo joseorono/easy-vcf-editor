@@ -65,7 +65,7 @@ export function VcfEditor() {
   const handleNew = () => {
     methods.reset(defaultVCardData);
     toast("Form cleared", {
-      description: "Ready to create a new contact",
+      description: "All fields have been reset",
     });
   };
 

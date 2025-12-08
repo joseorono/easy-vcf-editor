@@ -1,7 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { FileText, Upload, Download, Plus, ChevronRight } from "lucide-react";
+import {
+  FileText,
+  Upload,
+  Download,
+  RotateCcw,
+  ChevronRight,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -11,6 +17,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 type VcfVersion = "3.0" | "4.0";
@@ -55,15 +71,31 @@ export function EditorNavbar({
 
         <div className="flex flex-1 items-center justify-end gap-3">
           <div className="flex flex-wrap items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onNew}
-              className="gap-1.5 bg-transparent"
-            >
-              <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline">New</span>
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 bg-transparent"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                  <span className="hidden sm:inline">Clear</span>
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Clear this contact?</AlertDialogTitle>
+                </AlertDialogHeader>
+                <p className="text-sm text-muted-foreground">
+                  This will remove all values from the form and reset it to a
+                  blank contact. This action cannot be undone.
+                </p>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={onNew}>Clear</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
             <Button
               variant="outline"
               size="sm"
