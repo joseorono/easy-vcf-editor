@@ -1,0 +1,36 @@
+# Architecture
+- Follow React Router best practices.
+- This is a front-end, offline-first app, not a full-stack application.
+- No server needed, no database needed, no auth.
+- Use Electron for desktop app.
+- This is also a Progressive Web App (PWA).
+- For logic, always look for existing functions and classes in /src/lib/ before writing new ones.
+
+# General Code Style & Formatting
+- Use kebab-case for React component file names (e.g., user-card.tsx, not UserCard.tsx).
+- Use PascalCase for component names in code (e.g., `UserCard`)
+- Use camelCase for variables, functions, and props
+- Prefer const assertions and explicit typing where beneficial
+- Use meaningful variable names that describe color operations (e.g., `lockedColors`, `paletteHex`, `colorHarmony`)
+- Avoid relative imports (e.g., ./utils) when possible, use path aliases instead.
+
+# Styling & UI
+- Use Tailwind CSS for styling.
+- Use Shadcn UI for components.
+- Implement smooth transitions for color changes using Tailwind transition classes
+- Implement smooth color transitions and animations.
+- Use Tailwind CSS for layout and spacing.
+- Use icons from lucide-react for logos.
+
+# Data Fetching & Forms
+- Use TanStack Query (react-query) for data fetching if needed.
+- Use React Hook Form for form handling.
+- Use Zod for validation and schema definitions.
+
+# State Management & Logic
+- Use React Context minimally.
+- Use Jotai for Global State if needed, but prioritize local stage so the React Compiler can do its job.
+
+# Testing
+- Use Vitest for unit testing, sparingly, if needed.
+- Test files colocated with components as FileName.test.ts
