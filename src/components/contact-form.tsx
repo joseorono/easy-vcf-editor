@@ -707,16 +707,76 @@ export function ContactForm() {
           <input type="hidden" {...register("gender")} />
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
-          <FormField
-            name="photo"
-            label="Photo URL"
-            placeholder="https://example.com/photo.jpg"
-          />
-          <FormField
-            name="logo"
-            label="Logo URL"
-            placeholder="https://example.com/logo.png"
-          />
+          <div className="space-y-2">
+            <div className="flex items-center gap-1.5">
+              <Label
+                htmlFor="photo"
+                className="text-sm font-medium text-foreground/80"
+              >
+                Photo URL
+              </Label>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-border/60 bg-background text-muted-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    aria-label="Photo URL format help"
+                  >
+                    <Info className="h-3 w-3" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="top" align="start">
+                  <p className="max-w-xs text-xs">
+                    Use an image URL (https://example.com/photo.jpg) or a
+                    base64-encoded data URI (data:image/jpeg;base64,...) as per
+                    RFC 6350.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <Input
+              id="photo"
+              type="text"
+              placeholder="https://example.com/photo.jpg"
+              {...register("photo")}
+              className="bg-background"
+            />
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center gap-1.5">
+              <Label
+                htmlFor="logo"
+                className="text-sm font-medium text-foreground/80"
+              >
+                Logo URL
+              </Label>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-border/60 bg-background text-muted-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    aria-label="Logo URL format help"
+                  >
+                    <Info className="h-3 w-3" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="top" align="start">
+                  <p className="max-w-xs text-xs">
+                    Use an image URL (https://example.com/logo.png) or a
+                    base64-encoded data URI (data:image/png;base64,...) as per
+                    RFC 6350.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <Input
+              id="logo"
+              type="text"
+              placeholder="https://example.com/logo.png"
+              {...register("logo")}
+              className="bg-background"
+            />
+          </div>
         </div>
       </FormSection>
 
