@@ -3,6 +3,7 @@
 import type React from "react";
 
 import { useState, useRef } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,6 +21,7 @@ import { PreviewTabs } from "@/components/preview-tabs";
 export function VcfEditor() {
   const [version, setVersion] = useState<"3.0" | "4.0">("4.0");
   const [showPreview, setShowPreview] = useState(false);
+  const [isPreviewCollapsed, setIsPreviewCollapsed] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const methods = useForm<VCardData>({
@@ -90,7 +92,7 @@ export function VcfEditor() {
           <div
             className={cn(
               "flex flex-col flex-1 overflow-hidden transition-all duration-300",
-              showPreview ? "hidden lg:flex lg:flex-1" : "w-full"
+              showPreview && "hidden lg:flex lg:flex-1"
             )}
           >
             <div className="flex-1 overflow-auto px-4 py-6">
@@ -102,13 +104,35 @@ export function VcfEditor() {
             </div>
           </div>
 
+          {/* Preview collapse handle - desktop only */}
+          <div className="relative hidden h-full items-center justify-center lg:flex">
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={() => setIsPreviewCollapsed((prev) => !prev)}
+              className="z-20 h-10 w-6 -mx-3 flex items-center justify-center rounded-full border border-border/60 bg-background/90 text-muted-foreground shadow-sm transition-colors hover:bg-background"
+              aria-label={
+                isPreviewCollapsed ? "Show live preview" : "Hide live preview"
+              }
+            >
+              {isPreviewCollapsed ? (
+                <ChevronLeft className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+
           {/* Preview Panel - sticky on desktop, full-screen on mobile when active */}
           <div
             className={cn(
               "border-l border-border/50 bg-card/50 transition-all duration-300",
               showPreview
                 ? "fixed inset-0 z-50 bg-background lg:static lg:z-auto lg:w-[400px] lg:bg-transparent"
-                : "hidden lg:block lg:w-[400px]"
+                : "hidden lg:block lg:w-[400px]",
+              isPreviewCollapsed &&
+                "lg:w-0 lg:opacity-0 lg:pointer-events-none lg:border-l-0"
             )}
           >
             <div className="flex flex-col overflow-hidden">
