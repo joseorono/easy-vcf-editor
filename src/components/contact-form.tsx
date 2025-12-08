@@ -93,7 +93,7 @@ function FormSection({
         />
       </CollapsibleTrigger>
       <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapse data-[state=open]:animate-expand">
-        <div className="grid gap-4 px-1 pb-2 pt-4">{children}</div>
+        <div className="grid gap-4 px-4 pb-2 pt-4">{children}</div>
       </CollapsibleContent>
     </Collapsible>
   );
