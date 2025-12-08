@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Easy VCF Editor</title>
+  <desc id="desc">Icon for the Easy VCF Editor application</desc>
+  <rect x="0" y="0" width="512" height="512" rx="96" fill="#020617" />
+  <rect x="112" y="128" width="288" height="256" rx="32" fill="none" stroke="#38bdf8" stroke-width="24" />
+  <circle cx="184" cy="216" r="40" fill="none" stroke="#38bdf8" stroke-width="20" />
+  <path d="M144 320c8-32 40-56 72-56s64 24 72 56" fill="none" stroke="#38bdf8" stroke-width="20" stroke-linecap="round" />
+  <path d="M288 208h96M288 256h72M288 304h88" fill="none" stroke="#38bdf8" stroke-width="20" stroke-linecap="round" />
+</svg>

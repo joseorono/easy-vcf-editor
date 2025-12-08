@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Easy VCF Editor Mask Icon</title>
+  <desc id="desc">Mask icon for pinned tabs and Safari</desc>
+  <rect x="0" y="0" width="512" height="512" fill="#000000" />
+  <path d="M128 128h256v256H128z" fill="#ffffff" />
+  <circle cx="208" cy="224" r="40" fill="#000000" />
+  <path d="M176 320c8-32 40-56 72-56s64 24 72 56" fill="none" stroke="#000000" stroke-width="24" stroke-linecap="round" />
+  <path d="M272 208h80M272 256h64M272 304h72" fill="none" stroke="#000000" stroke-width="24" stroke-linecap="round" />
+</svg>
