@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import { EditorNavbar } from "@/components/editor-navbar";
+import { Footer } from "@/components/footer";
 
 export function VcfEditor() {
   const [version, setVersion] = useState<"3.0" | "4.0">("4.0");
@@ -96,13 +97,11 @@ export function VcfEditor() {
             )}
           >
             <div className="flex-1 overflow-auto px-4 py-6">
-              <div className="mx-auto max-w-3xl">
-                <Card className="border-border/50 shadow-lg">
-                  <CardContent className="p-6">
-                    <ContactForm />
-                  </CardContent>
-                </Card>
-              </div>
+              <Card className="border-border/50 shadow-lg">
+                <CardContent className="p-6">
+                  <ContactForm />
+                </CardContent>
+              </Card>
             </div>
           </div>
 
@@ -134,6 +133,7 @@ export function VcfEditor() {
           </div>
         </div>
       </div>
+      <Footer />
       <Toaster />
     </FormProvider>
   );

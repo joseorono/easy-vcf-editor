@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { FileText, Upload, Download, Plus, ChevronRight, Moon, Sun, Monitor } from "lucide-react";
+import { FileText, Upload, Download, Plus, ChevronRight, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 
 import { Button } from "@/components/ui/button";
@@ -36,39 +36,20 @@ function ThemeSwitcher() {
 
   if (!mounted) return null;
 
-  const current = theme ?? "system";
+  const isDark = theme === "dark";
 
   return (
-    <div className="flex items-center gap-1">
-      <Select
-        value={current}
-        onValueChange={(value) => setTheme(value)}
-      >
-        <SelectTrigger className="h-9 w-[120px]">
-          <SelectValue placeholder="Theme" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="light">
-            <div className="flex items-center gap-2">
-              <Sun className="h-4 w-4" />
-              <span>Light</span>
-            </div>
-          </SelectItem>
-          <SelectItem value="dark">
-            <div className="flex items-center gap-2">
-              <Moon className="h-4 w-4" />
-              <span>Dark</span>
-            </div>
-          </SelectItem>
-          <SelectItem value="system">
-            <div className="flex items-center gap-2">
-              <Monitor className="h-4 w-4" />
-              <span>System</span>
-            </div>
-          </SelectItem>
-        </SelectContent>
-      </Select>
-    </div>
+    <button
+      onClick={() => setTheme(isDark ? "light" : "dark")}
+      className="inline-flex items-center justify-center rounded-lg border border-border/50 bg-secondary/30 p-2 transition-colors hover:bg-secondary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      aria-label="Toggle theme"
+    >
+      {isDark ? (
+        <Sun className="h-4 w-4 text-yellow-500" />
+      ) : (
+        <Moon className="h-4 w-4 text-slate-400" />
+      )}
+    </button>
   );
 }
 
@@ -83,8 +64,8 @@ export function EditorNavbar({
   fileInputRef,
 }: EditorNavbarProps) {
   return (
-    <header className="sticky top-0 z-20 border-b border-border/50 bg-background/80 backdrop-blur-sm">
-      <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3 sm:py-4">
+    <header className="sticky top-0 z-20 border-b border-border bg-background/80 backdrop-blur-sm">
+      <div className="flex items-center justify-between gap-3 px-4 py-3 sm:py-4">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
             <FileText className="h-5 w-5 text-primary" />
