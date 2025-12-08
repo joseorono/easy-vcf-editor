@@ -761,7 +761,7 @@ export function ContactForm() {
       </FormSection>
 
       <FormSection
-        title="Web & URLs"
+        title="Websites & URLs"
         icon={<Globe className="h-4 w-4" />}
         badge={filledUrls}
       >

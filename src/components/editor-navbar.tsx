@@ -84,6 +84,7 @@ export function EditorNavbar({
             </Button>
             <div className="flex items-center gap-2">
               <Select
+                name="vcf-version"
                 value={version}
                 onValueChange={(v) => onVersionChange(v as VcfVersion)}
               >
