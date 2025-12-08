@@ -6,7 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { ContactPreview } from "@/components/contact-preview";
 import { CodePreviewEmptyState } from "@/components/code-preview-empty-state";
-import { buildFullName, generateVcf } from "@/lib/vcf-utils";
+import { generateVcf, isVCardEmpty } from "@/lib/vcf-utils";
 import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
 import type { VCardData } from "@/types/vcard-types";
 import { Eye, Code, Clipboard, Check } from "lucide-react";
@@ -20,22 +20,7 @@ export function PreviewTabs({ data, version }: PreviewTabsProps) {
   const [activeTab, setActiveTab] = useState("visual");
   const { copied, copy } = useCopyToClipboard();
 
-  const fullName = buildFullName(data);
-  const hasContactInfo =
-    data.emails?.some((e) => e.value) || data.phones?.some((p) => p.value);
-  const hasAddresses = data.addresses?.some((a) => a.street || a.city);
-  const hasWorkInfo =
-    data.organization || data.title || data.role || data.department;
-  const hasUrls = data.urls?.some((u) => u.value);
-  const hasAdditional = data.note || data.categories || data.languages;
-
-  const isEmpty =
-    !fullName &&
-    !hasContactInfo &&
-    !hasAddresses &&
-    !hasWorkInfo &&
-    !hasUrls &&
-    !hasAdditional;
+  const isEmpty = isVCardEmpty(data);
 
   const vcfContent =
     activeTab === "code" && !isEmpty ? generateVcf(data, version) : "";

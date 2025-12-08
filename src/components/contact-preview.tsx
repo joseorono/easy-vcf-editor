@@ -20,7 +20,7 @@ import {
   Clock,
 } from "lucide-react";
 import type { VCardData } from "@/types/vcard-types";
-import { buildFullName, buildInitials } from "@/lib/vcf-utils";
+import { buildFullName, buildInitials, isVCardEmpty } from "@/lib/vcf-utils";
 import {
   phoneTypeLabels,
   emailTypeLabels,
@@ -94,13 +94,7 @@ export function ContactPreview({ data }: ContactPreviewProps) {
   const hasAdditional = data.note || data.categories || data.languages;
   const hasGeo = data.geo || data.timezone;
 
-  const isEmpty =
-    !fullName &&
-    !hasContactInfo &&
-    !hasAddresses &&
-    !hasWorkInfo &&
-    !hasUrls &&
-    !hasAdditional;
+  const isEmpty = isVCardEmpty(data);
 
   if (isEmpty) {
     return <ContactPreviewEmptyState />;

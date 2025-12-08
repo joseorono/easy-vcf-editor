@@ -43,6 +43,26 @@ export function buildInitials(
   return initials || "?";
 }
 
+export function isVCardEmpty(data: VCardData): boolean {
+  const fullName = buildFullName(data);
+  const hasContactInfo =
+    data.emails?.some((e) => e.value) || data.phones?.some((p) => p.value);
+  const hasAddresses = data.addresses?.some((a) => a.street || a.city);
+  const hasWorkInfo =
+    data.organization || data.title || data.role || data.department;
+  const hasUrls = data.urls?.some((u) => u.value);
+  const hasAdditional = data.note || data.categories || data.languages;
+
+  return (
+    !fullName &&
+    !hasContactInfo &&
+    !hasAddresses &&
+    !hasWorkInfo &&
+    !hasUrls &&
+    !hasAdditional
+  );
+}
+
 export function parseVcf(vcfString: string): VCardData {
   const data: VCardData = JSON.parse(JSON.stringify(defaultVCardData));
 
