@@ -1,73 +1,92 @@
-import type React from "react"
+"use client";
 
-import { useState, useRef } from "react"
-import { useForm, FormProvider } from "react-hook-form"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Upload, Download, FileText, Plus, ChevronRight } from "lucide-react"
-import { type VCardData, defaultVCardData, parseVcf, downloadVcf } from "@/lib/vcf-utils"
-import { ContactForm } from "@/components/contact-form"
-import { ContactPreview } from "@/components/contact-preview"
-import { toast } from "sonner"
-import { Toaster } from "@/components/ui/sonner"
-import { cn } from "@/lib/utils"
+import type React from "react";
+
+import { useState, useRef } from "react";
+import { useForm, FormProvider } from "react-hook-form";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Upload, Download, FileText, Plus, ChevronRight } from "lucide-react";
+import {
+  type VCardData,
+  defaultVCardData,
+  parseVcf,
+  downloadVcf,
+} from "@/lib/vcf-utils";
+import { ContactForm } from "@/components/contact-form";
+import { ContactPreview } from "@/components/contact-preview";
+import { toast } from "sonner";
+import { Toaster } from "@/components/ui/sonner";
+import { cn } from "@/lib/utils";
 
 export function VcfEditor() {
-  const [version, setVersion] = useState<"3.0" | "4.0">("4.0")
-  const [showPreview, setShowPreview] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [version, setVersion] = useState<"3.0" | "4.0">("4.0");
+  const [showPreview, setShowPreview] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const methods = useForm<VCardData>({
     defaultValues: defaultVCardData,
-  })
+  });
 
-  const watchedData = methods.watch()
+  const watchedData = methods.watch();
 
   const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
+    const file = event.target.files?.[0];
+    if (!file) return;
 
     try {
-      const text = await file.text()
-      const parsedData = parseVcf(text)
-      methods.reset(parsedData)
+      const text = await file.text();
+      const parsedData = parseVcf(text);
+      methods.reset(parsedData);
       toast.success("Contact imported", {
         description:
-          `Successfully imported ${parsedData.firstName} ${parsedData.lastName}`.trim() || "Contact data loaded",
-      })
+          `Successfully imported ${parsedData.firstName} ${parsedData.lastName}`.trim() ||
+          "Contact data loaded",
+      });
     } catch {
       toast.error("Import failed", {
         description: "Could not parse the VCF file",
-      })
+      });
     }
 
     if (fileInputRef.current) {
-      fileInputRef.current.value = ""
+      fileInputRef.current.value = "";
     }
-  }
+  };
 
   const handleExport = () => {
-    const data = methods.getValues()
-    downloadVcf(data, version)
+    const data = methods.getValues();
+    downloadVcf(data, version);
     toast.success("Contact exported", {
       description: `VCF ${version} file downloaded successfully`,
-    })
-  }
+    });
+  };
 
   const handleNew = () => {
-    methods.reset(defaultVCardData)
+    methods.reset(defaultVCardData);
     toast("Form cleared", {
       description: "Ready to create a new contact",
-    })
-  }
+    });
+  };
 
   return (
     <FormProvider {...methods}>
-      <div className="flex min-h-screen">
+      <div className="flex h-screen w-screen overflow-hidden">
         {/* Form Panel */}
-        <div className={cn("flex-1 transition-all duration-300", showPreview ? "hidden lg:block lg:flex-1" : "w-full")}>
-          <div className="container mx-auto max-w-3xl px-4 py-6">
+        <div
+          className={cn(
+            "flex flex-col flex-1 overflow-hidden transition-all duration-300",
+            showPreview ? "hidden lg:flex lg:flex-1" : "w-full"
+          )}
+        >
+          <div className="flex-1 overflow-auto px-4 py-6">
             <Card className="border-border/50 shadow-lg">
               <CardHeader className="border-b border-border/50 bg-card">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -77,11 +96,18 @@ export function VcfEditor() {
                     </div>
                     <div>
                       <CardTitle className="text-xl">vCard Editor</CardTitle>
-                      <p className="text-sm text-muted-foreground">Create and edit VCF contacts</p>
+                      <p className="text-sm text-muted-foreground">
+                        Create and edit VCF contacts
+                      </p>
                     </div>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <Button variant="outline" size="sm" onClick={handleNew} className="gap-1.5 bg-transparent">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleNew}
+                      className="gap-1.5 bg-transparent"
+                    >
                       <Plus className="h-4 w-4" />
                       New
                     </Button>
@@ -111,7 +137,10 @@ export function VcfEditor() {
                       <ChevronRight className="h-4 w-4" />
                     </Button>
                     <div className="flex items-center gap-2">
-                      <Select value={version} onValueChange={(v) => setVersion(v as "3.0" | "4.0")}>
+                      <Select
+                        value={version}
+                        onValueChange={(v) => setVersion(v as "3.0" | "4.0")}
+                      >
                         <SelectTrigger className="h-9 w-24">
                           <SelectValue />
                         </SelectTrigger>
@@ -120,7 +149,11 @@ export function VcfEditor() {
                           <SelectItem value="3.0">v3.0</SelectItem>
                         </SelectContent>
                       </Select>
-                      <Button size="sm" onClick={handleExport} className="gap-1.5">
+                      <Button
+                        size="sm"
+                        onClick={handleExport}
+                        className="gap-1.5"
+                      >
                         <Download className="h-4 w-4" />
                         Export
                       </Button>
@@ -141,13 +174,18 @@ export function VcfEditor() {
             "border-l border-border/50 bg-card/50 transition-all duration-300",
             showPreview
               ? "fixed inset-0 z-50 bg-background lg:static lg:z-auto lg:w-[400px] lg:bg-transparent"
-              : "hidden lg:block lg:w-[400px]",
+              : "hidden lg:block lg:w-[400px]"
           )}
         >
           <div className="sticky top-0 flex h-screen flex-col">
             <div className="flex items-center justify-between border-b border-border/50 px-4 py-3">
               <h2 className="font-semibold">Live Preview</h2>
-              <Button variant="ghost" size="sm" onClick={() => setShowPreview(false)} className="lg:hidden">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowPreview(false)}
+                className="lg:hidden"
+              >
                 Back to form
               </Button>
             </div>
@@ -159,5 +197,5 @@ export function VcfEditor() {
       </div>
       <Toaster />
     </FormProvider>
-  )
+  );
 }
