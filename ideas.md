@@ -101,13 +101,82 @@ This file tracks missing features, improvements, and tech debt for the vCard edi
 
 ---
 
-## Nice-to-have / future ideas
+## Standards & interoperability
 
-- [ ] **Multi-contact VCF support** (parse and export multiple contacts in one file)
-- [ ] **Template system** for common contact types (personal, work, company)
-- [ ] **Share flows** (copy VCF to clipboard as file in supporting environments)
-- [ ] **Theme customization** (allow user to pick accent color / density)
-- [ ] **Metadata about exports** (simple history of last N exports, sizes, versions)
+- [ ] **Standards completeness**
+  - [ ] Add remaining vCard properties for 2.1 / 3.0 / 4.0 (e.g. KIND, MEMBER, SOUND, SOURCE, XML, PREF, ALTID, MEDIATYPE, CLIENTPIDMAP, etc.)
+  - [ ] Ensure parameter handling (TYPE, PREF, LANGUAGE, etc.) is correct for all supported properties
+  - [ ] Add a "strict mode" that enforces RFC rules and a "lenient mode" that accepts common real-world quirks
+
+- [ ] **Interop & vendor compatibility**
+  - [ ] Document and test profiles for Apple Contacts, Google Contacts, Outlook, Android, etc.
+  - [ ] Add an optional "target compatibility" setting that slightly tweaks output for a chosen ecosystem
+  - [ ] Normalize common vendor quirks on import and show a short report of what was fixed
+
+---
+
+## Multi-contact & data management
+
+- [ ] **Multi-contact VCF support**
+  - [ ] Parse `.vcf` files with many contacts into a list view
+  - [ ] Export multiple selected contacts into a single `.vcf` file
+  - [ ] Support searching, sorting, and filtering contacts (by name, org, email, tags)
+
+- [ ] **Bulk operations**
+  - [ ] Batch edit selected contacts (e.g. add/remove categories, update org, normalize phone types)
+  - [ ] Duplicate detection and merge flow (compare/resolve)
+
+---
+
+## Advanced editing & helper tools
+
+- [ ] **Template system**
+  - [ ] Built-in templates for common cards (personal, work, company, support)
+  - [ ] User-defined templates/snippets that can be applied to new cards
+
+- [ ] **Smart helpers**
+  - [ ] Name helper that splits/merges `N` and `FN` interactively
+  - [ ] Simple phone helper (country code presets and normalization)
+  - [ ] Better UI for `LANG`, `GEO`, and `TZ` (dropdowns or light widgets, still offline-friendly)
+
+- [ ] **QR codes & alternate formats**
+  - [ ] Generate QR codes for the current card (PNG/SVG export)
+  - [ ] Optional jCard (JSON) export/import and an additional JSON view tab
+
+---
+
+## Reliability, performance, and scale
+
+- [ ] **Performance for large files**
+  - [ ] Benchmark import/export with hundreds or thousands of contacts
+  - [ ] Move heavy parsing/generation to a Web Worker to keep the UI smooth
+
+- [ ] **Resilience & recovery**
+  - [ ] Autosave snapshots with a simple UI to restore the last few versions
+  - [ ] Clear messaging when restoring from autosave vs fresh start
+
+---
+
+## Security & privacy
+
+- [ ] **Privacy-first behavior**
+  - [ ] Keep all processing offline by default (no unexpected network calls)
+  - [ ] Explain clearly where data is stored (localStorage / IndexedDB / Electron filesystem)
+
+- [ ] **Data lifecycle**
+  - [ ] Add a "panic clear" or "wipe all local data" action
+  - [ ] Document how to remove cached data/PWA/Electron artifacts
+
+---
+
+## Developer tooling & diagnostics
+
+- [ ] **Config export/import**
+  - [ ] Export/import app settings, templates, snippets, and preferences as JSON
+
+- [ ] **Diagnostic mode**
+  - [ ] Toggleable panel to inspect the raw `VCardData` model and validation results
+  - [ ] Import/export logs to help debug tricky third-party files
 
 ---
 
