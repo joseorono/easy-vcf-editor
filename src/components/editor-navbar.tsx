@@ -28,12 +28,11 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { ThemeToggle } from "@/components/theme-toggle";
-
-type VcfVersion = "2.1" | "3.0" | "4.0";
+import type { VCardVersion } from "@/types/vcard-types";
 
 interface EditorNavbarProps {
-  version: VcfVersion;
-  onVersionChange: (version: VcfVersion) => void;
+  version: VCardVersion;
+  onVersionChange: (version: VCardVersion) => void;
   onNew: () => void;
   onImportChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onExport: () => void;
@@ -109,7 +108,7 @@ export function EditorNavbar({
               <Select
                 name="vcf-version"
                 value={version}
-                onValueChange={(v) => onVersionChange(v as VcfVersion)}
+                onValueChange={(v) => onVersionChange(v as VCardVersion)}
               >
                 <SelectTrigger className="h-9 w-24">
                   <SelectValue />

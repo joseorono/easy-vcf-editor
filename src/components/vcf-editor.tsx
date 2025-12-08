@@ -7,7 +7,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import type { VCardData } from "@/types/vcard-types";
+import type { VCardData, VCardVersion } from "@/types/vcard-types";
 import { defaultVCardData } from "@/constants/vcard-constants";
 import { parseVcf, downloadVcf } from "@/lib/vcf-utils";
 import { ContactForm } from "@/components/contact-form";
@@ -19,7 +19,7 @@ import { Footer } from "@/components/footer";
 import { PreviewTabs } from "@/components/preview-tabs";
 
 export function VcfEditor() {
-  const [version, setVersion] = useState<"2.1" | "3.0" | "4.0">("4.0");
+  const [version, setVersion] = useState<VCardVersion>("4.0");
   const [showPreview, setShowPreview] = useState(false);
   const [isPreviewCollapsed, setIsPreviewCollapsed] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);

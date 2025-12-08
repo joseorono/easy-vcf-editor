@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ContactPreviewEmptyState } from "@/components/contact-preview-empty-state";
+import { VcfFormatFooter } from "@/components/vcf-format-footer";
 import {
   Mail,
   Phone,
@@ -19,7 +20,7 @@ import {
   Tag,
   Clock,
 } from "lucide-react";
-import type { VCardData } from "@/types/vcard-types";
+import type { VCardData, VCardVersion } from "@/types/vcard-types";
 import { buildFullName, buildInitials, isVCardEmpty } from "@/lib/vcf-utils";
 import {
   phoneTypeLabels,
@@ -33,7 +34,7 @@ import {
 
 interface ContactPreviewProps {
   data: VCardData;
-  version: "2.1" | "3.0" | "4.0";
+  version: VCardVersion;
 }
 
 function PreviewItem({
@@ -388,9 +389,7 @@ export function ContactPreview({ data, version }: ContactPreviewProps) {
 
         <Separator />
 
-        <p className="pb-4 text-center text-xs text-muted-foreground">
-          vCard {version} format
-        </p>
+        <VcfFormatFooter version={version} />
       </div>
     </ScrollArea>
   );

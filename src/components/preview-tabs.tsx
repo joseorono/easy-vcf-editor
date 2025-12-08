@@ -6,14 +6,15 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { ContactPreview } from "@/components/contact-preview";
 import { CodePreviewEmptyState } from "@/components/code-preview-empty-state";
+import { VcfFormatFooter } from "@/components/vcf-format-footer";
 import { generateVcf, isVCardEmpty } from "@/lib/vcf-utils";
 import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
-import type { VCardData } from "@/types/vcard-types";
+import type { VCardData, VCardVersion } from "@/types/vcard-types";
 import { Eye, Code, Clipboard, Check } from "lucide-react";
 
 interface PreviewTabsProps {
   data: VCardData;
-  version: "2.1" | "3.0" | "4.0";
+  version: VCardVersion;
 }
 
 export function PreviewTabs({ data, version }: PreviewTabsProps) {
@@ -87,6 +88,8 @@ export function PreviewTabs({ data, version }: PreviewTabsProps) {
             )}
           </ScrollArea>
         </div>
+
+        <VcfFormatFooter version={version} />
       </TabsContent>
     </Tabs>
   );

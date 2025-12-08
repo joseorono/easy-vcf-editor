@@ -6,6 +6,7 @@ import type {
   VCardImpp,
   VCardRelated,
   VCardData,
+  VCardVersion,
 } from "@/types/vcard-types";
 import { defaultVCardData } from "@/constants/vcard-constants";
 import {
@@ -506,10 +507,7 @@ function foldLine(line: string): string {
   return parts.join("\r\n");
 }
 
-export function downloadVcf(
-  data: VCardData,
-  version: "2.1" | "3.0" | "4.0" = "4.0"
-) {
+export function downloadVcf(data: VCardData, version: VCardVersion = "4.0") {
   const vcfContent = generateVcf(data, version);
   const blob = new Blob([vcfContent], { type: "text/vcard" });
   const url = URL.createObjectURL(blob);
