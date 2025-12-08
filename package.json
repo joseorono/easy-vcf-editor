@@ -23,6 +23,7 @@
     "@tailwindcss/vite": "^4.1.17",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "countries-list": "^3.2.2",
     "immer": "^11.0.1",
     "jotai": "^2.15.2",
     "jotai-immer": "^0.4.1",
