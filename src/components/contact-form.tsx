@@ -19,6 +19,11 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   ChevronDown,
   User,
   Briefcase,
@@ -753,7 +758,67 @@ export function ContactForm() {
       </FormSection>
 
       <FormSection
-        title="Address"
+        title="Dates & Calendar"
+        icon={<Calendar className="h-4 w-4" />}
+      >
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField name="birthday" label="Birthday" type="date" />
+          <FormField name="anniversary" label="Anniversary" type="date" />
+        </div>
+        <div className="space-y-2">
+          <div className="flex items-center gap-1.5">
+            <Label className="text-sm font-medium text-foreground/80">
+              Calendar URL
+            </Label>
+            <div className="flex items-center gap-1">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-border/60 bg-background text-muted-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    aria-label="What is a calendar URL?"
+                  >
+                    <Info className="h-3 w-3" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="top" align="start">
+                  <p className="max-w-xs text-xs">
+                    Link to your public calendar or booking page so others can
+                    schedule time with you.
+                    <a
+                      href="https://calendly.com"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="ml-1 underline underline-offset-2"
+                    >
+                      Calendly
+                    </a>{" "}
+                    is a popular option.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+              <a
+                href="https://calendly.com"
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs text-muted-foreground underline underline-offset-2 hover:text-primary"
+              >
+                Get one on Calendly
+              </a>
+            </div>
+          </div>
+          <Input
+            id="calendarUri"
+            type="url"
+            placeholder="https://cal.example.com/jdoe"
+            className="bg-background"
+            {...register("calendarUri")}
+          />
+        </div>
+      </FormSection>
+
+      <FormSection
+        title="Addresses"
         icon={<MapPin className="h-4 w-4" />}
         badge={filledAddresses}
       >
@@ -769,18 +834,29 @@ export function ContactForm() {
       </FormSection>
 
       <FormSection
+        title="Geographic & Time"
+        icon={<MapPin className="h-4 w-4" />}
+      >
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField
+            name="geo"
+            label="Coordinates (lat,lng)"
+            placeholder="37.7749,-122.4194"
+          />
+          <FormField
+            name="timezone"
+            label="Timezone"
+            placeholder="America/New_York"
+          />
+        </div>
+      </FormSection>
+
+      <FormSection
         title="Instant Messaging"
         icon={<MessageSquare className="h-4 w-4" />}
         badge={impps.filter((i) => i.value).length}
       >
         <ImppField />
-      </FormSection>
-
-      <FormSection title="Dates" icon={<Calendar className="h-4 w-4" />}>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <FormField name="birthday" label="Birthday" type="date" />
-          <FormField name="anniversary" label="Anniversary" type="date" />
-        </div>
       </FormSection>
 
       <FormSection
@@ -816,42 +892,6 @@ export function ContactForm() {
             className="min-h-[100px] bg-background"
           />
         </div>
-      </FormSection>
-
-      <FormSection
-        title="Geographic & Time"
-        icon={<MapPin className="h-4 w-4" />}
-      >
-        <div className="grid gap-4 sm:grid-cols-2">
-          <FormField
-            name="geo"
-            label="Coordinates (lat,lng)"
-            placeholder="37.7749,-122.4194"
-          />
-          <FormField
-            name="timezone"
-            label="Timezone"
-            placeholder="America/New_York"
-          />
-        </div>
-      </FormSection>
-
-      <FormSection title="Calendar" icon={<Calendar className="h-4 w-4" />}>
-        <FormField
-          name="calendarUri"
-          label="Calendar URL"
-          placeholder="https://cal.example.com/jdoe"
-        />
-        <FormField
-          name="calendarAddressUri"
-          label="Scheduling URL"
-          placeholder="https://cal.example.com/jdoe/schedule"
-        />
-        <FormField
-          name="freeBusyUrl"
-          label="Free/Busy URL"
-          placeholder="https://cal.example.com/jdoe/freebusy"
-        />
       </FormSection>
 
       <FormSection title="Advanced" icon={<Settings className="h-4 w-4" />}>
