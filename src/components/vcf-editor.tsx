@@ -13,12 +13,12 @@ import {
   downloadVcf,
 } from "@/lib/vcf-utils";
 import { ContactForm } from "@/components/contact-form";
-import { ContactPreview } from "@/components/contact-preview";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import { EditorNavbar } from "@/components/editor-navbar";
 import { Footer } from "@/components/footer";
+import { PreviewTabs } from "@/components/preview-tabs";
 
 export function VcfEditor() {
   const [version, setVersion] = useState<"3.0" | "4.0">("4.0");
@@ -76,7 +76,7 @@ export function VcfEditor() {
 
   return (
     <FormProvider {...methods}>
-      <div className="flex min-h-screen flex-col bg-background">
+      <div className="flex h-screen flex-col bg-background">
         <EditorNavbar
           version={version}
           onVersionChange={(v) => setVersion(v)}
@@ -114,9 +114,9 @@ export function VcfEditor() {
                 : "hidden lg:block lg:w-[400px]"
             )}
           >
-            <div className="sticky top-0 flex h-screen flex-col">
+            <div className="flex flex-col overflow-hidden">
               <div className="flex items-center justify-between border-b border-border/50 px-4 py-3">
-                <h2 className="font-semibold">Live Preview</h2>
+                <h2 className="font-semibold">Preview</h2>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -127,13 +127,14 @@ export function VcfEditor() {
                 </Button>
               </div>
               <div className="flex-1 overflow-hidden">
-                <ContactPreview data={watchedData} />
+                <PreviewTabs data={watchedData} version={version} />
               </div>
             </div>
           </div>
         </div>
+
+        <Footer />
       </div>
-      <Footer />
       <Toaster />
     </FormProvider>
   );
