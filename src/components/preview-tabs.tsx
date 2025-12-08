@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { ContactPreview } from "@/components/contact-preview";
 import { generateVcf } from "@/lib/vcf-utils";
+import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
 import type { VCardData } from "@/types/vcard-types";
 import { Eye, Code, Clipboard, Check } from "lucide-react";
 
@@ -16,21 +17,9 @@ interface PreviewTabsProps {
 
 export function PreviewTabs({ data, version }: PreviewTabsProps) {
   const [activeTab, setActiveTab] = useState("visual");
-  const [copied, setCopied] = useState(false);
+  const { copied, copy } = useCopyToClipboard();
 
   const vcfContent = activeTab === "code" ? generateVcf(data, version) : "";
-
-  const handleCopy = async () => {
-    if (!vcfContent) return;
-
-    try {
-      await navigator.clipboard.writeText(vcfContent);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1500);
-    } catch {
-      // Silently fail if clipboard is not available
-    }
-  };
 
   return (
     <Tabs
@@ -70,7 +59,7 @@ export function PreviewTabs({ data, version }: PreviewTabsProps) {
               type="button"
               variant="ghost"
               size="sm"
-              onClick={handleCopy}
+              onClick={() => copy(vcfContent)}
               disabled={!vcfContent}
               className="gap-1 px-2 text-xs"
             >

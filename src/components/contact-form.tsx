@@ -57,7 +57,7 @@ import {
   relatedTypeLabels,
 } from "@/constants/vcard-constants";
 import { useState } from "react";
-import { cn } from "@/lib/utils";
+import { cn, updateHiddenInputValue } from "@/lib/utils";
 
 interface FormSectionProps {
   title: string;
@@ -146,13 +146,10 @@ function PhonesField() {
             <Select
               defaultValue={field.type || "cell"} // Updated default value to be a non-empty string
               onValueChange={(value) => {
-                const input = document.querySelector(
-                  `input[name="phones.${index}.type"]`
-                ) as HTMLInputElement;
-                if (input) {
-                  input.value = value;
-                  input.dispatchEvent(new Event("input", { bubbles: true }));
-                }
+                updateHiddenInputValue(
+                  `input[name="phones.${index}.type"]`,
+                  value
+                );
               }}
             >
               <SelectTrigger className="bg-background">
@@ -218,13 +215,10 @@ function EmailsField() {
             <Select
               defaultValue={field.type || "home"} // Updated default value to be a non-empty string
               onValueChange={(value) => {
-                const input = document.querySelector(
-                  `input[name="emails.${index}.type"]`
-                ) as HTMLInputElement;
-                if (input) {
-                  input.value = value;
-                  input.dispatchEvent(new Event("input", { bubbles: true }));
-                }
+                updateHiddenInputValue(
+                  `input[name="emails.${index}.type"]`,
+                  value
+                );
               }}
             >
               <SelectTrigger className="bg-background">
@@ -298,13 +292,10 @@ function AddressesField() {
               <Select
                 defaultValue={field.type || "home"} // Updated default value to be a non-empty string
                 onValueChange={(value) => {
-                  const input = document.querySelector(
-                    `input[name="addresses.${index}.type"]`
-                  ) as HTMLInputElement;
-                  if (input) {
-                    input.value = value;
-                    input.dispatchEvent(new Event("input", { bubbles: true }));
-                  }
+                  updateHiddenInputValue(
+                    `input[name="addresses.${index}.type"]`,
+                    value
+                  );
                 }}
               >
                 <SelectTrigger className="bg-background">
@@ -419,13 +410,10 @@ function UrlsField() {
             <Select
               defaultValue={field.type || "homepage"} // Updated default value to be a non-empty string
               onValueChange={(value) => {
-                const input = document.querySelector(
-                  `input[name="urls.${index}.type"]`
-                ) as HTMLInputElement;
-                if (input) {
-                  input.value = value;
-                  input.dispatchEvent(new Event("input", { bubbles: true }));
-                }
+                updateHiddenInputValue(
+                  `input[name="urls.${index}.type"]`,
+                  value
+                );
               }}
             >
               <SelectTrigger className="bg-background">
@@ -494,13 +482,10 @@ function ImppField() {
             <Select
               defaultValue={field.type || "other"} // Updated default value to be a non-empty string
               onValueChange={(value) => {
-                const input = document.querySelector(
-                  `input[name="impps.${index}.type"]`
-                ) as HTMLInputElement;
-                if (input) {
-                  input.value = value;
-                  input.dispatchEvent(new Event("input", { bubbles: true }));
-                }
+                updateHiddenInputValue(
+                  `input[name="impps.${index}.type"]`,
+                  value
+                );
               }}
             >
               <SelectTrigger className="bg-background">
@@ -575,13 +560,10 @@ function RelatedField() {
             <Select
               defaultValue={field.type || "friend"} // Updated default value to be a non-empty string
               onValueChange={(value) => {
-                const input = document.querySelector(
-                  `input[name="related.${index}.type"]`
-                ) as HTMLInputElement;
-                if (input) {
-                  input.value = value;
-                  input.dispatchEvent(new Event("input", { bubbles: true }));
-                }
+                updateHiddenInputValue(
+                  `input[name="related.${index}.type"]`,
+                  value
+                );
               }}
             >
               <SelectTrigger className="bg-background">
@@ -708,13 +690,7 @@ export function ContactForm() {
           </Label>
           <Select
             onValueChange={(value) => {
-              const input = document.querySelector(
-                'input[name="gender"]'
-              ) as HTMLInputElement;
-              if (input) {
-                input.value = value;
-                input.dispatchEvent(new Event("input", { bubbles: true }));
-              }
+              updateHiddenInputValue('input[name="gender"]', value);
             }}
           >
             <SelectTrigger className="bg-background">

@@ -20,6 +20,7 @@ import {
   Clock,
 } from "lucide-react";
 import type { VCardData } from "@/types/vcard-types";
+import { buildFullName, buildInitials } from "@/lib/vcf-utils";
 import {
   phoneTypeLabels,
   emailTypeLabels,
@@ -78,20 +79,8 @@ function PreviewItem({
 }
 
 export function ContactPreview({ data }: ContactPreviewProps) {
-  const fullName = [
-    data.prefix,
-    data.firstName,
-    data.middleName,
-    data.lastName,
-    data.suffix,
-  ]
-    .filter(Boolean)
-    .join(" ");
-  const initials =
-    [data.firstName?.[0], data.lastName?.[0]]
-      .filter(Boolean)
-      .join("")
-      .toUpperCase() || "?";
+  const fullName = buildFullName(data);
+  const initials = buildInitials(data);
 
   const hasContactInfo =
     data.emails?.some((e) => e.value) || data.phones?.some((p) => p.value);
