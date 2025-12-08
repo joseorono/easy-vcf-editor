@@ -633,7 +633,7 @@ export function ContactForm() {
   return (
     <div className="space-y-3">
       <FormSection
-        title="Personal Information"
+        title="Basic Information"
         icon={<User className="h-4 w-4" />}
         defaultOpen
       >
@@ -682,6 +682,16 @@ export function ContactForm() {
           </Select>
           <input type="hidden" {...register("gender")} />
         </div>
+        <FormField
+          name="photo"
+          label="Photo URL"
+          placeholder="https://example.com/photo.jpg"
+        />
+        <FormField
+          name="logo"
+          label="Logo URL"
+          placeholder="https://example.com/logo.png"
+        />
       </FormSection>
 
       <FormSection
@@ -823,16 +833,6 @@ export function ContactForm() {
       </FormSection>
 
       <FormSection title="Advanced" icon={<Settings className="h-4 w-4" />}>
-        <FormField
-          name="photo"
-          label="Photo URL"
-          placeholder="https://example.com/photo.jpg"
-        />
-        <FormField
-          name="logo"
-          label="Logo URL"
-          placeholder="https://example.com/logo.png"
-        />
         <FormField
           name="publicKey"
           label="Public Key URL"
