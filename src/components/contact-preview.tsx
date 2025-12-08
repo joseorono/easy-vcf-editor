@@ -33,6 +33,7 @@ import {
 
 interface ContactPreviewProps {
   data: VCardData;
+  version: "2.1" | "3.0" | "4.0";
 }
 
 function PreviewItem({
@@ -78,7 +79,7 @@ function PreviewItem({
   return content;
 }
 
-export function ContactPreview({ data }: ContactPreviewProps) {
+export function ContactPreview({ data, version }: ContactPreviewProps) {
   const fullName = buildFullName(data);
   const initials = buildInitials(data);
 
@@ -388,7 +389,7 @@ export function ContactPreview({ data }: ContactPreviewProps) {
         <Separator />
 
         <p className="pb-4 text-center text-xs text-muted-foreground">
-          vCard 4.0 format
+          vCard {version} format
         </p>
       </div>
     </ScrollArea>

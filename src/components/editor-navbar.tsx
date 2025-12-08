@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { ThemeToggle } from "@/components/theme-toggle";
 
-type VcfVersion = "3.0" | "4.0";
+type VcfVersion = "2.1" | "3.0" | "4.0";
 
 interface EditorNavbarProps {
   version: VcfVersion;
@@ -117,6 +117,7 @@ export function EditorNavbar({
                 <SelectContent>
                   <SelectItem value="4.0">v4.0</SelectItem>
                   <SelectItem value="3.0">v3.0</SelectItem>
+                  <SelectItem value="2.1">v2.1</SelectItem>
                 </SelectContent>
               </Select>
               <Button size="sm" onClick={onExport} className="gap-1.5">

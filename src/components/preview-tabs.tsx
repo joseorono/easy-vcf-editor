@@ -13,7 +13,7 @@ import { Eye, Code, Clipboard, Check } from "lucide-react";
 
 interface PreviewTabsProps {
   data: VCardData;
-  version: "3.0" | "4.0";
+  version: "2.1" | "3.0" | "4.0";
 }
 
 export function PreviewTabs({ data, version }: PreviewTabsProps) {
@@ -49,7 +49,7 @@ export function PreviewTabs({ data, version }: PreviewTabsProps) {
       </TabsList>
 
       <TabsContent value="visual" className="flex-1 overflow-hidden">
-        <ContactPreview data={data} />
+        <ContactPreview data={data} version={version} />
       </TabsContent>
 
       <TabsContent

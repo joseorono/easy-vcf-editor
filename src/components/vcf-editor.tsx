@@ -19,7 +19,7 @@ import { Footer } from "@/components/footer";
 import { PreviewTabs } from "@/components/preview-tabs";
 
 export function VcfEditor() {
-  const [version, setVersion] = useState<"3.0" | "4.0">("4.0");
+  const [version, setVersion] = useState<"2.1" | "3.0" | "4.0">("4.0");
   const [showPreview, setShowPreview] = useState(false);
   const [isPreviewCollapsed, setIsPreviewCollapsed] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);

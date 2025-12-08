@@ -320,7 +320,7 @@ function getRelatedType(params: string): VCardRelated["type"] {
 
 export function generateVcf(
   data: VCardData,
-  version: "3.0" | "4.0" = "4.0"
+  version: "2.1" | "3.0" | "4.0" = "4.0"
 ): string {
   const lines: string[] = ["BEGIN:VCARD", `VERSION:${version}`];
 
@@ -506,7 +506,10 @@ function foldLine(line: string): string {
   return parts.join("\r\n");
 }
 
-export function downloadVcf(data: VCardData, version: "3.0" | "4.0" = "4.0") {
+export function downloadVcf(
+  data: VCardData,
+  version: "2.1" | "3.0" | "4.0" = "4.0"
+) {
   const vcfContent = generateVcf(data, version);
   const blob = new Blob([vcfContent], { type: "text/vcard" });
   const url = URL.createObjectURL(blob);
