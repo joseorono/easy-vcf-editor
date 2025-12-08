@@ -1,27 +1,29 @@
+export type VCardVersion = "2.1" | "3.0" | "4.0";
+
 export interface VCardAddress {
-  type: "home" | "work" | "other"
-  street: string
-  city: string
-  state: string
-  postalCode: string
-  country: string
-  poBox: string
-  extendedAddress: string
+  type: "home" | "work" | "other";
+  street: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  country: string;
+  poBox: string;
+  extendedAddress: string;
 }
 
 export interface VCardPhone {
-  type: "home" | "work" | "cell" | "fax" | "pager" | "other"
-  value: string
+  type: "home" | "work" | "cell" | "fax" | "pager" | "other";
+  value: string;
 }
 
 export interface VCardEmail {
-  type: "home" | "work" | "other"
-  value: string
+  type: "home" | "work" | "other";
+  value: string;
 }
 
 export interface VCardUrl {
-  type: "homepage" | "work" | "blog" | "profile" | "other"
-  value: string
+  type: "homepage" | "work" | "blog" | "profile" | "other";
+  value: string;
 }
 
 export interface VCardImpp {
@@ -47,66 +49,66 @@ export interface VCardRelated {
     | "colleague"
     | "assistant"
     | "emergency"
-    | "other"
-  value: string
+    | "other";
+  value: string;
 }
 
 export interface VCardData {
   // Identification
-  firstName: string
-  lastName: string
-  middleName: string
-  prefix: string
-  suffix: string
-  nickname: string
-  photo: string
-  birthday: string
-  anniversary: string
-  gender: "" | "M" | "F" | "O" | "N" | "U"
+  firstName: string;
+  lastName: string;
+  middleName: string;
+  prefix: string;
+  suffix: string;
+  nickname: string;
+  photo: string;
+  birthday: string;
+  anniversary: string;
+  gender: "" | "M" | "F" | "O" | "N" | "U";
 
   // Organization
-  organization: string
-  department: string
-  title: string
-  role: string
-  logo: string
+  organization: string;
+  department: string;
+  title: string;
+  role: string;
+  logo: string;
 
   // Communications
-  emails: VCardEmail[]
-  phones: VCardPhone[]
-  impps: VCardImpp[]
+  emails: VCardEmail[];
+  phones: VCardPhone[];
+  impps: VCardImpp[];
 
   // Addresses
-  addresses: VCardAddress[]
+  addresses: VCardAddress[];
 
   // URLs
-  urls: VCardUrl[]
+  urls: VCardUrl[];
 
   // Geographic
-  geo: string
-  timezone: string
+  geo: string;
+  timezone: string;
 
   // Explanatory
-  categories: string
-  note: string
-  prodid: string
-  rev: string
-  uid: string
+  categories: string;
+  note: string;
+  prodid: string;
+  rev: string;
+  uid: string;
 
   // Calendar
-  calendarUri: string
-  calendarAddressUri: string
-  freeBusyUrl: string
+  calendarUri: string;
+  calendarAddressUri: string;
+  freeBusyUrl: string;
 
   // Security
-  publicKey: string
+  publicKey: string;
 
   // Related
-  related: VCardRelated[]
+  related: VCardRelated[];
 
   // Language
-  languages: string
+  languages: string;
 
   // Custom/Extended
-  customFields: { key: string; value: string }[]
+  customFields: { key: string; value: string }[];
 }
