@@ -8,6 +8,12 @@ import type {
   VCardData,
 } from "@/types/vcard-types";
 import { defaultVCardData } from "@/constants/vcard-constants";
+import {
+  PHONE_TYPE_KEYWORDS,
+  IMPP_TYPE_KEYWORDS,
+  URL_TYPE_KEYWORDS,
+  RELATED_TYPE_KEYWORDS,
+} from "@/constants/vcard-type-patterns";
 
 export function parseVcf(vcfString: string): VCardData {
   const data: VCardData = JSON.parse(JSON.stringify(defaultVCardData));
@@ -231,53 +237,38 @@ function getTypeFromParams(params: string, validTypes: string[]): string {
 }
 
 function getPhoneType(params: string): VCardPhone["type"] {
-  if (params.includes("CELL") || params.includes("MOBILE")) return "cell";
-  if (params.includes("FAX")) return "fax";
-  if (params.includes("PAGER")) return "pager";
-  if (params.includes("WORK")) return "work";
-  if (params.includes("HOME")) return "home";
+  const upperParams = params.toUpperCase();
+  for (const [keyword, type] of Object.entries(PHONE_TYPE_KEYWORDS)) {
+    if (upperParams.includes(keyword)) return type;
+  }
   return "other";
 }
 
 function getImppType(params: string, value: string): VCardImpp["type"] {
-  const lower = (params + value).toLowerCase();
-  if (lower.includes("telegram")) return "telegram";
-  if (lower.includes("whatsapp")) return "whatsapp";
-  if (lower.includes("signal")) return "signal";
-  if (lower.includes("discord")) return "discord";
-  if (lower.includes("matrix")) return "matrix";
-  if (lower.includes("mastodon")) return "mastodon";
-  if (lower.includes("bluesky")) return "bluesky";
-  // Map legacy services to "other" for backward compatibility
-  if (lower.includes("xmpp")) return "other";
-  if (lower.includes("aim")) return "other";
-  if (lower.includes("skype")) return "other";
+  const combined = (params + value).toUpperCase();
+  for (const [keyword, type] of Object.entries(IMPP_TYPE_KEYWORDS)) {
+    if (combined.includes(keyword)) return type;
+  }
   return "other";
 }
 
 function getUrlType(params: string): VCardUrl["type"] {
-  if (params.includes("WORK")) return "work";
-  if (params.includes("BLOG")) return "blog";
-  if (params.includes("PROFILE")) return "profile";
+  const upperParams = params.toUpperCase();
+  for (const [keyword, type] of Object.entries(URL_TYPE_KEYWORDS)) {
+    if (upperParams.includes(keyword)) return type;
+  }
   return "homepage";
 }
 
 function getRelatedType(params: string): VCardRelated["type"] {
-  const types: VCardRelated["type"][] = [
-    "spouse",
-    "child",
-    "parent",
-    "sibling",
-    "friend",
-    "colleague",
-    "assistant",
-    "emergency",
-  ];
-  for (const type of types) {
-    if (params.includes(type.toUpperCase())) return type;
+  const upperParams = params.toUpperCase();
+  for (const [keyword, type] of Object.entries(RELATED_TYPE_KEYWORDS)) {
+    if (upperParams.includes(keyword)) return type;
   }
   return "other";
 }
+
+// ...
 
 export function generateVcf(
   data: VCardData,
@@ -285,6 +276,7 @@ export function generateVcf(
 ): string {
   const lines: string[] = ["BEGIN:VCARD", `VERSION:${version}`];
 
+  // ...
   // Full Name (required in 3.0 and 4.0)
   const fullName = [
     data.prefix,
