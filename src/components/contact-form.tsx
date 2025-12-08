@@ -657,7 +657,36 @@ export function ContactForm() {
         defaultOpen
       >
         <div className="grid gap-4 sm:grid-cols-2">
-          <FormField name="firstName" label="First Name" placeholder="John" />
+          <div className="space-y-2">
+            <div className="flex items-center gap-1.5">
+              <Label
+                htmlFor="firstName"
+                className="text-sm font-medium text-foreground/80"
+              >
+                First Name
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span
+                      className="ml-0.5 cursor-help underline underline-offset-2 decoration-wavy decoration-destructive/60 hover:decoration-destructive"
+                      aria-label="Mandatory field"
+                    >
+                      *
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" align="start">
+                    <p className="max-w-xs text-xs">Mandatory field</p>
+                  </TooltipContent>
+                </Tooltip>
+              </Label>
+            </div>
+            <Input
+              id="firstName"
+              type="text"
+              placeholder="John"
+              {...register("firstName")}
+              className="bg-background"
+            />
+          </div>
           <FormField name="lastName" label="Last Name" placeholder="Doe" />
         </div>
         <div className="grid gap-4 sm:grid-cols-3">
