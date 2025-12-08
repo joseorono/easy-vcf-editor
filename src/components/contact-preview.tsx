@@ -154,7 +154,7 @@ export function ContactPreview({ data }: ContactPreviewProps) {
                 {[data.title, data.organization].filter(Boolean).join(" at ")}
               </p>
             )}
-            {data.gender && data.gender !== "" && (
+            {data.gender && (
               <Badge variant="outline" className="mt-1.5 text-xs">
                 {genderLabels[data.gender]}
               </Badge>
