@@ -95,9 +95,9 @@ export function VcfEditor() {
               showPreview && "hidden lg:flex lg:flex-1"
             )}
           >
-            <div className="flex-1 overflow-auto px-4 py-6">
+            <div className="flex-1 overflow-auto px-4 py-2">
               <Card className="border-border/50 shadow-lg">
-                <CardContent className="p-6">
+                <CardContent className="p-4 py-2">
                   <ContactForm />
                 </CardContent>
               </Card>
