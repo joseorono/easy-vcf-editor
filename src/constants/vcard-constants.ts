@@ -95,13 +95,15 @@ export const urlTypeLabels: Record<VCardUrl["type"], string> = {
 }
 
 export const imppTypeLabels: Record<VCardImpp["type"], string> = {
-  xmpp: "XMPP",
-  aim: "AIM",
-  skype: "Skype",
-  telegram: "Telegram",
   whatsapp: "WhatsApp",
+  telegram: "Telegram",
+  signal: "Signal",
+  discord: "Discord",
+  matrix: "Matrix",
+  mastodon: "Mastodon",
+  bluesky: "Bluesky",
   other: "Other",
-}
+};
 
 export const relatedTypeLabels: Record<VCardRelated["type"], string> = {
   spouse: "Spouse",

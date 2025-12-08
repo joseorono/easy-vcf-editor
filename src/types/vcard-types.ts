@@ -25,8 +25,16 @@ export interface VCardUrl {
 }
 
 export interface VCardImpp {
-  type: "xmpp" | "aim" | "skype" | "telegram" | "whatsapp" | "other"
-  value: string
+  type:
+    | "telegram"
+    | "whatsapp"
+    | "signal"
+    | "discord"
+    | "matrix"
+    | "mastodon"
+    | "bluesky"
+    | "other";
+  value: string;
 }
 
 export interface VCardRelated {

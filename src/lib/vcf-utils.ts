@@ -241,11 +241,17 @@ function getPhoneType(params: string): VCardPhone["type"] {
 
 function getImppType(params: string, value: string): VCardImpp["type"] {
   const lower = (params + value).toLowerCase();
-  if (lower.includes("xmpp")) return "xmpp";
-  if (lower.includes("aim")) return "aim";
-  if (lower.includes("skype")) return "skype";
   if (lower.includes("telegram")) return "telegram";
   if (lower.includes("whatsapp")) return "whatsapp";
+  if (lower.includes("signal")) return "signal";
+  if (lower.includes("discord")) return "discord";
+  if (lower.includes("matrix")) return "matrix";
+  if (lower.includes("mastodon")) return "mastodon";
+  if (lower.includes("bluesky")) return "bluesky";
+  // Map legacy services to "other" for backward compatibility
+  if (lower.includes("xmpp")) return "other";
+  if (lower.includes("aim")) return "other";
+  if (lower.includes("skype")) return "other";
   return "other";
 }
 
