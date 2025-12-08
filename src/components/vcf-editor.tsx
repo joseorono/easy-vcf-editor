@@ -111,7 +111,7 @@ export function VcfEditor() {
               variant="outline"
               size="icon"
               onClick={() => setIsPreviewCollapsed((prev) => !prev)}
-              className="z-20 h-10 w-6 -mx-3 flex items-center justify-center rounded-full border border-border/60 bg-background/90 text-muted-foreground shadow-sm transition-colors hover:bg-background"
+              className="z-20 h-10 w-6 mx-1 flex items-center justify-center rounded-full border border-border/60 bg-background/90 text-muted-foreground shadow-sm transition-colors hover:bg-background"
               aria-label={
                 isPreviewCollapsed ? "Show live preview" : "Hide live preview"
               }
@@ -127,7 +127,7 @@ export function VcfEditor() {
           {/* Preview Panel - sticky on desktop, full-screen on mobile when active */}
           <div
             className={cn(
-              "border-l border-border/50 bg-card/50 transition-all duration-300",
+              "border-l border-border/50 bg-card/50 pl-1 transition-all duration-300",
               showPreview
                 ? "fixed inset-0 z-50 bg-background lg:static lg:z-auto lg:w-[400px] lg:bg-transparent"
                 : "hidden lg:block lg:w-[400px]",
