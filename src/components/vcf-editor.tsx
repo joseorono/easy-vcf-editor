@@ -113,7 +113,7 @@ export function VcfEditor() {
           >
             <div className="flex flex-col overflow-hidden">
               <div className="flex items-center justify-between border-b border-border/50 px-4 py-3">
-                <h2 className="font-semibold">Preview</h2>
+                <h2 className="font-semibold">Live Preview</h2>
                 <Button
                   variant="ghost"
                   size="sm"

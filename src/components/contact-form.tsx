@@ -360,6 +360,20 @@ function AddressesField() {
               className="bg-background"
             />
           </div>
+          <div className="space-y-2">
+            <Input
+              {...register(`addresses.${index}.poBox` as const)}
+              placeholder="P.O. Box (optional)"
+              className="bg-background"
+            />
+          </div>
+          <div className="space-y-2">
+            <Input
+              {...register(`addresses.${index}.extendedAddress` as const)}
+              placeholder="Extended Address (optional)"
+              className="bg-background"
+            />
+          </div>
         </div>
       ))}
       <Button
@@ -682,38 +696,26 @@ export function ContactForm() {
           </Select>
           <input type="hidden" {...register("gender")} />
         </div>
-        <FormField
-          name="photo"
-          label="Photo URL"
-          placeholder="https://example.com/photo.jpg"
-        />
-        <FormField
-          name="logo"
-          label="Logo URL"
-          placeholder="https://example.com/logo.png"
-        />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField
+            name="photo"
+            label="Photo URL"
+            placeholder="https://example.com/photo.jpg"
+          />
+          <FormField
+            name="logo"
+            label="Logo URL"
+            placeholder="https://example.com/logo.png"
+          />
+        </div>
       </FormSection>
 
       <FormSection
-        title="Work & Organization"
-        icon={<Briefcase className="h-4 w-4" />}
+        title="Phone"
+        icon={<Phone className="h-4 w-4" />}
+        badge={filledPhones}
       >
-        <FormField
-          name="organization"
-          label="Organization"
-          placeholder="Acme Inc."
-        />
-        <FormField
-          name="department"
-          label="Department"
-          placeholder="Engineering"
-        />
-        <FormField
-          name="title"
-          label="Job Title"
-          placeholder="Software Engineer"
-        />
-        <FormField name="role" label="Role" placeholder="Developer" />
+        <PhonesField />
       </FormSection>
 
       <FormSection
@@ -725,11 +727,29 @@ export function ContactForm() {
       </FormSection>
 
       <FormSection
-        title="Phone"
-        icon={<Phone className="h-4 w-4" />}
-        badge={filledPhones}
+        title="Work & Organization"
+        icon={<Briefcase className="h-4 w-4" />}
       >
-        <PhonesField />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField
+            name="organization"
+            label="Organization"
+            placeholder="Acme Inc."
+          />
+          <FormField
+            name="department"
+            label="Department"
+            placeholder="Engineering"
+          />
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField
+            name="title"
+            label="Job Title"
+            placeholder="Software Engineer"
+          />
+          <FormField name="role" label="Role" placeholder="Developer" />
+        </div>
       </FormSection>
 
       <FormSection
@@ -802,16 +822,18 @@ export function ContactForm() {
         title="Geographic & Time"
         icon={<MapPin className="h-4 w-4" />}
       >
-        <FormField
-          name="geo"
-          label="Coordinates (lat,lng)"
-          placeholder="37.7749,-122.4194"
-        />
-        <FormField
-          name="timezone"
-          label="Timezone"
-          placeholder="America/New_York"
-        />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField
+            name="geo"
+            label="Coordinates (lat,lng)"
+            placeholder="37.7749,-122.4194"
+          />
+          <FormField
+            name="timezone"
+            label="Timezone"
+            placeholder="America/New_York"
+          />
+        </div>
       </FormSection>
 
       <FormSection title="Calendar" icon={<Calendar className="h-4 w-4" />}>
