@@ -18,3 +18,10 @@ export function debounce<T extends (...args: any[]) => any>(
     timeout = setTimeout(() => func(...args), wait);
   };
 }
+
+export function updateHiddenInputValue(selector: string, value: string): void {
+  const input = document.querySelector<HTMLInputElement>(selector);
+  if (!input) return;
+  input.value = value;
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+}

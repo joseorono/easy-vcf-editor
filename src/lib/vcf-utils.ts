@@ -15,6 +15,34 @@ import {
   RELATED_TYPE_KEYWORDS,
 } from "@/constants/vcard-type-patterns";
 
+export function buildFullName(
+  data: Pick<
+    VCardData,
+    "prefix" | "firstName" | "middleName" | "lastName" | "suffix"
+  >
+): string {
+  return [
+    data.prefix,
+    data.firstName,
+    data.middleName,
+    data.lastName,
+    data.suffix,
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+export function buildInitials(
+  data: Pick<VCardData, "firstName" | "lastName">
+): string {
+  const initials = [data.firstName?.[0], data.lastName?.[0]]
+    .filter(Boolean)
+    .join("")
+    .toUpperCase();
+
+  return initials || "?";
+}
+
 export function parseVcf(vcfString: string): VCardData {
   const data: VCardData = JSON.parse(JSON.stringify(defaultVCardData));
 
@@ -278,15 +306,7 @@ export function generateVcf(
 
   // ...
   // Full Name (required in 3.0 and 4.0)
-  const fullName = [
-    data.prefix,
-    data.firstName,
-    data.middleName,
-    data.lastName,
-    data.suffix,
-  ]
-    .filter(Boolean)
-    .join(" ");
+  const fullName = buildFullName(data);
   lines.push(`FN:${escapeValue(fullName || "Unnamed")}`);
 
   // Structured Name
