@@ -105,15 +105,6 @@ export function EditorNavbar({
               <Upload className="h-4 w-4" />
               <span className="hidden sm:inline">Import</span>
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onShowPreview}
-              className="gap-1.5 lg:hidden"
-            >
-              <span>{showPreview ? "Hide" : "Preview"}</span>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
             <div className="flex items-center gap-2">
               <Select
                 name="vcf-version"
@@ -136,6 +127,16 @@ export function EditorNavbar({
           </div>
 
           <ThemeToggle />
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onShowPreview}
+            className="gap-1.5 lg:hidden"
+          >
+            <span>{showPreview ? "Hide" : "Preview"}</span>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 

@@ -96,7 +96,7 @@ export function VcfEditor() {
             )}
           >
             <div className="flex-1 overflow-auto px-4 py-2">
-              <Card className="border-border/50 shadow-lg">
+              <Card className="border-border/50 shadow-lg py-2">
                 <CardContent className="p-4 py-2">
                   <ContactForm />
                 </CardContent>
