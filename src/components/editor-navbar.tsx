@@ -1,8 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { FileText, Upload, Download, Plus, ChevronRight, Moon, Sun } from "lucide-react";
-import { useTheme } from "next-themes";
+import { FileText, Upload, Download, Plus, ChevronRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 type VcfVersion = "3.0" | "4.0";
 
@@ -24,33 +24,6 @@ interface EditorNavbarProps {
   showPreview: boolean;
   onShowPreview: () => void;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
-}
-
-function ThemeSwitcher() {
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = React.useState(false);
-
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) return null;
-
-  const isDark = theme === "dark";
-
-  return (
-    <button
-      onClick={() => setTheme(isDark ? "light" : "dark")}
-      className="inline-flex items-center justify-center rounded-lg border border-border/50 bg-secondary/30 p-2 transition-colors hover:bg-secondary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      aria-label="Toggle theme"
-    >
-      {isDark ? (
-        <Sun className="h-4 w-4 text-yellow-500" />
-      ) : (
-        <Moon className="h-4 w-4 text-slate-400" />
-      )}
-    </button>
-  );
 }
 
 export function EditorNavbar({
@@ -71,7 +44,9 @@ export function EditorNavbar({
             <FileText className="h-5 w-5 text-primary" />
           </div>
           <div className="min-w-0">
-            <p className="truncate text-base font-semibold sm:text-lg">vCard Editor</p>
+            <p className="truncate text-base font-semibold sm:text-lg">
+              vCard Editor
+            </p>
             <p className="hidden text-xs text-muted-foreground sm:block">
               Create and edit VCF contacts
             </p>
@@ -120,18 +95,14 @@ export function EditorNavbar({
                   <SelectItem value="3.0">v3.0</SelectItem>
                 </SelectContent>
               </Select>
-              <Button
-                size="sm"
-                onClick={onExport}
-                className="gap-1.5"
-              >
+              <Button size="sm" onClick={onExport} className="gap-1.5">
                 <Download className="h-4 w-4" />
                 <span className="hidden sm:inline">Export</span>
               </Button>
             </div>
           </div>
 
-          <ThemeSwitcher />
+          <ThemeToggle />
         </div>
       </div>
 
