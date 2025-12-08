@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ContactPreview } from "@/components/contact-preview";
 import { generateVcf } from "@/lib/vcf-utils";
-import type { VCardData } from "@/lib/vcf-utils";
+import type { VCardData } from "@/types/vcard-types";
 import { Eye, Code } from "lucide-react";
 
 interface PreviewTabsProps {

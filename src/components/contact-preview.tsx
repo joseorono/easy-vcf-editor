@@ -19,7 +19,7 @@ import {
   Tag,
   Clock,
 } from "lucide-react";
-import type { VCardData } from "@/lib/vcf-utils";
+import type { VCardData } from "@/types/vcard-types";
 import {
   phoneTypeLabels,
   emailTypeLabels,
@@ -28,7 +28,7 @@ import {
   imppTypeLabels,
   relatedTypeLabels,
   genderLabels,
-} from "@/lib/vcf-utils";
+} from "@/constants/vcard-constants";
 
 interface ContactPreviewProps {
   data: VCardData;

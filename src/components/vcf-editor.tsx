@@ -6,12 +6,9 @@ import { useState, useRef } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  type VCardData,
-  defaultVCardData,
-  parseVcf,
-  downloadVcf,
-} from "@/lib/vcf-utils";
+import type { VCardData } from "@/types/vcard-types";
+import { defaultVCardData } from "@/constants/vcard-constants";
+import { parseVcf, downloadVcf } from "@/lib/vcf-utils";
 import { ContactForm } from "@/components/contact-form";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";

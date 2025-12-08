@@ -42,7 +42,7 @@ import type {
   VCardUrl,
   VCardImpp,
   VCardRelated,
-} from "@/lib/vcf-utils";
+} from "@/types/vcard-types";
 import {
   phoneTypeLabels,
   emailTypeLabels,
@@ -50,7 +50,7 @@ import {
   urlTypeLabels,
   imppTypeLabels,
   relatedTypeLabels,
-} from "@/lib/vcf-utils";
+} from "@/constants/vcard-constants";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
