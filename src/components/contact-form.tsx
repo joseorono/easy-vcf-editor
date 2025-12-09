@@ -659,7 +659,7 @@ export function ContactForm() {
         icon={<User className="h-4 w-4" />}
         defaultOpen
       >
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-3">
           <div className="space-y-2">
             <div className="flex items-center gap-1.5">
               <Label
@@ -691,21 +691,6 @@ export function ContactForm() {
             />
           </div>
           <FormField name="lastName" label="Last Name" placeholder="Doe" />
-        </div>
-        <div className="grid gap-4 sm:grid-cols-3">
-          <FormField name="prefix" label="Prefix" placeholder="Dr." />
-          <FormField
-            name="middleName"
-            label="Middle Name"
-            placeholder="William"
-          />
-          <FormField name="suffix" label="Suffix" placeholder="Jr." />
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <FormField name="nickname" label="Nickname" placeholder="Johnny" />
-          <LanguageSelector />
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label
               htmlFor="gender"
@@ -731,6 +716,19 @@ export function ContactForm() {
             </Select>
             <input type="hidden" {...register("gender")} />
           </div>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <FormField name="prefix" label="Prefix" placeholder="Dr." />
+          <FormField
+            name="middleName"
+            label="Middle Name"
+            placeholder="William"
+          />
+          <FormField name="suffix" label="Suffix" placeholder="Jr." />
+        </div>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <FormField name="nickname" label="Nickname" placeholder="Johnny" />
+          <LanguageSelector />
           <TimezoneSelector />
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
