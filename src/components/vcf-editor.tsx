@@ -15,7 +15,12 @@ import {
   generateVcf,
   isVCardEmpty,
 } from "@/lib/vcf-utils";
-import { checkQrDataSize, downloadQrCode, getQrFilename } from "@/lib/qr-utils";
+import {
+  checkQrDataSize,
+  downloadQrCode,
+  getQrFilename,
+  type QrDownloadFormat,
+} from "@/lib/qr-utils";
 import { ContactForm } from "@/components/contact-form";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
@@ -68,7 +73,7 @@ export function VcfEditor() {
     });
   };
 
-  const handleExportQr = () => {
+  const handleExportQr = (format: QrDownloadFormat = "png") => {
     const data = methods.getValues();
     if (isVCardEmpty(data)) {
       toast.error("Cannot export QR", {
@@ -111,9 +116,12 @@ export function VcfEditor() {
             const svg = tempContainer.querySelector("svg");
             if (svg) {
               const filename = getQrFilename(data.firstName, data.lastName);
-              downloadQrCode(svg, { filename, format: "png" });
+              downloadQrCode(svg, { filename, format });
               toast.success("QR code exported", {
-                description: "QR code PNG downloaded successfully",
+                description:
+                  format === "svg"
+                    ? "QR code SVG downloaded successfully"
+                    : "QR code PNG downloaded successfully",
               });
             }
             root.unmount();
