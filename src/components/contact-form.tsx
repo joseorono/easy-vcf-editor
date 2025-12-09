@@ -58,6 +58,10 @@ import {
 } from "@/constants/vcard-constants";
 import { useState } from "react";
 import { cn, updateHiddenInputValue } from "@/lib/utils";
+import { LanguageSelector } from "@/components/language-selector";
+import { GeoInput } from "@/components/geo-input";
+import { TimezoneSelector } from "@/components/timezone-selector";
+import { CountryCodeSelector } from "@/components/country-code-selector";
 
 interface FormSectionProps {
   title: string;
@@ -137,55 +141,72 @@ function PhonesField() {
   const { control, register } = useFormContext<VCardData>();
   const { fields, append, remove } = useFieldArray({ control, name: "phones" });
 
+  // Store country codes separately (not in the phone value)
+  const [countryCodes, setCountryCodes] = useState<Record<number, string>>({});
+
   return (
     <div className="space-y-3">
       {fields.map((field, index) => (
-        <div key={field.id} className="flex items-end gap-2">
-          <div className="w-32">
-            <Label className="text-xs text-muted-foreground">Type</Label>
-            <Select
-              defaultValue={field.type || "cell"} // Updated default value to be a non-empty string
-              onValueChange={(value) => {
-                updateHiddenInputValue(
-                  `input[name="phones.${index}.type"]`,
-                  value
-                );
-              }}
+        <div key={field.id} className="space-y-2">
+          <div className="flex items-end gap-2">
+            <div className="">
+              <Label className="text-xs text-muted-foreground">Type</Label>
+              <Select
+                defaultValue={field.type || "cell"}
+                onValueChange={(value) => {
+                  updateHiddenInputValue(
+                    `input[name="phones.${index}.type"]`,
+                    value
+                  );
+                }}
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(phoneTypeLabels).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <input
+                type="hidden"
+                {...register(`phones.${index}.type` as const)}
+              />
+            </div>
+            <div className="w-24">
+              <CountryCodeSelector
+                inline
+                value={countryCodes[index]}
+                onSelect={(code) => {
+                  setCountryCodes((prev) => ({
+                    ...prev,
+                    [index]: code,
+                  }));
+                }}
+              />
+            </div>
+            <div className="flex-1">
+              <Label className="text-xs text-muted-foreground">Number</Label>
+              <Input
+                {...register(`phones.${index}.value` as const)}
+                placeholder="555 123 4567"
+                className="bg-background"
+              />
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => remove(index)}
+              className="shrink-0 text-muted-foreground hover:text-destructive"
+              disabled={fields.length === 1}
             >
-              <SelectTrigger className="bg-background">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(phoneTypeLabels).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <input
-              type="hidden"
-              {...register(`phones.${index}.type` as const)}
-            />
+              <Trash2 className="h-4 w-4" />
+            </Button>
           </div>
-          <div className="flex-1">
-            <Label className="text-xs text-muted-foreground">Number</Label>
-            <Input
-              {...register(`phones.${index}.value` as const)}
-              placeholder="+1 555 123 4567"
-              className="bg-background"
-            />
-          </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={() => remove(index)}
-            className="shrink-0 text-muted-foreground hover:text-destructive"
-            disabled={fields.length === 1}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
         </div>
       ))}
       <Button
@@ -680,31 +701,37 @@ export function ContactForm() {
           />
           <FormField name="suffix" label="Suffix" placeholder="Jr." />
         </div>
-        <FormField name="nickname" label="Nickname" placeholder="Johnny" />
-        <div className="space-y-2">
-          <Label
-            htmlFor="gender"
-            className="text-sm font-medium text-foreground/80"
-          >
-            Gender
-          </Label>
-          <Select
-            onValueChange={(value) => {
-              updateHiddenInputValue('input[name="gender"]', value);
-            }}
-          >
-            <SelectTrigger className="bg-background">
-              <SelectValue placeholder="Not specified" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="M">Male</SelectItem>
-              <SelectItem value="F">Female</SelectItem>
-              <SelectItem value="O">Other</SelectItem>
-              <SelectItem value="N">None/Not applicable</SelectItem>
-              <SelectItem value="U">Unknown</SelectItem>
-            </SelectContent>
-          </Select>
-          <input type="hidden" {...register("gender")} />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField name="nickname" label="Nickname" placeholder="Johnny" />
+          <LanguageSelector />
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label
+              htmlFor="gender"
+              className="text-sm font-medium text-foreground/80"
+            >
+              Gender
+            </Label>
+            <Select
+              onValueChange={(value) => {
+                updateHiddenInputValue('input[name="gender"]', value);
+              }}
+            >
+              <SelectTrigger className="bg-background">
+                <SelectValue placeholder="Not specified" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="M">Male</SelectItem>
+                <SelectItem value="F">Female</SelectItem>
+                <SelectItem value="O">Other</SelectItem>
+                <SelectItem value="N">None/Not applicable</SelectItem>
+                <SelectItem value="U">Unknown</SelectItem>
+              </SelectContent>
+            </Select>
+            <input type="hidden" {...register("gender")} />
+          </div>
+          <TimezoneSelector />
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
@@ -898,22 +925,8 @@ export function ContactForm() {
         <UrlsField />
       </FormSection>
 
-      <FormSection
-        title="Geographic & Time"
-        icon={<MapPin className="h-4 w-4" />}
-      >
-        <div className="grid gap-4 sm:grid-cols-2">
-          <FormField
-            name="geo"
-            label="Coordinates (lat,lng)"
-            placeholder="37.7749,-122.4194"
-          />
-          <FormField
-            name="timezone"
-            label="Timezone"
-            placeholder="America/New_York"
-          />
-        </div>
+      <FormSection title="Geographic" icon={<MapPin className="h-4 w-4" />}>
+        <GeoInput />
       </FormSection>
 
       <FormSection
@@ -937,11 +950,6 @@ export function ContactForm() {
           name="categories"
           label="Categories / Tags"
           placeholder="friend, work, vip"
-        />
-        <FormField
-          name="languages"
-          label="Languages"
-          placeholder="en, fr, de"
         />
         <div className="space-y-2">
           <Label
