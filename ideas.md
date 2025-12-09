@@ -53,7 +53,7 @@ This file tracks missing features, improvements, and tech debt for the vCard edi
 
 - [ ] **PWA polish**
   - [ ] Ensure `vite-plugin-pwa` is fully configured (manifest, icons, caching strategy)
-  - [ ] Add an "Install app" hint somewhere in the UI if PWA is installable
+  - [x] Add an "Install app" hint somewhere in the UI if PWA is installable
   - [ ] Verify offline behavior: app shell loads and last-opened contact is available offline
 
 - [ ] **Offline persistence**
@@ -83,7 +83,7 @@ This file tracks missing features, improvements, and tech debt for the vCard edi
   - [ ] Helper UI for `GEO` (lat/long) and `TZ` selection
 
 - [ ] **Accessibility & i18n**
-  - [ ] Pass through meaningful `aria-label`s on interactive icons and buttons
+  - [x] Pass through meaningful `aria-label`s on interactive icons and buttons
   - [ ] Audit color contrast and focus states
   - [ ] Consider basic i18n support (labels and tooltips) if you plan to localize
 
