@@ -394,8 +394,6 @@ export function ContactPreview({ data, version }: ContactPreviewProps) {
           </div>
         )}
 
-        <Separator />
-
         <VcfFormatFooter version={version} />
       </div>
     </ScrollArea>

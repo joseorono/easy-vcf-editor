@@ -81,6 +81,21 @@ export function EditorNavbar({
         </div>
 
         <div className="flex flex-1 items-center justify-end gap-3">
+          {/*
+            <InstallPwaHint>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                className="gap-1.5"
+                aria-label="Install Easy VCF Editor"
+              >
+                <MonitorDown className="h-4 w-4" />
+                <span className="hidden md:inline">Install app</span>
+              </Button>
+            </InstallPwaHint>
+            */}
+
           <div className="flex flex-wrap items-center gap-2">
             <AlertDialog>
               <AlertDialogTrigger asChild>
@@ -108,6 +123,7 @@ export function EditorNavbar({
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
+
             <Button
               variant="outline"
               size="sm"
@@ -167,19 +183,6 @@ export function EditorNavbar({
           </div>
 
           <ThemeToggle />
-
-          <InstallPwaHint>
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              className="gap-1.5"
-              aria-label="Install Easy VCF Editor"
-            >
-              <MonitorDown className="h-4 w-4" />
-              <span className="hidden md:inline">Install app</span>
-            </Button>
-          </InstallPwaHint>
 
           <Button
             variant="outline"
