@@ -40,12 +40,12 @@ This file tracks missing features, improvements, and tech debt for the vCard edi
   - [ ] Run `npm run lint` regularly and keep the project clean
   - [ ] Optionally enable stricter TS ESLint configs as hinted in `README.md`
 
-- [ ] **Project-level documentation**
-  - [ ] Replace the Vite template `README.md` with real project docs:
-    - [ ] What the app is, why it exists
-    - [ ] Supported vCard versions & fields
-    - [ ] How import/export behaves
-    - [ ] Offline/PWA/Electron story (once implemented)
+- [x] **Project-level documentation**
+  - [x] Replace the Vite template `README.md` with real project docs:
+    - [x] What the app is, why it exists
+    - [x] Supported vCard versions & fields
+    - [x] How import/export behaves
+    - [x] Offline/PWA/Electron story (once implemented)
 
 ---
 
