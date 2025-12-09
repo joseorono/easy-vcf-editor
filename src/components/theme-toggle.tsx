@@ -21,19 +21,19 @@ export function ThemeToggle() {
       variant="ghost"
       size="icon"
       onClick={() => setTheme(isDark ? "light" : "dark")}
-      className="relative inline-flex h-8 w-14 items-center rounded-full border border-border/60 bg-muted/60 px-1 text-muted-foreground transition-colors duration-200 hover:bg-muted"
+      className="relative inline-flex h-8 w-14 items-center rounded-full border border-border/60 bg-muted/60 px-1 text-foreground transition-colors duration-200 hover:bg-muted"
       aria-label="Toggle theme"
     >
       {/* Icons at the ends */}
       <span className="pointer-events-none flex w-full items-center justify-between">
         <Sun
-          className={`h-3.5 w-3.5 transition-opacity duration-200 ${
-            isDark ? "opacity-40" : "opacity-100 text-yellow-400"
+          className={`h-3.5 w-3.5 transition-colors duration-200 ${
+            isDark ? "text-yellow-300" : "text-yellow-500"
           }`}
         />
         <Moon
-          className={`h-3.5 w-3.5 transition-opacity duration-200 ${
-            isDark ? "opacity-100 text-sky-300" : "opacity-40"
+          className={`h-3.5 w-3.5 transition-colors duration-200 ${
+            isDark ? "text-sky-300" : "text-slate-500"
           }`}
         />
       </span>
