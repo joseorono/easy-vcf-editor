@@ -63,11 +63,15 @@ export function EditorNavbar({
       <div className="flex items-center justify-between gap-3 px-4 py-3 sm:py-4">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-            <FileText className="h-5 w-5 text-primary" />
+            <img
+              src="/pwa-icon.svg"
+              alt="Easy VCF Editor Logo"
+              className="h-6 w-6"
+            />
           </div>
           <div className="min-w-0">
             <p className="truncate text-base font-semibold sm:text-lg">
-              vCard Editor
+              Easy vCard Editor
             </p>
             <p className="hidden text-xs text-muted-foreground sm:block">
               Create and edit VCF contacts
