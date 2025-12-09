@@ -82,8 +82,16 @@ export function PreviewTabs({ data, version }: PreviewTabsProps) {
         </TabsTrigger>
       </TabsList>
 
-      <TabsContent value="visual" className="flex-1 overflow-hidden">
-        <ContactPreview data={data} version={version} />
+      <TabsContent
+        value="visual"
+        className="flex-1 overflow-hidden flex flex-col"
+      >
+        <div className="flex-1 overflow-hidden">
+          <ContactPreview data={data} version={version} />
+        </div>
+        <div className="px-4 pb-4">
+          <VcfFormatFooter version={version} />
+        </div>
       </TabsContent>
 
       <TabsContent
@@ -129,7 +137,7 @@ export function PreviewTabs({ data, version }: PreviewTabsProps) {
         <VcfFormatFooter version={version} />
       </TabsContent>
 
-      <TabsContent value="qr" className="flex-1 overflow-hidden space-y-4 p-4">
+      <TabsContent value="qr" className="flex-1 overflow-hidden space-y-5 p-4">
         {isEmpty ? (
           <PreviewEmptyState
             icon={QrCode}
@@ -192,6 +200,8 @@ export function PreviewTabs({ data, version }: PreviewTabsProps) {
             </p>
           </div>
         )}
+
+        <VcfFormatFooter version={version} />
       </TabsContent>
     </Tabs>
   );
