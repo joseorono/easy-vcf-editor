@@ -485,7 +485,7 @@ export function generateVcf(
   );
 
   // Product ID
-  lines.push(`PRODID:-//vCard Editor//v0//EN`);
+  lines.push(`PRODID:-//Easy-vCard-Editor//v0//EN`);
 
   lines.push("END:VCARD");
 
