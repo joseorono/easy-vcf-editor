@@ -22,7 +22,7 @@ import { Check, ChevronsUpDown, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function TimezoneSelector() {
-  const { watch, setValue } = useFormContext<VCardData>();
+  const { watch, setValue, register } = useFormContext<VCardData>();
   const timezone = watch("timezone") || "";
   const [open, setOpen] = useState(false);
 
@@ -75,10 +75,7 @@ export function TimezoneSelector() {
         </PopoverTrigger>
         <PopoverContent className="w-full p-0">
           <Command shouldFilter>
-            <CommandInput
-              placeholder="Search timezone..."
-              className="h-9"
-            />
+            <CommandInput placeholder="Search timezone..." className="h-9" />
             <CommandList>
               <CommandEmpty>No timezone found.</CommandEmpty>
               {Object.entries(groupedTimezones).map(([group, timezones]) => (
@@ -93,9 +90,7 @@ export function TimezoneSelector() {
                       <Check
                         className={cn(
                           "h-4 w-4",
-                          timezone === tz.timezone
-                            ? "opacity-100"
-                            : "opacity-0"
+                          timezone === tz.timezone ? "opacity-100" : "opacity-0"
                         )}
                       />
                     </CommandItem>
@@ -106,6 +101,7 @@ export function TimezoneSelector() {
           </Command>
         </PopoverContent>
       </Popover>
+      <input type="hidden" {...register("timezone")} />
     </div>
   );
 }
