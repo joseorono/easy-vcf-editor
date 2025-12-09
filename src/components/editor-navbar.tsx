@@ -2,13 +2,13 @@
 
 import * as React from "react";
 import {
-  FileText,
   Upload,
   Download,
   RotateCcw,
   ChevronRight,
   QrCode,
   Image,
+  MonitorDown,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SplitButton } from "@/components/shadcn-blocks/split-button";
+import { InstallPwaHint } from "@/components/install-pwa-hint";
 import type { VCardVersion } from "@/types/vcard-types";
 
 interface EditorNavbarProps {
@@ -87,6 +88,7 @@ export function EditorNavbar({
                   variant="outline"
                   size="sm"
                   className="gap-1.5 bg-transparent"
+                  aria-label="Clear current contact"
                 >
                   <RotateCcw className="h-4 w-4" />
                   <span className="hidden sm:inline">Clear</span>
@@ -111,6 +113,7 @@ export function EditorNavbar({
               size="sm"
               onClick={() => fileInputRef.current?.click()}
               className="gap-1.5"
+              aria-label="Import contact from VCF file"
             >
               <Upload className="h-4 w-4" />
               <span className="hidden sm:inline">Import</span>
@@ -137,12 +140,13 @@ export function EditorNavbar({
                 }
                 mainButtonIcon={Download}
                 onMainButtonClick={onExportVcf}
-                menuLabel="Download as"
+                menuLabel="Download contact as"
+                dropdownAriaLabel="Choose contact download option"
                 menuItems={[
                   {
                     id: "vcf",
                     label: "VCF File",
-                    icon: FileText,
+                    icon: Download,
                     onClick: onExportVcf,
                   },
                   {
@@ -164,11 +168,25 @@ export function EditorNavbar({
 
           <ThemeToggle />
 
+          <InstallPwaHint>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              className="gap-1.5"
+              aria-label="Install Easy VCF Editor"
+            >
+              <MonitorDown className="h-4 w-4" />
+              <span className="hidden md:inline">Install app</span>
+            </Button>
+          </InstallPwaHint>
+
           <Button
             variant="outline"
             size="sm"
             onClick={onShowPreview}
             className="gap-1.5 lg:hidden"
+            aria-label={showPreview ? "Hide preview" : "Show preview"}
           >
             <span>{showPreview ? "Hide" : "Preview"}</span>
             <ChevronRight className="h-4 w-4" />
