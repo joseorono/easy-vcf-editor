@@ -1,10 +1,25 @@
 "use client";
 
+import {
+  cloneElement,
+  isValidElement,
+  type MouseEvent,
+  type ReactElement,
+} from "react";
+
 import { Button } from "@/components/ui/button";
 import { usePwaInstallPrompt } from "@/hooks/use-pwa-install";
 import { cn } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react";
 import { MonitorDown } from "lucide-react";
+
+type InstallPwaChildProps = {
+  onClick?: (event: MouseEvent<HTMLElement>) => void;
+  disabled?: boolean;
+  className?: string;
+  "aria-label"?: string;
+  [key: string]: unknown;
+};
 
 interface InstallPwaHintProps {
   className?: string;
@@ -17,6 +32,7 @@ interface InstallPwaHintProps {
   ariaLabel?: string;
   hintText?: string;
   installedText?: string;
+  children?: ReactElement<InstallPwaChildProps>;
 }
 
 export function InstallPwaHint({
@@ -30,6 +46,7 @@ export function InstallPwaHint({
   ariaLabel = "Install application",
   hintText = "Ready to install",
   installedText = "App installed",
+  children,
 }: InstallPwaHintProps) {
   const { isInstallReady, hasInstalled, promptInstall } = usePwaInstallPrompt();
 
@@ -39,22 +56,57 @@ export function InstallPwaHint({
 
   const Icon = icon;
 
+  const handleClick = async (event?: MouseEvent<HTMLElement>) => {
+    if (event) {
+      children?.props?.onClick?.(event);
+      if (event.defaultPrevented) {
+        return;
+      }
+    }
+
+    if (hasInstalled) {
+      return;
+    }
+
+    await promptInstall();
+  };
+
+  const renderButton = () => {
+    if (children && isValidElement(children)) {
+      return cloneElement(children, {
+        onClick: (event?: MouseEvent<HTMLElement>) => {
+          void handleClick(event);
+        },
+        disabled: children.props?.disabled ?? hasInstalled,
+        "aria-label": children.props?.["aria-label"] ?? ariaLabel,
+        className: cn("gap-1.5", buttonClassName, children.props?.className),
+        "data-install-ready": isInstallReady ? "true" : undefined,
+      });
+    }
+
+    return (
+      <Button
+        type="button"
+        variant={variant}
+        size={size}
+        onClick={() => {
+          void handleClick();
+        }}
+        disabled={hasInstalled}
+        aria-label={ariaLabel}
+        className={cn("gap-1.5", buttonClassName)}
+        data-install-ready={isInstallReady ? "true" : undefined}
+      >
+        {Icon && <Icon className="h-4 w-4" />}
+        <span className={cn(labelClassName)}>{label}</span>
+      </Button>
+    );
+  };
+
   return (
     <div className={cn("relative flex flex-col items-end", className)}>
       <div className="relative">
-        <Button
-          type="button"
-          variant={variant}
-          size={size}
-          onClick={hasInstalled ? undefined : promptInstall}
-          disabled={hasInstalled}
-          aria-label={ariaLabel}
-          className={cn("gap-1.5", buttonClassName)}
-          data-install-ready={isInstallReady ? "true" : undefined}
-        >
-          {Icon && <Icon className="h-4 w-4" />}
-          <span className={cn(labelClassName)}>{label}</span>
-        </Button>
+        {renderButton()}
         {isInstallReady && !hasInstalled && (
           <span className="pointer-events-none absolute -right-1 -top-1 inline-flex h-2 w-2">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/40" />
