@@ -20,8 +20,14 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import QRCode from "react-qr-code";
-import { checkQrDataSize, downloadQrCode, getQrFilename } from "@/lib/qr-utils";
+import {
+  checkQrDataSize,
+  downloadQrCode,
+  getQrFilename,
+  type QrDownloadFormat,
+} from "@/lib/qr-utils";
 import { cn } from "@/lib/utils";
+import { SplitButton } from "@/components/shadcn-blocks/split-button";
 
 interface PreviewTabsProps {
   data: VCardData;
@@ -44,11 +50,11 @@ export function PreviewTabs({ data, version }: PreviewTabsProps) {
   // Check QR data size
   const qrStatus = vcfContent ? checkQrDataSize(vcfContent) : null;
 
-  const handleDownloadQr = () => {
+  const handleDownloadQr = (format: QrDownloadFormat = "png") => {
     const svg = qrContainerRef.current?.querySelector("svg");
     if (svg) {
       const filename = getQrFilename(data.firstName, data.lastName);
-      downloadQrCode(svg, filename);
+      downloadQrCode(svg, { filename, format });
     }
   };
 
@@ -82,16 +88,8 @@ export function PreviewTabs({ data, version }: PreviewTabsProps) {
         </TabsTrigger>
       </TabsList>
 
-      <TabsContent
-        value="visual"
-        className="flex-1 overflow-hidden flex flex-col"
-      >
-        <div className="flex-1 overflow-hidden">
-          <ContactPreview data={data} version={version} />
-        </div>
-        <div className="px-4 pb-4">
-          <VcfFormatFooter version={version} />
-        </div>
+      <TabsContent value="visual" className="flex-1 overflow-hidden">
+        <ContactPreview data={data} version={version} />
       </TabsContent>
 
       <TabsContent
@@ -108,6 +106,7 @@ export function PreviewTabs({ data, version }: PreviewTabsProps) {
               onClick={() => copy(vcfContent)}
               disabled={!vcfContent}
               className="gap-1 px-2 text-xs"
+              aria-label={copied ? "VCF code copied" : "Copy VCF code"}
             >
               {copied ? (
                 <Check className="h-3.5 w-3.5" />
@@ -181,17 +180,35 @@ export function PreviewTabs({ data, version }: PreviewTabsProps) {
             )}
 
             {/* Download button */}
-            <Button
-              type="button"
-              variant="outline"
+            <SplitButton
               size="sm"
-              onClick={handleDownloadQr}
-              disabled={!qrStatus?.isValid}
-              className="gap-2"
-            >
-              <Download className="h-4 w-4" />
-              Download QR Code
-            </Button>
+              variant="outline"
+              mainButtonIcon={Download}
+              mainButtonIconClassName="h-4 w-4"
+              mainButtonText="Download PNG"
+              mainButtonAriaLabel="Download QR code as PNG"
+              onMainButtonClick={() => handleDownloadQr("png")}
+              mainButtonDisabled={!qrStatus?.isValid}
+              dropdownDisabled={!qrStatus?.isValid}
+              dropdownAriaLabel="Choose QR download format"
+              menuItems={[
+                {
+                  id: "qr-png",
+                  label: "Download PNG",
+                  icon: Download,
+                  onClick: () => handleDownloadQr("png"),
+                  disabled: !qrStatus?.isValid,
+                },
+                {
+                  id: "qr-svg",
+                  label: "Download SVG",
+                  icon: QrCode,
+                  onClick: () => handleDownloadQr("svg"),
+                  disabled: !qrStatus?.isValid,
+                },
+              ]}
+              className="gap-0"
+            />
 
             {/* Info text */}
             <p className="text-center text-xs text-muted-foreground max-w-[250px]">
