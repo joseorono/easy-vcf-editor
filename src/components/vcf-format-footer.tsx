@@ -6,8 +6,10 @@ interface VcfFormatFooterProps {
 
 export function VcfFormatFooter({ version }: VcfFormatFooterProps) {
   return (
-    <p className="text-center text-xs text-muted-foreground">
-      vCard {version} format
-    </p>
+    <div className="mt-4 border-t border-border/50 pt-2">
+      <p className="text-center text-xs text-muted-foreground">
+        vCard {version} format
+      </p>
+    </div>
   );
 }
