@@ -8,7 +8,6 @@ import {
   ChevronRight,
   QrCode,
   Image,
-  MonitorDown,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -31,7 +30,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SplitButton } from "@/components/shadcn-blocks/split-button";
-import { InstallPwaHint } from "@/components/install-pwa-hint";
+import type { QrDownloadFormat } from "@/lib/qr-utils";
 import type { VCardVersion } from "@/types/vcard-types";
 
 interface EditorNavbarProps {
@@ -40,7 +39,7 @@ interface EditorNavbarProps {
   onNew: () => void;
   onImportChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onExportVcf: () => void;
-  onExportQr: () => void;
+  onExportQr: (format: QrDownloadFormat) => void;
   onExportContactImage: () => void;
   showPreview: boolean;
   onShowPreview: () => void;
@@ -166,10 +165,16 @@ export function EditorNavbar({
                     onClick: onExportVcf,
                   },
                   {
-                    id: "qr",
-                    label: "QR Code",
+                    id: "qr-png",
+                    label: "QR Code (PNG)",
                     icon: QrCode,
-                    onClick: onExportQr,
+                    onClick: () => onExportQr("png"),
+                  },
+                  {
+                    id: "qr-svg",
+                    label: "QR Code (SVG)",
+                    icon: QrCode,
+                    onClick: () => onExportQr("svg"),
                   },
                   {
                     id: "image",
