@@ -111,7 +111,7 @@ export function VcfEditor() {
             const svg = tempContainer.querySelector("svg");
             if (svg) {
               const filename = getQrFilename(data.firstName, data.lastName);
-              downloadQrCode(svg, filename);
+              downloadQrCode(svg, { filename, format: "png" });
               toast.success("QR code exported", {
                 description: "QR code PNG downloaded successfully",
               });
