@@ -9,7 +9,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { VCardData, VCardVersion } from "@/types/vcard-types";
 import { defaultVCardData } from "@/constants/vcard-constants";
-import { parseVcf, downloadVcf } from "@/lib/vcf-utils";
+import {
+  parseVcf,
+  downloadVcf,
+  generateVcf,
+  isVCardEmpty,
+} from "@/lib/vcf-utils";
+import { checkQrDataSize, downloadQrCode, getQrFilename } from "@/lib/qr-utils";
 import { ContactForm } from "@/components/contact-form";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
@@ -54,11 +60,73 @@ export function VcfEditor() {
     }
   };
 
-  const handleExport = () => {
+  const handleExportVcf = () => {
     const data = methods.getValues();
     downloadVcf(data, version);
     toast.success("Contact exported", {
       description: `VCF ${version} file downloaded successfully`,
+    });
+  };
+
+  const handleExportQr = () => {
+    const data = methods.getValues();
+    if (isVCardEmpty(data)) {
+      toast.error("Cannot export QR", {
+        description: "Please fill in at least one field first",
+      });
+      return;
+    }
+
+    const vcfContent = generateVcf(data, version);
+    const qrStatus = checkQrDataSize(vcfContent);
+
+    if (!qrStatus.isValid) {
+      toast.error("Data too large for QR", {
+        description: "Remove some fields to fit within QR code limits",
+      });
+      return;
+    }
+
+    // Create a temporary QR code element to download
+    const tempContainer = document.createElement("div");
+    tempContainer.style.position = "absolute";
+    tempContainer.style.left = "-9999px";
+    document.body.appendChild(tempContainer);
+
+    // Dynamically import and render QR code
+    import("react-qr-code").then(({ default: QRCode }) => {
+      import("react-dom/client").then(({ createRoot }) => {
+        import("react").then(({ createElement }) => {
+          const root = createRoot(tempContainer);
+          root.render(
+            createElement(QRCode, {
+              value: vcfContent,
+              size: 512,
+              level: "M",
+            })
+          );
+
+          // Wait for render, then download
+          setTimeout(() => {
+            const svg = tempContainer.querySelector("svg");
+            if (svg) {
+              const filename = getQrFilename(data.firstName, data.lastName);
+              downloadQrCode(svg, filename);
+              toast.success("QR code exported", {
+                description: "QR code PNG downloaded successfully",
+              });
+            }
+            root.unmount();
+            document.body.removeChild(tempContainer);
+          }, 100);
+        });
+      });
+    });
+  };
+
+  const handleExportContactImage = () => {
+    toast.info("Coming soon", {
+      description: "Contact image export will be available in a future update",
     });
   };
 
@@ -81,7 +149,9 @@ export function VcfEditor() {
           onVersionChange={(v) => setVersion(v)}
           onNew={handleNew}
           onImportChange={handleImport}
-          onExport={handleExport}
+          onExportVcf={handleExportVcf}
+          onExportQr={handleExportQr}
+          onExportContactImage={handleExportContactImage}
           showPreview={showPreview}
           onShowPreview={togglePreview}
           fileInputRef={fileInputRef}
