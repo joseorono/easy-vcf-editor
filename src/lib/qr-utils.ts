@@ -82,14 +82,37 @@ export function checkQrDataSize(
 /**
  * Download QR code as PNG image
  */
+export type QrDownloadFormat = "png" | "svg";
+
+export interface DownloadQrOptions {
+  /** Base filename, extension added automatically */
+  filename?: string;
+  /** Canvas size when rendering PNG */
+  size?: number;
+  /** File format */
+  format?: QrDownloadFormat;
+}
+
 export function downloadQrCode(
   svgElement: SVGSVGElement,
-  filename: string = "contact-qr.png",
-  size: number = 512
+  options: DownloadQrOptions = {}
 ): void {
+  const { filename = "contact-qr", size = 512, format = "png" } = options;
   const svgData = new XMLSerializer().serializeToString(svgElement);
   const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
   const svgUrl = URL.createObjectURL(svgBlob);
+  const fileBase = filename.replace(/\.[a-z0-9]+$/i, "");
+
+  if (format === "svg") {
+    const link = document.createElement("a");
+    link.href = svgUrl;
+    link.download = `${fileBase}.svg`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(svgUrl);
+    return;
+  }
 
   const img = new Image();
   img.onload = () => {
@@ -116,7 +139,7 @@ export function downloadQrCode(
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = filename;
+      link.download = `${fileBase}.png`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -135,5 +158,5 @@ export function downloadQrCode(
 export function getQrFilename(firstName?: string, lastName?: string): string {
   const name = [firstName, lastName].filter(Boolean).join("-") || "contact";
   const sanitized = name.toLowerCase().replace(/[^a-z0-9-]/g, "-");
-  return `${sanitized}-qr.png`;
+  return `${sanitized}-qr`;
 }
