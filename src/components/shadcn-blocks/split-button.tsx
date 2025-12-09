@@ -42,6 +42,8 @@ export interface SplitButtonProps extends React.HTMLAttributes<HTMLDivElement> {
   menuLabel?: React.ReactNode;
   /** Icon for the dropdown trigger */
   dropdownIcon?: LucideIcon;
+  /** Accessible label for dropdown trigger */
+  dropdownAriaLabel?: string;
   /** Button variant for both buttons */
   variant?:
     | "default"
@@ -78,6 +80,7 @@ const SplitButton = React.forwardRef<HTMLDivElement, SplitButtonProps>(
       menuItems,
       menuLabel,
       dropdownIcon: DropdownIcon = ChevronDown,
+      dropdownAriaLabel = "Open menu",
       variant = "default",
       size = "default",
       mainButtonDisabled = false,
@@ -102,6 +105,7 @@ const SplitButton = React.forwardRef<HTMLDivElement, SplitButtonProps>(
         {...props}
       >
         <Button
+          type="button"
           variant={variant}
           size={size}
           disabled={mainButtonDisabled}
@@ -116,12 +120,16 @@ const SplitButton = React.forwardRef<HTMLDivElement, SplitButtonProps>(
         <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
             <Button
+              type="button"
               variant={variant}
               size={size}
               disabled={dropdownDisabled}
               className={cn("-ml-px px-2", dropdownButtonClassName)}
+              aria-label={dropdownAriaLabel}
+              aria-haspopup="menu"
             >
               <DropdownIcon />
+              <span className="sr-only">{dropdownAriaLabel}</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
