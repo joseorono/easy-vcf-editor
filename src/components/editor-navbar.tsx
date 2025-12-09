@@ -7,6 +7,8 @@ import {
   Download,
   RotateCcw,
   ChevronRight,
+  QrCode,
+  Image,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -28,6 +30,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { SplitButton } from "@/components/shadcn-blocks/split-button";
 import type { VCardVersion } from "@/types/vcard-types";
 
 interface EditorNavbarProps {
@@ -35,7 +38,9 @@ interface EditorNavbarProps {
   onVersionChange: (version: VCardVersion) => void;
   onNew: () => void;
   onImportChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  onExport: () => void;
+  onExportVcf: () => void;
+  onExportQr: () => void;
+  onExportContactImage: () => void;
   showPreview: boolean;
   onShowPreview: () => void;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
@@ -46,7 +51,9 @@ export function EditorNavbar({
   onVersionChange,
   onNew,
   onImportChange,
-  onExport,
+  onExportVcf,
+  onExportQr,
+  onExportContactImage,
   showPreview,
   onShowPreview,
   fileInputRef,
@@ -119,10 +126,35 @@ export function EditorNavbar({
                   <SelectItem value="2.1">v2.1</SelectItem>
                 </SelectContent>
               </Select>
-              <Button size="sm" onClick={onExport} className="gap-1.5">
-                <Download className="h-4 w-4" />
-                <span className="hidden sm:inline">Export</span>
-              </Button>
+              <SplitButton
+                size="sm"
+                mainButtonText={
+                  <span className="hidden sm:inline">Download</span>
+                }
+                mainButtonIcon={Download}
+                onMainButtonClick={onExportVcf}
+                menuLabel="Download as"
+                menuItems={[
+                  {
+                    id: "vcf",
+                    label: "VCF File",
+                    icon: FileText,
+                    onClick: onExportVcf,
+                  },
+                  {
+                    id: "qr",
+                    label: "QR Code",
+                    icon: QrCode,
+                    onClick: onExportQr,
+                  },
+                  {
+                    id: "image",
+                    label: "Contact Image",
+                    icon: Image,
+                    onClick: onExportContactImage,
+                  },
+                ]}
+              />
             </div>
           </div>
 
