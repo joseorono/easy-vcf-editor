@@ -11,4 +11,5 @@ _Status reviewed on 2026-06-29._
 - [x] **Update the app icon and favicon** — Added `pwa-icon.svg`, `apple-touch-icon`, `mask-icon`, and `theme-color`.
 - [~] **Add SEO metadata** — Title, description, and `theme-color` are in place; Open Graph / Twitter tags still missing.
 - [x] **Establish project branding and name** — "Easy VCF Editor", with updated logo/navbar and README.
-- [ ] **Wrap the app in Electron** — Not done; a PWA approach (`vite-plugin-pwa`) was adopted instead.
+- [ ] **Wrap the app in Electron** — Not done.
+- [ ] **Add PWA support** (`vite-plugin-pwa`) was adopted instead.
