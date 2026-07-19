@@ -7,6 +7,11 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done
 # Tasks
 
 - [x] Add Test Suite.
+- [ ] Lighthouse audit — Run Lighthouse on the app to identify performance and accessibility issues.
+  - [ ] Get Accessibility to 100.
+  - [ ] Get Performance to 100.
+  - [ ] Get Best Practices to 100.
+  - [ ] Get SEO to 100.
 - [ ] Add unit tests — No unit tests exist yet.
 - [ ] Replace the old logo with new one — The old logo is still being used, replace it with the new one, replace fav icon too, update the navbar logo (og:image). - Assigned to Andreina
 - [ ] **Zod validation for the form helpers** — Zod is installed but not yet used anywhere in `src/`.
@@ -15,9 +20,10 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done
   - [ ] Surface validation errors in the form UI.
   - [ ] Reuse the schema when parsing/serializing in `src/lib/vcf-utils.ts`.
 
-- [x] **Visual refresh** — Form layout refactored and spacing adjusted.
+- [~] **Visual refresh** — Form layout refactored and spacing adjusted.
   - [x] Refactor form layout.
   - [x] Adjust spacing.
+  - [ ] Check for any remaining visual issues.
 
 - [x] **Test compatibility of outputted .VCF files with various clients** (e.g., Outlook, iOS Contacts).
   - [x] Validate exports against Outlook.
