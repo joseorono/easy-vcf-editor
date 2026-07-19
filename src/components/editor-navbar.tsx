@@ -62,11 +62,11 @@ export function EditorNavbar({
     <header className="sticky top-0 z-20 border-b border-border bg-background/80 backdrop-blur-sm">
       <div className="flex items-center justify-between gap-3 px-4 py-3 sm:py-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+          <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-primary/10">
             <img
               src="/vcf.svg"
               alt="Easy VCF Editor Logo"
-              className="h-6 w-6"
+              className="h-10 w-10"
             />
           </div>
           <div className="min-w-0">
