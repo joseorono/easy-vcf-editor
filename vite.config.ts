@@ -23,7 +23,7 @@ export default defineConfig(({ mode }) => {
       tailwindcss(),
       VitePWA({
         registerType: "autoUpdate",
-        includeAssets: ["pwa-icon.svg", "mask-icon.svg", "vite.svg"],
+        includeAssets: ["vcf.svg", "vcf-without-bg-black.svg", "vite.svg"],
         manifest: {
           name: "Easy VCF Editor",
           short_name: "VCF Editor",
@@ -36,12 +36,12 @@ export default defineConfig(({ mode }) => {
           orientation: "portrait-primary",
           icons: [
             {
-              src: "/pwa-icon.svg",
+              src: "/vcf.svg",
               sizes: "192x192",
               type: "image/svg+xml",
             },
             {
-              src: "/pwa-icon.svg",
+              src: "/vcf.svg",
               sizes: "512x512",
               type: "image/svg+xml",
               purpose: "any maskable",
