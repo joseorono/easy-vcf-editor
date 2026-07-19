@@ -1,11 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Upload } from "lucide-react";
 import { useForm, FormProvider } from "react-hook-form";
 import { useDropzone } from "react-dropzone";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import type { VCardData, VCardVersion } from "@/types/vcard-types";
 import { defaultVCardData } from "@/constants/vcard-constants";
 import {
@@ -41,6 +51,12 @@ export function VcfEditor() {
   });
 
   const watchedData = methods.watch();
+  const [pendingImportText, setPendingImportText] = useState<string | null>(
+    null
+  );
+  const [showImportWarning, setShowImportWarning] = useState(false);
+  const versionRef = useRef(version);
+  versionRef.current = version;
 
   const openImport = (tab: "file" | "paste") => {
     setImportTab(tab);
@@ -83,7 +99,22 @@ export function VcfEditor() {
   const onDrop = async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     if (!file) return;
-    importFromText(await file.text());
+    const text = await file.text();
+    if (isVCardEmpty(methods.getValues())) {
+      importFromText(text);
+    } else {
+      setPendingImportText(text);
+      setShowImportWarning(true);
+    }
+  };
+
+  const handleImportText = (text: string): boolean => {
+    if (isVCardEmpty(methods.getValues())) {
+      return importFromText(text);
+    }
+    setPendingImportText(text);
+    setShowImportWarning(true);
+    return false;
   };
 
   const { getRootProps, isDragActive } = useDropzone({
@@ -180,6 +211,20 @@ export function VcfEditor() {
   const togglePreview = () => {
     setShowPreview((prev) => !prev);
   };
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "s" && !e.repeat) {
+        e.preventDefault();
+        downloadVcf(methods.getValues(), versionRef.current);
+        toast.success("Contact exported", {
+          description: `VCF ${versionRef.current} file downloaded successfully`,
+        });
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, []);
 
   return (
     <FormProvider {...methods}>
@@ -286,8 +331,36 @@ export function VcfEditor() {
         onOpenChange={setImportOpen}
         tab={importTab}
         onTabChange={setImportTab}
-        onImportText={importFromText}
+        onImportText={handleImportText}
       />
+      <AlertDialog
+        open={showImportWarning}
+        onOpenChange={setShowImportWarning}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Replace contact?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will overwrite all current values.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPendingImportText(null)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (pendingImportText) {
+                  importFromText(pendingImportText);
+                  setImportOpen(false);
+                }
+              }}
+            >
+              Replace
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <Toaster />
     </FormProvider>
   );

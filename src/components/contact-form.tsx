@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/tooltip";
 import {
   ChevronDown,
+  ChevronsUpDown,
   User,
   Briefcase,
   Mail,
@@ -69,6 +70,8 @@ interface FormSectionProps {
   children: React.ReactNode;
   defaultOpen?: boolean;
   badge?: number;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 function FormSection({
@@ -77,11 +80,15 @@ function FormSection({
   children,
   defaultOpen = false,
   badge,
+  open,
+  onOpenChange,
 }: FormSectionProps) {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
+  const [internalOpen, setInternalOpen] = useState(defaultOpen);
+  const isOpen = open ?? internalOpen;
+  const handleOpenChange = onOpenChange ?? setInternalOpen;
 
   return (
-    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+    <Collapsible open={isOpen} onOpenChange={handleOpenChange}>
       <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg border border-border/50 bg-secondary/30 px-4 py-3 text-left transition-colors hover:bg-secondary/50">
         <div className="flex items-center gap-3">
           <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-primary">
@@ -651,13 +658,37 @@ export function ContactForm() {
   const filledEmails = emails.filter((e) => e.value).length;
   const filledAddresses = addresses.filter((a) => a.street || a.city).length;
   const filledUrls = urls.filter((u) => u.value).length;
+  const [sectionsExpanded, setSectionsExpanded] = useState<boolean | null>(
+    null
+  );
+  const cycleSectionsExpanded = () => {
+    setSectionsExpanded((prev) => (prev === null ? false : !prev));
+  };
 
   return (
     <div className="space-y-3">
+      <div className="flex justify-end px-4">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={cycleSectionsExpanded}
+          className="gap-1.5 text-muted-foreground"
+          aria-label={
+            sectionsExpanded === true
+              ? "Collapse all sections"
+              : "Expand all sections"
+          }
+        >
+          <ChevronsUpDown className="h-4 w-4" />
+          {sectionsExpanded === true ? "Collapse all" : "Expand all"}
+        </Button>
+      </div>
       <FormSection
         title="Basic Information"
         icon={<User className="h-4 w-4" />}
         defaultOpen
+        open={sectionsExpanded || undefined}
       >
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="space-y-2">
@@ -809,6 +840,7 @@ export function ContactForm() {
         title="Phone"
         icon={<Phone className="h-4 w-4" />}
         badge={filledPhones}
+        open={sectionsExpanded}
       >
         <PhonesField />
       </FormSection>
@@ -817,6 +849,7 @@ export function ContactForm() {
         title="Email"
         icon={<Mail className="h-4 w-4" />}
         badge={filledEmails}
+        open={sectionsExpanded}
       >
         <EmailsField />
       </FormSection>
@@ -824,6 +857,7 @@ export function ContactForm() {
       <FormSection
         title="Work & Organization"
         icon={<Briefcase className="h-4 w-4" />}
+        open={sectionsExpanded}
       >
         <div className="grid gap-4 sm:grid-cols-2">
           <FormField
@@ -850,6 +884,7 @@ export function ContactForm() {
       <FormSection
         title="Dates & Calendar"
         icon={<Calendar className="h-4 w-4" />}
+        open={sectionsExpanded}
       >
         <div className="grid gap-4 sm:grid-cols-2">
           <FormField name="birthday" label="Birthday" type="date" />
@@ -911,6 +946,7 @@ export function ContactForm() {
         title="Addresses"
         icon={<MapPin className="h-4 w-4" />}
         badge={filledAddresses}
+        open={sectionsExpanded}
       >
         <AddressesField />
       </FormSection>
@@ -919,11 +955,16 @@ export function ContactForm() {
         title="Websites & URLs"
         icon={<Globe className="h-4 w-4" />}
         badge={filledUrls}
+        open={sectionsExpanded}
       >
         <UrlsField />
       </FormSection>
 
-      <FormSection title="Geographic" icon={<MapPin className="h-4 w-4" />}>
+      <FormSection
+        title="Geographic"
+        icon={<MapPin className="h-4 w-4" />}
+        open={sectionsExpanded}
+      >
         <GeoInput />
       </FormSection>
 
@@ -931,6 +972,7 @@ export function ContactForm() {
         title="Instant Messaging"
         icon={<MessageSquare className="h-4 w-4" />}
         badge={impps.filter((i) => i.value).length}
+        open={sectionsExpanded}
       >
         <ImppField />
       </FormSection>
@@ -939,11 +981,16 @@ export function ContactForm() {
         title="Related People"
         icon={<Users className="h-4 w-4" />}
         badge={related.filter((r) => r.value).length}
+        open={sectionsExpanded}
       >
         <RelatedField />
       </FormSection>
 
-      <FormSection title="Additional Info" icon={<Info className="h-4 w-4" />}>
+      <FormSection
+        title="Additional Info"
+        icon={<Info className="h-4 w-4" />}
+        open={sectionsExpanded}
+      >
         <FormField
           name="categories"
           label="Categories / Tags"
@@ -965,7 +1012,11 @@ export function ContactForm() {
         </div>
       </FormSection>
 
-      <FormSection title="Advanced" icon={<Settings className="h-4 w-4" />}>
+      <FormSection
+        title="Advanced"
+        icon={<Settings className="h-4 w-4" />}
+        open={sectionsExpanded}
+      >
         <FormField
           name="publicKey"
           label="Public Key URL"
