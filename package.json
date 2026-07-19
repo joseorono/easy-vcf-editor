@@ -3,11 +3,15 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "electron:dev": "concurrently -k \"vite\" \"wait-on http://localhost:5173 && tsc -p tsconfig.electron.json && electron .\"",
+    "electron:build": "cross-env ELECTRON=true vite build && tsc -p tsconfig.electron.json && electron-builder",
+    "electron:preview": "tsc -p tsconfig.electron.json && electron ."
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^1.1.15",
@@ -61,6 +65,29 @@
     "typescript-eslint": "^8.46.4",
     "vite": "^7.2.4",
     "vite-plugin-pwa": "^1.2.0",
-    "vitest": "^4.0.15"
+    "vitest": "^4.0.15",
+    "concurrently": "^9.2.1",
+    "cross-env": "^7.0.3",
+    "electron": "^38.2.1",
+    "electron-builder": "^26.0.12",
+    "wait-on": "^8.0.4"
+  },
+  "build": {
+    "appId": "com.exologic.easy-vcf-editor",
+    "productName": "Easy VCF Editor",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*"
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
   }
 }
