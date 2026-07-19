@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { isElectron } from '~/lib/electron-detector';
+import { isElectron } from '@/lib/electron-detector';
 
 /**
  * Hook to detect if the app is running in Electron environment
