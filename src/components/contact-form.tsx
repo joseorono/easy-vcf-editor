@@ -664,7 +664,7 @@ export function ContactForm() {
   );
   const [lastToggleAction, setLastToggleAction] = useState<
     "expand" | "collapse"
-  >("expand");
+  >("collapse");
 
   const handleToggleAll = () => {
     if (lastToggleAction === "expand") {
