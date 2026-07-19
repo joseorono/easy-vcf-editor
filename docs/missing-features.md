@@ -74,8 +74,8 @@ Each entry follows:
 
 ## 5. Multi-contact (larger effort)
 
-- **Multi-contact `.vcf` → list view, with select / merge / batch edit** — `parseVcf` reads only the first card; there's no list, no multi-export.
-  **UI fit:** introduce a **left contact-list rail** as a new surface that feeds the existing single-contact editor (selecting an entry loads it into the current form); multi-select drives batch actions and a combined export. This is an architectural step, not a drop-in — see the multi-contact and bulk-operations sections of `ideas.md`. _(Effort: L)_
+- **Multi-contact `.vcf` → list view, with select / merge / batch edit** — turns the app into a persisted contacts library (IndexedDB via Dexie), with a left contact-list rail feeding the existing editor. This is an architectural step, not a drop-in.
+  **→ Full technical design: [`multi-contact.md`](./multi-contact.md).** _(Effort: L)_
 
 ## 6. Polish & platform
 
