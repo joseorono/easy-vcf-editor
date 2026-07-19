@@ -1,5 +1,11 @@
 export const isElectron = (): boolean => {
   try {
+    // Preferred signal: the preload bridge exposes this under contextIsolation,
+    // independent of nodeIntegration (which we keep disabled).
+    if (typeof window !== 'undefined' && window.electronAPI?.isElectron === true) {
+      return true;
+    }
+
     // Renderer process with nodeIntegration
     if (typeof window !== 'undefined' && typeof window.process === 'object' && window.process?.type === 'renderer') {
       return true;

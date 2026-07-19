@@ -9,9 +9,9 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "electron:dev": "concurrently -k \"vite\" \"wait-on http://localhost:5173 && tsc -p tsconfig.electron.json && electron .\"",
-    "electron:build": "cross-env ELECTRON=true vite build && tsc -p tsconfig.electron.json && electron-builder",
-    "electron:preview": "tsc -p tsconfig.electron.json && electron ."
+    "electron:dev": "vite --mode electron",
+    "electron:build": "vite build --mode electron && electron-builder",
+    "typecheck:electron": "tsc -p tsconfig.electron.json --noEmit",
     "test-cli": "vitest --run --reporter verbose",
     "test": "vitest --ui",
     "test-filter": "vitest --reporter verbose --testNamePattern",
@@ -71,13 +71,11 @@
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.4",
     "vite": "^7.2.4",
+    "vite-plugin-electron": "^1.1.0",
     "vite-plugin-pwa": "^1.2.0",
     "vitest": "^4.0.15",
-    "concurrently": "^9.2.1",
-    "cross-env": "^7.0.3",
     "electron": "^38.2.1",
-    "electron-builder": "^26.0.12",
-    "wait-on": "^8.0.4"
+    "electron-builder": "^26.0.12"
   },
   "build": {
     "appId": "com.exologic.easy-vcf-editor",
