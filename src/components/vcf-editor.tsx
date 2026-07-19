@@ -53,9 +53,20 @@ export function VcfEditor() {
     // parseVcf never throws on malformed input — it returns a mostly-empty
     // VCardData. Guard explicitly so garbage input gives real feedback.
     const parsedData = parseVcf(text);
-    if (!/BEGIN:VCARD/i.test(text) || isVCardEmpty(parsedData)) {
+
+    // Not a vCard at all — the user picked the wrong file.
+    if (!/BEGIN:VCARD/i.test(text)) {
       toast.error("Import failed", {
         description: "That doesn't look like a valid vCard.",
+      });
+      return false;
+    }
+
+    // A real vCard, just with no contact details in it. Nothing went wrong,
+    // so say so plainly instead of reporting a failure.
+    if (isVCardEmpty(parsedData)) {
+      toast.info("This vCard is empty", {
+        description: "It's a valid vCard, but it has no contact details to import.",
       });
       return false;
     }
