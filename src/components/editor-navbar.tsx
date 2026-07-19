@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import {
   Upload,
   Download,
@@ -8,6 +7,7 @@ import {
   ChevronRight,
   QrCode,
   Image,
+  ClipboardPaste,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -37,26 +37,24 @@ interface EditorNavbarProps {
   version: VCardVersion;
   onVersionChange: (version: VCardVersion) => void;
   onNew: () => void;
-  onImportChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onOpenImport: (tab: "file" | "paste") => void;
   onExportVcf: () => void;
   onExportQr: (format: QrDownloadFormat) => void;
   onExportContactImage: () => void;
   showPreview: boolean;
   onShowPreview: () => void;
-  fileInputRef: React.RefObject<HTMLInputElement | null>;
 }
 
 export function EditorNavbar({
   version,
   onVersionChange,
   onNew,
-  onImportChange,
+  onOpenImport,
   onExportVcf,
   onExportQr,
   onExportContactImage,
   showPreview,
   onShowPreview,
-  fileInputRef,
 }: EditorNavbarProps) {
   return (
     <header className="sticky top-0 z-20 border-b border-border bg-background/80 backdrop-blur-sm">
@@ -123,16 +121,30 @@ export function EditorNavbar({
               </AlertDialogContent>
             </AlertDialog>
 
-            <Button
+            <SplitButton
               variant="outline"
               size="sm"
-              onClick={() => fileInputRef.current?.click()}
-              className="gap-1.5"
-              aria-label="Import contact from VCF file"
-            >
-              <Upload className="h-4 w-4" />
-              <span className="hidden sm:inline">Import</span>
-            </Button>
+              mainButtonText={<span className="hidden sm:inline">Import</span>}
+              mainButtonIcon={Upload}
+              mainButtonAriaLabel="Import contact from VCF file"
+              onMainButtonClick={() => onOpenImport("file")}
+              menuLabel="Import contact from"
+              dropdownAriaLabel="Choose contact import option"
+              menuItems={[
+                {
+                  id: "file",
+                  label: "From file…",
+                  icon: Upload,
+                  onClick: () => onOpenImport("file"),
+                },
+                {
+                  id: "paste",
+                  label: "Paste vCard…",
+                  icon: ClipboardPaste,
+                  onClick: () => onOpenImport("paste"),
+                },
+              ]}
+            />
             <div className="flex items-center gap-2">
               <Select
                 name="vcf-version"
@@ -201,14 +213,6 @@ export function EditorNavbar({
           </Button>
         </div>
       </div>
-
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".vcf,.vcard"
-        onChange={onImportChange}
-        className="hidden"
-      />
     </header>
   );
 }

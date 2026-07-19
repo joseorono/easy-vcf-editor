@@ -1,10 +1,9 @@
 "use client";
 
-import type React from "react";
-
-import { useState, useRef } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useState } from "react";
+import { ChevronLeft, ChevronRight, Upload } from "lucide-react";
 import { useForm, FormProvider } from "react-hook-form";
+import { useDropzone } from "react-dropzone";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { VCardData, VCardVersion } from "@/types/vcard-types";
@@ -28,12 +27,14 @@ import { cn } from "@/lib/utils";
 import { EditorNavbar } from "@/components/editor-navbar";
 import { Footer } from "@/components/footer";
 import { PreviewTabs } from "@/components/preview-tabs";
+import { ImportVcardDialog } from "@/components/import-vcard-dialog";
 
 export function VcfEditor() {
   const [version, setVersion] = useState<VCardVersion>("4.0");
   const [showPreview, setShowPreview] = useState(false);
   const [isPreviewCollapsed, setIsPreviewCollapsed] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [importOpen, setImportOpen] = useState(false);
+  const [importTab, setImportTab] = useState<"file" | "paste">("file");
 
   const methods = useForm<VCardData>({
     defaultValues: defaultVCardData,
@@ -41,29 +42,49 @@ export function VcfEditor() {
 
   const watchedData = methods.watch();
 
-  const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    try {
-      const text = await file.text();
-      const parsedData = parseVcf(text);
-      methods.reset(parsedData);
-      toast.success("Contact imported", {
-        description:
-          `Successfully imported ${parsedData.firstName} ${parsedData.lastName}`.trim() ||
-          "Contact data loaded",
-      });
-    } catch {
-      toast.error("Import failed", {
-        description: "Could not parse the VCF file",
-      });
-    }
-
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
+  const openImport = (tab: "file" | "paste") => {
+    setImportTab(tab);
+    setImportOpen(true);
   };
+
+  // Shared import path used by the import modal (file + paste) and the
+  // whole-window drop. Returns true on success so callers can react.
+  const importFromText = (text: string): boolean => {
+    // parseVcf never throws on malformed input — it returns a mostly-empty
+    // VCardData. Guard explicitly so garbage input gives real feedback.
+    const parsedData = parseVcf(text);
+    if (!/BEGIN:VCARD/i.test(text) || isVCardEmpty(parsedData)) {
+      toast.error("Import failed", {
+        description: "That doesn't look like a valid vCard.",
+      });
+      return false;
+    }
+
+    methods.reset(parsedData);
+    toast.success("Contact imported", {
+      description:
+        `Successfully imported ${parsedData.firstName} ${parsedData.lastName}`.trim() ||
+        "Contact data loaded",
+    });
+    return true;
+  };
+
+  const onDrop = async (acceptedFiles: File[]) => {
+    const file = acceptedFiles[0];
+    if (!file) return;
+    importFromText(await file.text());
+  };
+
+  const { getRootProps, isDragActive } = useDropzone({
+    onDrop,
+    noClick: true,
+    noKeyboard: true,
+    multiple: false,
+    accept: {
+      "text/vcard": [".vcf", ".vcard"],
+      "text/directory": [".vcf"],
+    },
+  });
 
   const handleExportVcf = () => {
     const data = methods.getValues();
@@ -156,16 +177,31 @@ export function VcfEditor() {
           version={version}
           onVersionChange={(v) => setVersion(v)}
           onNew={handleNew}
-          onImportChange={handleImport}
+          onOpenImport={openImport}
           onExportVcf={handleExportVcf}
           onExportQr={handleExportQr}
           onExportContactImage={handleExportContactImage}
           showPreview={showPreview}
           onShowPreview={togglePreview}
-          fileInputRef={fileInputRef}
         />
 
-        <div className="flex flex-1 overflow-hidden">
+        <div
+          {...getRootProps()}
+          className="relative flex flex-1 overflow-hidden"
+        >
+          {/* Drag-and-drop overlay */}
+          {isDragActive && (
+            <div className="pointer-events-none absolute inset-2 z-40 flex flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-primary bg-primary/5 backdrop-blur-sm transition-colors">
+              <Upload className="h-10 w-10 text-primary" />
+              <p className="text-lg font-medium text-primary">
+                Drop your .vcf file here
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Release to import the contact
+              </p>
+            </div>
+          )}
+
           {/* Form Panel */}
           <div
             className={cn(
@@ -234,6 +270,13 @@ export function VcfEditor() {
 
         <Footer />
       </div>
+      <ImportVcardDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        tab={importTab}
+        onTabChange={setImportTab}
+        onImportText={importFromText}
+      />
       <Toaster />
     </FormProvider>
   );
