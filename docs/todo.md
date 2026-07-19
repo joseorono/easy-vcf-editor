@@ -4,6 +4,7 @@ _Status reviewed on 2026-06-29._
 
 - [ ] **Zod validation for the form helpers** — Zod is installed but not yet used anywhere in `src/`.
 - [x] **Visual refresh** — Form layout refactored and spacing adjusted.
+- [x] Test compatibility of outpotted .VCF files with various clients (e.g., Outlook, iOS Contacts).
 - [ ] **Custom theme via the shadcn style generator** — Still using the default neutral theme.
 - [ ] **Reduce the number of FormSections to save vertical space** — Still ~12 sections.
 - [x] **Move additional fields into Basic Information** — Language, Timezone, Photo, Logo and others relocated there.
