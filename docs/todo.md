@@ -40,15 +40,15 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done
 
 - [x] **Update the app icon and favicon** — Added `pwa-icon.svg`, `apple-touch-icon`, `mask-icon`, and `theme-color`.
 
-- [~] **Add SEO metadata** — Core tags and social cards in place.
+- [~] **Add SEO metadata** — Core tags and social cards in place. - Assigned to Andreina
   - [x] Title, description, and `theme-color`.
   - [x] Open Graph tags (`index.html`).
   - [x] Twitter card tags (`index.html`).
   - [ ] Replace the SVG `og:image`/`twitter:image` with a raster (PNG/JPG) preview image for wider crawler support.
 
-- [x] **Establish project branding and name** — "Easy VCF Editor", with updated logo/navbar and README.
+- [x] **Establish project branding and name** — "Easy VCF Editor", with updated logo/navbar and README. - Assigned to Andreina
 
-- [~] **Wrap the app in Electron** — Scaffolded and building via `vite-plugin-electron`.
+- [~] **Wrap the app in Electron** — Scaffolded and building via `vite-plugin-electron`. - Assigned to Andreina
   - [x] `electron/main.ts` (secure `BrowserWindow`: `contextIsolation`, no `nodeIntegration`, `sandbox`).
   - [x] `electron/preload.ts` exposing `window.electronAPI` via `contextBridge`.
   - [x] Build integrated into `vite.config.ts` (`--mode electron`): main → ESM `main.js`, preload → CJS `preload.cjs`.
@@ -58,7 +58,7 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done
   - [ ] Verify `npm run electron:dev` opens a window and `window.electronAPI.isElectron === true`.
   - [ ] Produce and smoke-test the NSIS installer via `npm run electron:build`.
 
-- [x] **Add PWA support** — Implemented with `vite-plugin-pwa`.
+- [x] **Add PWA support** — Implemented with `vite-plugin-pwa`. - Assigned to Andreina
   - [x] Manifest, `registerType: "autoUpdate"`, workbox (`skipWaiting`/`clientsClaim`).
   - [x] Install-prompt UX (`use-pwa-install.ts` / `install-pwa-hint.tsx`).
   - [x] Disabled inside Electron builds (`disable: isElectron`).
