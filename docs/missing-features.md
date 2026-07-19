@@ -37,6 +37,8 @@ Each entry follows:
   **Shipped:** `importFromText` guards explicitly (`parseVcf` never throws) and splits the two cases: missing `BEGIN:VCARD` → `toast.error("Import failed")`; a structurally valid but detail-less vCard → the gentler `toast.info("This vCard is empty")`. Both return `false`, so the dialog stays open for a retry.
   **Still open:** listing unknown properties captured as custom fields. See the "import robustness" item in `ideas.md`.
 
+- [ ] Compare our output files to other vCard editors to ensure compatibility and standard compliance.
+
 - [ ] **Warn before an import overwrites unsaved edits** — `importFromText` calls `methods.reset(parsedData)`, which silently discards whatever is in the form. Easy to trigger now that a stray drop anywhere in the window imports.
   **UI fit:** if the current form is non-empty (`isVCardEmpty(methods.getValues())` is false), route through the existing Clear-style `AlertDialog` — "Replace the contact you're editing?" — before resetting. _(Effort: S)_
 
