@@ -13,7 +13,7 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done
   - [ ] Get Best Practices to 100.
   - [ ] Get SEO to 100.
 - [ ] Add unit tests — No unit tests exist yet.
-- [ ] Replace the old logo with new one — The old logo is still being used, replace it with the new one, replace fav icon too, update the navbar logo (og:image). - Assigned to Andreina
+- [x] Replace the old logo with new one — Updated favicon, apple-touch-icon, mask-icon, navbar logo, PWA manifest icons, and og:image/twitter:image to use `vcf.svg`, `vcf-without-bg-black.svg`, and `vcf-og.png`.
 - [ ] **Zod validation for the form helpers** — Zod is installed but not yet used anywhere in `src/`.
   - [ ] Define the contact schema (co-locate as `*.types.ts` or in `src/types/`).
   - [ ] Wire `@hookform/resolvers/zod` `zodResolver` into the react-hook-form setup.
@@ -44,13 +44,13 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done
 
 - [x] **Group the Gender field with related fields** — Now sits alongside First/Last Name in Basic Information.
 
-- [x] **Update the app icon and favicon** — Added `pwa-icon.svg`, `apple-touch-icon`, `mask-icon`, and `theme-color`.
+- [x] **Update the app icon and favicon** — Now uses `vcf.svg` (favicon, apple-touch, PWA manifest), `vcf-without-bg-black.svg` (mask-icon), and `vcf-og.png` (og:image, twitter:image).
 
-- [~] **Add SEO metadata** — Core tags and social cards in place. - Assigned to Andreina
+- [x] **Add SEO metadata** — Core tags and social cards in place. - Assigned to Andreina
   - [x] Title, description, and `theme-color`.
   - [x] Open Graph tags (`index.html`).
   - [x] Twitter card tags (`index.html`).
-  - [ ] Replace the SVG `og:image`/`twitter:image` with a raster (PNG/JPG) preview image for wider crawler support.
+  - [x] Replace the SVG `og:image`/`twitter:image` with a raster PNG (`vcf-og.png`) for wider crawler support.
 
 - [x] **Establish project branding and name** — "Easy VCF Editor", with updated logo/navbar and README. - Assigned to Andreina
 
