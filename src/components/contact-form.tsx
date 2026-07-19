@@ -57,7 +57,7 @@ import {
   imppTypeLabels,
   relatedTypeLabels,
 } from "@/constants/vcard-constants";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { cn, updateHiddenInputValue } from "@/lib/utils";
 import { LanguageSelector } from "@/components/language-selector";
 import { GeoInput } from "@/components/geo-input";
@@ -70,8 +70,10 @@ interface FormSectionProps {
   children: React.ReactNode;
   defaultOpen?: boolean;
   badge?: number;
-  open?: boolean;
-  onOpenChange?: (open: boolean) => void;
+  sectionId: string;
+  openSettersRef: React.MutableRefObject<
+    Map<string, (open: boolean) => void>
+  >;
 }
 
 function FormSection({
@@ -80,15 +82,14 @@ function FormSection({
   children,
   defaultOpen = false,
   badge,
-  open,
-  onOpenChange,
+  sectionId,
+  openSettersRef,
 }: FormSectionProps) {
-  const [internalOpen, setInternalOpen] = useState(defaultOpen);
-  const isOpen = open ?? internalOpen;
-  const handleOpenChange = onOpenChange ?? setInternalOpen;
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+  openSettersRef.current.set(sectionId, setIsOpen);
 
   return (
-    <Collapsible open={isOpen} onOpenChange={handleOpenChange}>
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg border border-border/50 bg-secondary/30 px-4 py-3 text-left transition-colors hover:bg-secondary/50">
         <div className="flex items-center gap-3">
           <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-primary">
@@ -658,11 +659,23 @@ export function ContactForm() {
   const filledEmails = emails.filter((e) => e.value).length;
   const filledAddresses = addresses.filter((a) => a.street || a.city).length;
   const filledUrls = urls.filter((u) => u.value).length;
-  const [sectionsExpanded, setSectionsExpanded] = useState<boolean | null>(
-    null
+  const openSetters = useRef<Map<string, (open: boolean) => void>>(
+    new Map()
   );
-  const cycleSectionsExpanded = () => {
-    setSectionsExpanded((prev) => (prev === null ? false : !prev));
+  const [lastToggleAction, setLastToggleAction] = useState<
+    "expand" | "collapse"
+  >("expand");
+
+  const handleToggleAll = () => {
+    if (lastToggleAction === "expand") {
+      openSetters.current.forEach((setOpen, id) =>
+        setOpen(id === "basic")
+      );
+      setLastToggleAction("collapse");
+    } else {
+      openSetters.current.forEach((setOpen) => setOpen(true));
+      setLastToggleAction("expand");
+    }
   };
 
   return (
@@ -672,23 +685,24 @@ export function ContactForm() {
           type="button"
           variant="ghost"
           size="sm"
-          onClick={cycleSectionsExpanded}
+          onClick={handleToggleAll}
           className="gap-1.5 text-muted-foreground"
           aria-label={
-            sectionsExpanded === true
+            lastToggleAction === "expand"
               ? "Collapse all sections"
               : "Expand all sections"
           }
         >
           <ChevronsUpDown className="h-4 w-4" />
-          {sectionsExpanded === true ? "Collapse all" : "Expand all"}
+          {lastToggleAction === "expand" ? "Collapse all" : "Expand all"}
         </Button>
       </div>
       <FormSection
         title="Basic Information"
         icon={<User className="h-4 w-4" />}
         defaultOpen
-        open={sectionsExpanded || undefined}
+        sectionId="basic"
+        openSettersRef={openSetters}
       >
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="space-y-2">
@@ -840,7 +854,8 @@ export function ContactForm() {
         title="Phone"
         icon={<Phone className="h-4 w-4" />}
         badge={filledPhones}
-        open={sectionsExpanded}
+        sectionId="phone"
+        openSettersRef={openSetters}
       >
         <PhonesField />
       </FormSection>
@@ -849,7 +864,8 @@ export function ContactForm() {
         title="Email"
         icon={<Mail className="h-4 w-4" />}
         badge={filledEmails}
-        open={sectionsExpanded}
+        sectionId="email"
+        openSettersRef={openSetters}
       >
         <EmailsField />
       </FormSection>
@@ -857,7 +873,8 @@ export function ContactForm() {
       <FormSection
         title="Work & Organization"
         icon={<Briefcase className="h-4 w-4" />}
-        open={sectionsExpanded}
+        sectionId="work"
+        openSettersRef={openSetters}
       >
         <div className="grid gap-4 sm:grid-cols-2">
           <FormField
@@ -884,7 +901,8 @@ export function ContactForm() {
       <FormSection
         title="Dates & Calendar"
         icon={<Calendar className="h-4 w-4" />}
-        open={sectionsExpanded}
+        sectionId="dates"
+        openSettersRef={openSetters}
       >
         <div className="grid gap-4 sm:grid-cols-2">
           <FormField name="birthday" label="Birthday" type="date" />
@@ -946,7 +964,8 @@ export function ContactForm() {
         title="Addresses"
         icon={<MapPin className="h-4 w-4" />}
         badge={filledAddresses}
-        open={sectionsExpanded}
+        sectionId="addresses"
+        openSettersRef={openSetters}
       >
         <AddressesField />
       </FormSection>
@@ -955,7 +974,8 @@ export function ContactForm() {
         title="Websites & URLs"
         icon={<Globe className="h-4 w-4" />}
         badge={filledUrls}
-        open={sectionsExpanded}
+        sectionId="websites"
+        openSettersRef={openSetters}
       >
         <UrlsField />
       </FormSection>
@@ -963,7 +983,8 @@ export function ContactForm() {
       <FormSection
         title="Geographic"
         icon={<MapPin className="h-4 w-4" />}
-        open={sectionsExpanded}
+        sectionId="geographic"
+        openSettersRef={openSetters}
       >
         <GeoInput />
       </FormSection>
@@ -972,7 +993,8 @@ export function ContactForm() {
         title="Instant Messaging"
         icon={<MessageSquare className="h-4 w-4" />}
         badge={impps.filter((i) => i.value).length}
-        open={sectionsExpanded}
+        sectionId="messaging"
+        openSettersRef={openSetters}
       >
         <ImppField />
       </FormSection>
@@ -981,7 +1003,8 @@ export function ContactForm() {
         title="Related People"
         icon={<Users className="h-4 w-4" />}
         badge={related.filter((r) => r.value).length}
-        open={sectionsExpanded}
+        sectionId="related"
+        openSettersRef={openSetters}
       >
         <RelatedField />
       </FormSection>
@@ -989,7 +1012,8 @@ export function ContactForm() {
       <FormSection
         title="Additional Info"
         icon={<Info className="h-4 w-4" />}
-        open={sectionsExpanded}
+        sectionId="additional"
+        openSettersRef={openSetters}
       >
         <FormField
           name="categories"
@@ -1015,7 +1039,8 @@ export function ContactForm() {
       <FormSection
         title="Advanced"
         icon={<Settings className="h-4 w-4" />}
-        open={sectionsExpanded}
+        sectionId="advanced"
+        openSettersRef={openSetters}
       >
         <FormField
           name="publicKey"
