@@ -92,7 +92,7 @@ IDs are assigned in the repository layer at create time (§5), never by Dexie.
 
 ## 5. Repository — `src/db/queries.ts`
 
-A static-method class wrapping all table access (mirrors the sibling's `PaletteDBQueries`). Timestamps and denorm fields are stamped here, never by callers.
+A static-method class wrapping all table access (mirrors the sibling's `PaletteDBQueries`). Timestamps and denorm fields are stamped here, never by callers. **All IndexedDB reads and writes should go through this typed `ContactDBQueries` layer; components should never call `db.contacts` directly, so the row shape, indexes, and timestamps stay correct at compile time.**
 
 ```ts
 import { db } from "@/db/main";
@@ -314,12 +314,14 @@ Existing helpers to reuse as-is: `generateVcf`, `downloadVcf`, `buildFullName`, 
 
 ## 12. New dependencies
 
-| Package | Version | Why |
-|---|---|---|
-| `dexie` | `^4` | IndexedDB wrapper |
-| `dexie-react-hooks` | `^1.1.7` | `useLiveQuery` reactivity |
-| `nanoid` | `^5` | contact IDs. Currently only transitive via postcss; add directly. **v5 is ESM-only — fine, the app is `"type":"module"`.** |
-| `fake-indexeddb` (dev, optional) | latest | unit-test the repo in Vitest |
+Run `npm install <package>` for each dependency to install the latest version. The entry in `package.json` will be pinned to the installed major with `^` automatically.
+
+| Package | Why |
+|---|---|
+| `dexie` | IndexedDB wrapper |
+| `dexie-react-hooks` | `useLiveQuery` reactivity |
+| `nanoid` | contact IDs. Currently only transitive via postcss; add directly. **ESM-only — fine, the app is `"type":"module"`.** |
+| `fake-indexeddb` (dev, optional) | unit-test the repo in Vitest |
 
 ---
 
