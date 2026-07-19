@@ -37,10 +37,10 @@ Each entry follows:
   **Shipped:** `importFromText` guards explicitly (`parseVcf` never throws) and splits the two cases: missing `BEGIN:VCARD` → `toast.error("Import failed")`; a structurally valid but detail-less vCard → the gentler `toast.info("This vCard is empty")`. Both return `false`, so the dialog stays open for a retry.
   **Still open:** listing unknown properties captured as custom fields. See the "import robustness" item in `ideas.md`.
 
-- [ ] Compare our output files to other vCard editors to ensure compatibility and standard compliance.
+- [ ] Compare our output files to other vCard editors to ensure compatibility and standard compliance. - Assigned to Mauricio
 
 - [ ] **Warn before an import overwrites unsaved edits** — `importFromText` calls `methods.reset(parsedData)`, which silently discards whatever is in the form. Easy to trigger now that a stray drop anywhere in the window imports.
-  **UI fit:** if the current form is non-empty (`isVCardEmpty(methods.getValues())` is false), route through the existing Clear-style `AlertDialog` — "Replace the contact you're editing?" — before resetting. _(Effort: S)_
+  **UI fit:** if the current form is non-empty (`isVCardEmpty(methods.getValues())` is false), route through the existing Clear-style `AlertDialog` — "Replace the contact you're editing?" — before resetting. _(Effort: S)_ - Assigned to Mauricio
 
 - [ ] **Drag-and-drop phase 2: multi-file / multi-contact drops** — both dropzones are `multiple: false`, and a `.vcf` holding several cards imports only the first, with no notice that the rest were dropped.
   **UI fit:** at minimum, a toast when the parsed file contained more than one `BEGIN:VCARD` ("Imported the first of N contacts"). The full answer is the contact-list rail in [`multi-contact.md`](./multi-contact.md). _(Effort: S for the notice, L for real support)_
@@ -48,7 +48,7 @@ Each entry follows:
 ## 2. Export & sharing
 
 - [ ] **Finish Contact Image export** — the "Contact Image" menu item is currently a "Coming soon" stub.
-  **UI fit:** wire the existing Download `SplitButton` item; render the `contact-preview` card to a canvas (same rasterize approach as `qr-utils` PNG export) and download. _(Effort: M)_
+  **UI fit:** wire the existing Download `SplitButton` item; render the `contact-preview` card to a canvas (same rasterize approach as `qr-utils` PNG export) and download. _(Effort: M)_ - Assigned to Mauricio
 
 - [ ] **jCard / JSON export + a 4th preview tab** — power users and integrations want the JSON (RFC 7095) form.
   **UI fit:** add a **"JSON"** tab beside Visual/Code/QR in `preview-tabs.tsx` (mirror the Code tab's `<pre>` + copy button), and add a "jCard (JSON)" item to the Download SplitButton. _(Effort: M)_
@@ -79,10 +79,10 @@ Each entry follows:
   **UI fit:** swap the raw input in Basic Information for a multiselect using the same pattern as `language-selector.tsx` / `timezone-selector.tsx` (`geo-input.tsx` already structures GEO). _(Effort: S)_
 
 - [ ] **Mark a "primary / PREF" entry** on repeatable rows — vCard supports `PREF`; the model/UI don't expose it.
-  **UI fit:** a star/`Toggle` on each phone/email/address row card; the starred row emits the `PREF` param on export. _(Effort: M)_
+  **UI fit:** a star/`Toggle` on each phone/email/address row card; the starred row emits the `PREF` param on export. _(Effort: M)_ - Assigned to Mauricio
 
-- [ ] **Collapse/expand-all + jump-to-section** — 12 sections is a lot of scrolling.
-  **UI fit:** a small control row above the form driving the `Collapsible` open-states; optionally a section nav (anchor chips) that scrolls to a `FormSection`. _(Effort: S)_
+- [ ] **Collapse/expand-all** — 12 sections is a lot of scrolling.
+  **UI fit:** a small control row above the form driving the `Collapsible` open-states. _(Effort: S)_ - Assigned to Mauricio
 
 ## 5. Multi-contact (larger effort)
 
@@ -102,7 +102,7 @@ Each entry follows:
   **UI fit if revisited:** a 3-way segmented control, or long-press / `DropdownMenu` on the existing pill. _(Effort: S)_
 
 - [ ] **Keyboard shortcuts** — `Ctrl/Cmd+S` to export, a key to toggle preview, and tab switching.
-  **UI fit:** a global key handler in `vcf-editor.tsx` calling the existing export/toggle handlers; surface the shortcuts in button tooltips. _(Effort: S)_
+  **UI fit:** a global key handler in `vcf-editor.tsx` calling the existing export/toggle handlers; surface the shortcuts in button tooltips. _(Effort: S)_ - Assigned to Mauricio
 
 - [ ] **Electron-only niceties** — native touches when running as the desktop app.
   **UI fit:** gate with the existing `useIsElectron()` hook (`src/hooks/use-is-electron.ts`) to conditionally render things like a "Save to file…" native flow, or hide the PWA-install hint; deeper OS integration (file association, app menu) lives in `electron/main.ts`. _(Effort: M)_
