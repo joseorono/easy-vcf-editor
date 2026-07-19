@@ -4,6 +4,11 @@ _Status reviewed on 2026-07-18._
 
 Legend: `[ ]` todo · `[~]` in progress · `[x]` done
 
+# Tasks
+
+- [x] Add Test Suite.
+- [ ] Add unit tests — No unit tests exist yet.
+- [ ] Replace the old logo with new one — The old logo is still being used, replace it with the new one, replace fav icon too, update the navbar logo (og:image). - Assigned to Andreina
 - [ ] **Zod validation for the form helpers** — Zod is installed but not yet used anywhere in `src/`.
   - [ ] Define the contact schema (co-locate as `*.types.ts` or in `src/types/`).
   - [ ] Wire `@hookform/resolvers/zod` `zodResolver` into the react-hook-form setup.
