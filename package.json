@@ -11,6 +11,7 @@
     "preview": "vite preview",
     "electron:dev": "vite --mode electron",
     "electron:build": "vite build --mode electron && electron-builder",
+    "pwa:assets": "pwa-assets-generator",
     "typecheck:electron": "tsc -p tsconfig.electron.json --noEmit",
     "test-cli": "vitest --run --reporter verbose",
     "test": "vitest --ui",

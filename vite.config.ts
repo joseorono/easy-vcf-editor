@@ -22,8 +22,14 @@ export default defineConfig(({ mode }) => {
       }),
       tailwindcss(),
       VitePWA({
-        registerType: "autoUpdate",
-        includeAssets: ["vcf.svg", "vcf-without-bg-black.svg", "vite.svg"],
+        registerType: "prompt",
+        includeAssets: [
+          "vcf.svg",
+          "vcf-without-bg-black.svg",
+          "vite.svg",
+          "apple-touch-icon-180x180.png",
+          "favicon.ico"
+        ],
         manifest: {
           name: "Easy VCF Editor",
           short_name: "VCF Editor",
@@ -35,6 +41,27 @@ export default defineConfig(({ mode }) => {
           scope: "/",
           orientation: "portrait-primary",
           icons: [
+            {
+              src: "/pwa-64x64.png",
+              sizes: "64x64",
+              type: "image/png",
+            },
+            {
+              src: "/pwa-192x192.png",
+              sizes: "192x192",
+              type: "image/png",
+            },
+            {
+              src: "/pwa-512x512.png",
+              sizes: "512x512",
+              type: "image/png",
+            },
+            {
+              src: "/maskable-icon-512x512.png",
+              sizes: "512x512",
+              type: "image/png",
+              purpose: "maskable",
+            },
             {
               src: "/vcf.svg",
               sizes: "192x192",
@@ -113,8 +140,14 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
+      host: true,
       // Pinned so main.ts's dev `loadURL("http://localhost:5173")` can't drift.
       port: 5173,
+      strictPort: true,
+    },
+    preview: {
+      host: true,
+      port: 4173,
       strictPort: true,
     },
   };
