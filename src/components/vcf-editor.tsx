@@ -38,6 +38,7 @@ import { EditorNavbar } from "@/components/editor-navbar";
 import { Footer } from "@/components/footer";
 import { PreviewTabs } from "@/components/preview-tabs";
 import { ImportVcardDialog } from "@/components/import-vcard-dialog";
+import { ExportContactImageDialog } from "@/components/export-contact-image-dialog";
 
 export function VcfEditor() {
   const [version, setVersion] = useState<VCardVersion>("4.0");
@@ -45,6 +46,7 @@ export function VcfEditor() {
   const [isPreviewCollapsed, setIsPreviewCollapsed] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [importTab, setImportTab] = useState<"file" | "paste">("file");
+  const [exportContactImageOpen, setExportContactImageOpen] = useState(false);
 
   const methods = useForm<VCardData>({
     defaultValues: defaultVCardData,
@@ -196,9 +198,14 @@ export function VcfEditor() {
   };
 
   const handleExportContactImage = () => {
-    toast.info("Coming soon", {
-      description: "Contact image export will be available in a future update",
-    });
+    const data = methods.getValues();
+    if (isVCardEmpty(data)) {
+      toast.error("Cannot export contact image", {
+        description: "Please fill in at least one field first",
+      });
+      return;
+    }
+    setExportContactImageOpen(true);
   };
 
   const handleNew = () => {
@@ -332,6 +339,12 @@ export function VcfEditor() {
         tab={importTab}
         onTabChange={setImportTab}
         onImportText={handleImportText}
+      />
+      <ExportContactImageDialog
+        data={watchedData}
+        version={version}
+        open={exportContactImageOpen}
+        onOpenChange={setExportContactImageOpen}
       />
       <AlertDialog
         open={showImportWarning}

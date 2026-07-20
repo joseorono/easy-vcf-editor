@@ -35,6 +35,7 @@ import {
 interface ContactPreviewProps {
   data: VCardData;
   version: VCardVersion;
+  compact?: boolean;
 }
 
 function PreviewItem({
@@ -80,7 +81,7 @@ function PreviewItem({
   return content;
 }
 
-export function ContactPreview({ data, version }: ContactPreviewProps) {
+export function ContactPreview({ data, version, compact }: ContactPreviewProps) {
   const fullName = buildFullName(data);
   const initials = buildInitials(data);
 
@@ -99,12 +100,141 @@ export function ContactPreview({ data, version }: ContactPreviewProps) {
   const isEmpty = isVCardEmpty(data);
 
   if (isEmpty) {
+    if (compact) {
+      return (
+        <div className="flex h-40 items-center justify-center rounded-xl border border-dashed text-sm text-muted-foreground">
+          Fill in contact details to see the card
+        </div>
+      );
+    }
     return (
       <PreviewEmptyState
         icon={FileText}
         title="No preview yet"
         description="Start filling out the form to see a preview"
       />
+    );
+  }
+
+  if (compact) {
+    const titleOrg = [data.title, data.organization].filter(Boolean).join(" at ");
+    const phones = data.phones?.filter((p) => p.value) ?? [];
+    const emails = data.emails?.filter((e) => e.value) ?? [];
+    const addresses = data.addresses?.filter((a) => a.street || a.city) ?? [];
+
+    return (
+      <div className="mx-auto w-full max-w-[600px] overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm">
+        <div className="space-y-2 p-4">
+          {/* Header */}
+          <div className="flex items-center gap-3 pb-2">
+            <Avatar className="h-14 w-14 text-lg">
+              {data.photo && (
+                <AvatarImage
+                  src={data.photo || "/placeholder.svg"}
+                  alt={fullName}
+                />
+              )}
+              <AvatarFallback className="bg-primary text-primary-foreground">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0 flex-1">
+              <h3 className="truncate text-lg font-semibold">
+                {fullName || "Unnamed Contact"}
+              </h3>
+              {titleOrg && (
+                <p className="truncate text-sm text-muted-foreground">
+                  {titleOrg}
+                </p>
+              )}
+              {data.nickname && (
+                <p className="text-xs text-muted-foreground">
+                  &ldquo;{data.nickname}&rdquo;
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Phones */}
+          {phones.length > 0 && (
+            <div className="space-y-0.5">
+              {phones.map((phone, i) => (
+                <PreviewItem
+                  key={i}
+                  icon={
+                    phone.type === "cell" ? (
+                      <Smartphone className="h-3.5 w-3.5" />
+                    ) : (
+                      <Phone className="h-3.5 w-3.5" />
+                    )
+                  }
+                  label={phoneTypeLabels[phone.type]}
+                  value={phone.value}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Emails */}
+          {emails.length > 0 && (
+            <div className="space-y-0.5">
+              {emails.map((email, i) => (
+                <PreviewItem
+                  key={i}
+                  icon={<Mail className="h-3.5 w-3.5" />}
+                  label={emailTypeLabels[email.type]}
+                  value={email.value}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Addresses */}
+          {addresses.length > 0 && (
+            <div className="space-y-0.5">
+              {addresses.map((addr, i) => {
+                const formatted = [
+                  addr.street,
+                  addr.city,
+                  addr.state,
+                  addr.postalCode,
+                  addr.country,
+                ]
+                  .filter(Boolean)
+                  .join(", ");
+                return (
+                  <PreviewItem
+                    key={i}
+                    icon={<MapPin className="h-3.5 w-3.5" />}
+                    label={addressTypeLabels[addr.type]}
+                    value={formatted}
+                  />
+                );
+              })}
+            </div>
+          )}
+
+          {/* Note */}
+          {data.note && (
+            <div className="flex items-start gap-3 rounded-lg p-2">
+              <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                <FileText className="h-3.5 w-3.5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Notes
+                </p>
+                <p className="mt-0.5 whitespace-pre-wrap text-sm text-foreground">
+                  {data.note}
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+        <div className="border-t px-4 py-2">
+          <VcfFormatFooter version={version} />
+        </div>
+      </div>
     );
   }
 

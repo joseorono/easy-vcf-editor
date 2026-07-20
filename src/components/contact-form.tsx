@@ -39,6 +39,7 @@ import {
   Plus,
   Trash2,
   Settings,
+  Star,
 } from "lucide-react";
 import type {
   VCardData,
@@ -145,12 +146,23 @@ function FormField({
   );
 }
 
-function PhonesField() {
-  const { control, register } = useFormContext<VCardData>();
+export function PhonesField() {
+  const { control, register, watch, getValues, setValue } =
+    useFormContext<VCardData>();
   const { fields, append, remove } = useFieldArray({ control, name: "phones" });
+  const phones = watch("phones") || [];
 
   // Store country codes separately (not in the phone value)
   const [countryCodes, setCountryCodes] = useState<Record<number, string>>({});
+
+  const handleStarClick = (index: number) => {
+    const current = getValues("phones");
+    const wasActive = !!current[index]?.pref;
+    current.forEach((_, i) => setValue(`phones.${i}.pref`, false));
+    if (!wasActive) {
+      setValue(`phones.${index}.pref`, true);
+    }
+  };
 
   return (
     <div className="space-y-3">
@@ -214,6 +226,33 @@ function PhonesField() {
             >
               <Trash2 className="h-4 w-4" />
             </Button>
+            <input
+              type="hidden"
+              {...register(`phones.${index}.pref` as const)}
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => handleStarClick(index)}
+              className={cn(
+                "shrink-0",
+                phones[index]?.pref
+                  ? "text-yellow-500"
+                  : "text-muted-foreground hover:text-yellow-500"
+              )}
+              aria-label={
+                phones[index]?.pref ? "Remove preferred" : "Set as preferred"
+              }
+              aria-pressed={!!phones[index]?.pref}
+            >
+              <Star
+                className={cn(
+                  "h-4 w-4",
+                  phones[index]?.pref && "fill-current"
+                )}
+              />
+            </Button>
           </div>
         </div>
       ))}
@@ -232,8 +271,19 @@ function PhonesField() {
 }
 
 function EmailsField() {
-  const { control, register } = useFormContext<VCardData>();
+  const { control, register, watch, getValues, setValue } =
+    useFormContext<VCardData>();
   const { fields, append, remove } = useFieldArray({ control, name: "emails" });
+  const emails = watch("emails") || [];
+
+  const handleStarClick = (index: number) => {
+    const current = getValues("emails");
+    const wasActive = !!current[index]?.pref;
+    current.forEach((_, i) => setValue(`emails.${i}.pref`, false));
+    if (!wasActive) {
+      setValue(`emails.${index}.pref`, true);
+    }
+  };
 
   return (
     <div className="space-y-3">
@@ -285,6 +335,33 @@ function EmailsField() {
           >
             <Trash2 className="h-4 w-4" />
           </Button>
+          <input
+            type="hidden"
+            {...register(`emails.${index}.pref` as const)}
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={() => handleStarClick(index)}
+            className={cn(
+              "shrink-0",
+              emails[index]?.pref
+                ? "text-yellow-500"
+                : "text-muted-foreground hover:text-yellow-500"
+            )}
+            aria-label={
+              emails[index]?.pref ? "Remove preferred" : "Set as preferred"
+            }
+            aria-pressed={!!emails[index]?.pref}
+          >
+            <Star
+              className={cn(
+                "h-4 w-4",
+                emails[index]?.pref && "fill-current"
+              )}
+            />
+          </Button>
         </div>
       ))}
       <Button
@@ -302,11 +379,22 @@ function EmailsField() {
 }
 
 function AddressesField() {
-  const { control, register } = useFormContext<VCardData>();
+  const { control, register, watch, getValues, setValue } =
+    useFormContext<VCardData>();
   const { fields, append, remove } = useFieldArray({
     control,
     name: "addresses",
   });
+  const addresses = watch("addresses") || [];
+
+  const handleStarClick = (index: number) => {
+    const current = getValues("addresses");
+    const wasActive = !!current[index]?.pref;
+    current.forEach((_, i) => setValue(`addresses.${i}.pref`, false));
+    if (!wasActive) {
+      setValue(`addresses.${index}.pref`, true);
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -343,16 +431,47 @@ function AddressesField() {
                 {...register(`addresses.${index}.type` as const)}
               />
             </div>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => remove(index)}
-              className="shrink-0 text-muted-foreground hover:text-destructive"
-              disabled={fields.length === 1}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center gap-1">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => remove(index)}
+                className="shrink-0 text-muted-foreground hover:text-destructive"
+                disabled={fields.length === 1}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+              <input
+                type="hidden"
+                {...register(`addresses.${index}.pref` as const)}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => handleStarClick(index)}
+                className={cn(
+                  "shrink-0",
+                  addresses[index]?.pref
+                    ? "text-yellow-500"
+                    : "text-muted-foreground hover:text-yellow-500"
+                )}
+                aria-label={
+                  addresses[index]?.pref
+                    ? "Remove preferred"
+                    : "Set as preferred"
+                }
+                aria-pressed={!!addresses[index]?.pref}
+              >
+                <Star
+                  className={cn(
+                    "h-4 w-4",
+                    addresses[index]?.pref && "fill-current"
+                  )}
+                />
+              </Button>
+            </div>
           </div>
           <div className="space-y-2">
             <Input

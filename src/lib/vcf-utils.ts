@@ -133,12 +133,20 @@ export function parseVcf(vcfString: string): VCardData {
           "home",
           "other",
         ]) as VCardEmail["type"];
-        data.emails.push({ type: emailType, value: unescapeValue(value) });
+        data.emails.push({
+          type: emailType,
+          value: unescapeValue(value),
+          pref: params.toUpperCase().includes("PREF"),
+        });
         break;
       }
       case "TEL": {
         const phoneType = getPhoneType(params);
-        data.phones.push({ type: phoneType, value: unescapeValue(value) });
+        data.phones.push({
+          type: phoneType,
+          value: unescapeValue(value),
+          pref: params.toUpperCase().includes("PREF"),
+        });
         break;
       }
       case "IMPP": {
@@ -162,6 +170,7 @@ export function parseVcf(vcfString: string): VCardData {
           state: unescapeValue(addrParts[4] || ""),
           postalCode: unescapeValue(addrParts[5] || ""),
           country: unescapeValue(addrParts[6] || ""),
+          pref: params.toUpperCase().includes("PREF"),
         });
         break;
       }
@@ -219,6 +228,10 @@ export function parseVcf(vcfString: string): VCardData {
     }
   }
 
+  resolveSinglePref(data.emails);
+  resolveSinglePref(data.phones);
+  resolveSinglePref(data.addresses);
+
   // Ensure at least one entry in arrays
   if (data.emails.length === 0) data.emails = [{ type: "home", value: "" }];
   if (data.phones.length === 0) data.phones = [{ type: "cell", value: "" }];
@@ -238,6 +251,17 @@ export function parseVcf(vcfString: string): VCardData {
   if (data.urls.length === 0) data.urls = [{ type: "homepage", value: "" }];
 
   return data;
+}
+
+function resolveSinglePref<T extends { pref?: boolean }>(items: T[]): void {
+  let found = false;
+  for (let i = items.length - 1; i >= 0; i--) {
+    if (found) {
+      items[i].pref = false;
+    } else if (items[i].pref) {
+      found = true;
+    }
+  }
 }
 
 // Unfold continuation lines (lines starting with space/tab are continuations)
@@ -376,7 +400,8 @@ export function generateVcf(
         version === "4.0"
           ? `TYPE=${email.type}`
           : `TYPE=INTERNET,${email.type.toUpperCase()}`;
-      lines.push(`EMAIL;${typeParam}:${email.value}`);
+      const prefParam = email.pref ? ";PREF=1" : "";
+      lines.push(`EMAIL;${typeParam}${prefParam}:${email.value}`);
     }
   }
 
@@ -385,7 +410,8 @@ export function generateVcf(
     if (phone.value) {
       const typeParam =
         phone.type === "cell" ? "CELL" : phone.type.toUpperCase();
-      lines.push(`TEL;TYPE=${typeParam}:${phone.value}`);
+      const prefParam = phone.pref ? ";PREF=1" : "";
+      lines.push(`TEL;TYPE=${typeParam}${prefParam}:${phone.value}`);
     }
   }
 
@@ -406,8 +432,9 @@ export function generateVcf(
       addr.postalCode ||
       addr.country
     ) {
+      const prefParam = addr.pref ? ";PREF=1" : "";
       lines.push(
-        `ADR;TYPE=${addr.type}:${escapeValue(addr.poBox)};${escapeValue(
+        `ADR;TYPE=${addr.type}${prefParam}:${escapeValue(addr.poBox)};${escapeValue(
           addr.extendedAddress
         )};${escapeValue(addr.street)};${escapeValue(addr.city)};${escapeValue(
           addr.state
