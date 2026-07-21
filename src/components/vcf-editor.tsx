@@ -449,7 +449,7 @@ export function VcfEditor() {
       {/* Custom sliding drawer menu for Mobile/Tablet */}
       <div
         className={cn(
-          "fixed inset-0 z-40 bg-black/70 backdrop-blur-xs transition-opacity duration-300 lg:hidden",
+          "fixed inset-0 z-40 bg-black/40 backdrop-blur-xs transition-opacity duration-200 lg:hidden",
           isMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         )}
         onClick={() => setIsMenuOpen(false)}
@@ -457,8 +457,10 @@ export function VcfEditor() {
 
       <div
         className={cn(
-          "fixed top-0 right-0 bottom-0 w-72 z-50 bg-white dark:bg-neutral-950 border-l border-border shadow-2xl flex flex-col p-5 gap-6 transition-transform duration-300 ease-in-out transform lg:hidden",
-          isMenuOpen ? "translate-x-0" : "translate-x-full"
+          "fixed top-14 right-4 w-72 z-50 bg-white dark:bg-neutral-950 border border-border shadow-xl rounded-lg flex flex-col p-5 gap-5 transition-all duration-200 ease-out origin-top-right transform lg:hidden",
+          isMenuOpen
+            ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
+            : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
         )}
       >
         <div className="flex items-center justify-between">
