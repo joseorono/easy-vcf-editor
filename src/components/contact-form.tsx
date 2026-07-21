@@ -167,9 +167,9 @@ export function PhonesField() {
   return (
     <div className="space-y-3">
       {fields.map((field, index) => (
-        <div key={field.id} className="space-y-2">
-          <div className="flex items-end gap-2">
-            <div className="">
+        <div key={field.id} className="space-y-2 border-b border-border/20 pb-3 last:border-0 last:pb-0 sm:border-0 sm:pb-0">
+          <div className="grid grid-cols-12 gap-2 items-end sm:flex sm:gap-2">
+            <div className="col-span-6 sm:w-28 sm:shrink-0">
               <Label className="text-xs text-muted-foreground">Type</Label>
               <Select
                 defaultValue={field.type || "cell"}
@@ -196,7 +196,7 @@ export function PhonesField() {
                 {...register(`phones.${index}.type` as const)}
               />
             </div>
-            <div className="w-24">
+            <div className="col-span-6 sm:w-24 sm:shrink-0">
               <CountryCodeSelector
                 inline
                 value={countryCodes[index]}
@@ -208,7 +208,7 @@ export function PhonesField() {
                 }}
               />
             </div>
-            <div className="flex-1">
+            <div className="col-span-12 sm:flex-1">
               <Label className="text-xs text-muted-foreground">Number</Label>
               <Input
                 {...register(`phones.${index}.value` as const)}
@@ -216,43 +216,45 @@ export function PhonesField() {
                 className="bg-background"
               />
             </div>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => remove(index)}
-              className="shrink-0 text-muted-foreground hover:text-destructive"
-              disabled={fields.length === 1}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-            <input
-              type="hidden"
-              {...register(`phones.${index}.pref` as const)}
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => handleStarClick(index)}
-              className={cn(
-                "shrink-0",
-                phones[index]?.pref
-                  ? "text-yellow-500"
-                  : "text-muted-foreground hover:text-yellow-500"
-              )}
-              aria-label={
-                phones[index]?.pref ? "Remove preferred" : "Set as preferred"
-              }
-              aria-pressed={!!phones[index]?.pref}
-            >
-              <Star
-                className={cn(
-                  "h-4 w-4",
-                  phones[index]?.pref && "fill-current"
-                )}
+            <div className="col-span-12 sm:w-auto flex justify-end gap-1 sm:mb-0.5">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => remove(index)}
+                className="shrink-0 text-muted-foreground hover:text-destructive"
+                disabled={fields.length === 1}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+              <input
+                type="hidden"
+                {...register(`phones.${index}.pref` as const)}
               />
-            </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => handleStarClick(index)}
+                className={cn(
+                  "shrink-0",
+                  phones[index]?.pref
+                    ? "text-yellow-500"
+                    : "text-muted-foreground hover:text-yellow-500"
+                )}
+                aria-label={
+                  phones[index]?.pref ? "Remove preferred" : "Set as preferred"
+                }
+                aria-pressed={!!phones[index]?.pref}
+              >
+                <Star
+                  className={cn(
+                    "h-4 w-4",
+                    phones[index]?.pref && "fill-current"
+                  )}
+                />
+              </Button>
+            </div>
           </div>
         </div>
       ))}
@@ -288,80 +290,84 @@ function EmailsField() {
   return (
     <div className="space-y-3">
       {fields.map((field, index) => (
-        <div key={field.id} className="flex items-end gap-2">
-          <div className="w-32">
-            <Label className="text-xs text-muted-foreground">Type</Label>
-            <Select
-              defaultValue={field.type || "home"} // Updated default value to be a non-empty string
-              onValueChange={(value) => {
-                updateHiddenInputValue(
-                  `input[name="emails.${index}.type"]`,
-                  value
-                );
-              }}
-            >
-              <SelectTrigger className="bg-background">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(emailTypeLabels).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <input
-              type="hidden"
-              {...register(`emails.${index}.type` as const)}
-            />
+        <div key={field.id} className="space-y-2 border-b border-border/20 pb-3 last:border-0 last:pb-0 sm:border-0 sm:pb-0">
+          <div className="grid grid-cols-12 gap-2 items-end sm:flex sm:gap-2">
+            <div className="col-span-6 sm:w-32 sm:shrink-0">
+              <Label className="text-xs text-muted-foreground">Type</Label>
+              <Select
+                defaultValue={field.type || "home"} // Updated default value to be a non-empty string
+                onValueChange={(value) => {
+                  updateHiddenInputValue(
+                    `input[name="emails.${index}.type"]`,
+                    value
+                  );
+                }}
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(emailTypeLabels).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <input
+                type="hidden"
+                {...register(`emails.${index}.type` as const)}
+              />
+            </div>
+            <div className="col-span-12 sm:flex-1">
+              <Label className="text-xs text-muted-foreground">Email</Label>
+              <Input
+                {...register(`emails.${index}.value` as const)}
+                type="email"
+                placeholder="john@example.com"
+                className="bg-background"
+              />
+            </div>
+            <div className="col-span-6 sm:w-auto flex justify-end gap-1 sm:mb-0.5">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => remove(index)}
+                className="shrink-0 text-muted-foreground hover:text-destructive"
+                disabled={fields.length === 1}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+              <input
+                type="hidden"
+                {...register(`emails.${index}.pref` as const)}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => handleStarClick(index)}
+                className={cn(
+                  "shrink-0",
+                  emails[index]?.pref
+                    ? "text-yellow-500"
+                    : "text-muted-foreground hover:text-yellow-500"
+                )}
+                aria-label={
+                  emails[index]?.pref ? "Remove preferred" : "Set as preferred"
+                }
+                aria-pressed={!!emails[index]?.pref}
+              >
+                <Star
+                  className={cn(
+                    "h-4 w-4",
+                    emails[index]?.pref && "fill-current"
+                  )}
+                />
+              </Button>
+            </div>
           </div>
-          <div className="flex-1">
-            <Label className="text-xs text-muted-foreground">Email</Label>
-            <Input
-              {...register(`emails.${index}.value` as const)}
-              type="email"
-              placeholder="john@example.com"
-              className="bg-background"
-            />
-          </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={() => remove(index)}
-            className="shrink-0 text-muted-foreground hover:text-destructive"
-            disabled={fields.length === 1}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-          <input
-            type="hidden"
-            {...register(`emails.${index}.pref` as const)}
-          />
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={() => handleStarClick(index)}
-            className={cn(
-              "shrink-0",
-              emails[index]?.pref
-                ? "text-yellow-500"
-                : "text-muted-foreground hover:text-yellow-500"
-            )}
-            aria-label={
-              emails[index]?.pref ? "Remove preferred" : "Set as preferred"
-            }
-            aria-pressed={!!emails[index]?.pref}
-          >
-            <Star
-              className={cn(
-                "h-4 w-4",
-                emails[index]?.pref && "fill-current"
-              )}
-            />
-          </Button>
         </div>
       ))}
       <Button
@@ -552,50 +558,54 @@ function UrlsField() {
   return (
     <div className="space-y-3">
       {fields.map((field, index) => (
-        <div key={field.id} className="flex items-end gap-2">
-          <div className="w-32">
-            <Label className="text-xs text-muted-foreground">Type</Label>
-            <Select
-              defaultValue={field.type || "homepage"} // Updated default value to be a non-empty string
-              onValueChange={(value) => {
-                updateHiddenInputValue(
-                  `input[name="urls.${index}.type"]`,
-                  value
-                );
-              }}
-            >
-              <SelectTrigger className="bg-background">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(urlTypeLabels).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <input type="hidden" {...register(`urls.${index}.type` as const)} />
+        <div key={field.id} className="space-y-2 border-b border-border/20 pb-3 last:border-0 last:pb-0 sm:border-0 sm:pb-0">
+          <div className="grid grid-cols-12 gap-2 items-end sm:flex sm:gap-2">
+            <div className="col-span-6 sm:w-32 sm:shrink-0">
+              <Label className="text-xs text-muted-foreground">Type</Label>
+              <Select
+                defaultValue={field.type || "homepage"} // Updated default value to be a non-empty string
+                onValueChange={(value) => {
+                  updateHiddenInputValue(
+                    `input[name="urls.${index}.type"]`,
+                    value
+                  );
+                }}
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(urlTypeLabels).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <input type="hidden" {...register(`urls.${index}.type` as const)} />
+            </div>
+            <div className="col-span-12 sm:flex-1">
+              <Label className="text-xs text-muted-foreground">URL</Label>
+              <Input
+                {...register(`urls.${index}.value` as const)}
+                type="url"
+                placeholder="https://example.com"
+                className="bg-background"
+              />
+            </div>
+            <div className="col-span-6 sm:w-auto flex justify-end sm:mb-0.5">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => remove(index)}
+                className="shrink-0 text-muted-foreground hover:text-destructive"
+                disabled={fields.length === 1}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
-          <div className="flex-1">
-            <Label className="text-xs text-muted-foreground">URL</Label>
-            <Input
-              {...register(`urls.${index}.value` as const)}
-              type="url"
-              placeholder="https://example.com"
-              className="bg-background"
-            />
-          </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={() => remove(index)}
-            className="shrink-0 text-muted-foreground hover:text-destructive"
-            disabled={fields.length === 1}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
         </div>
       ))}
       <Button
@@ -624,51 +634,55 @@ function ImppField() {
         </p>
       )}
       {fields.map((field, index) => (
-        <div key={field.id} className="flex items-end gap-2">
-          <div className="w-32">
-            <Label className="text-xs text-muted-foreground">Service</Label>
-            <Select
-              defaultValue={field.type || "other"} // Updated default value to be a non-empty string
-              onValueChange={(value) => {
-                updateHiddenInputValue(
-                  `input[name="impps.${index}.type"]`,
-                  value
-                );
-              }}
-            >
-              <SelectTrigger className="bg-background">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(imppTypeLabels).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <input
-              type="hidden"
-              {...register(`impps.${index}.type` as const)}
-            />
+        <div key={field.id} className="space-y-2 border-b border-border/20 pb-3 last:border-0 last:pb-0 sm:border-0 sm:pb-0">
+          <div className="grid grid-cols-12 gap-2 items-end sm:flex sm:gap-2">
+            <div className="col-span-6 sm:w-32 sm:shrink-0">
+              <Label className="text-xs text-muted-foreground">Service</Label>
+              <Select
+                defaultValue={field.type || "other"} // Updated default value to be a non-empty string
+                onValueChange={(value) => {
+                  updateHiddenInputValue(
+                    `input[name="impps.${index}.type"]`,
+                    value
+                  );
+                }}
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(imppTypeLabels).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <input
+                type="hidden"
+                {...register(`impps.${index}.type` as const)}
+              />
+            </div>
+            <div className="col-span-12 sm:flex-1">
+              <Label className="text-xs text-muted-foreground">Handle</Label>
+              <Input
+                {...register(`impps.${index}.value` as const)}
+                placeholder="username"
+                className="bg-background"
+              />
+            </div>
+            <div className="col-span-6 sm:w-auto flex justify-end sm:mb-0.5">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => remove(index)}
+                className="shrink-0 text-muted-foreground hover:text-destructive"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
-          <div className="flex-1">
-            <Label className="text-xs text-muted-foreground">Handle</Label>
-            <Input
-              {...register(`impps.${index}.value` as const)}
-              placeholder="username"
-              className="bg-background"
-            />
-          </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={() => remove(index)}
-            className="shrink-0 text-muted-foreground hover:text-destructive"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
         </div>
       ))}
       <Button
@@ -700,55 +714,59 @@ function RelatedField() {
         </p>
       )}
       {fields.map((field, index) => (
-        <div key={field.id} className="flex items-end gap-2">
-          <div className="w-36">
-            <Label className="text-xs text-muted-foreground">
-              Relationship
-            </Label>
-            <Select
-              defaultValue={field.type || "friend"} // Updated default value to be a non-empty string
-              onValueChange={(value) => {
-                updateHiddenInputValue(
-                  `input[name="related.${index}.type"]`,
-                  value
-                );
-              }}
-            >
-              <SelectTrigger className="bg-background">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(relatedTypeLabels).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <input
-              type="hidden"
-              {...register(`related.${index}.type` as const)}
-            />
+        <div key={field.id} className="space-y-2 border-b border-border/20 pb-3 last:border-0 last:pb-0 sm:border-0 sm:pb-0">
+          <div className="grid grid-cols-12 gap-2 items-end sm:flex sm:gap-2">
+            <div className="col-span-6 sm:w-36 sm:shrink-0">
+              <Label className="text-xs text-muted-foreground">
+                Relationship
+              </Label>
+              <Select
+                defaultValue={field.type || "friend"} // Updated default value to be a non-empty string
+                onValueChange={(value) => {
+                  updateHiddenInputValue(
+                    `input[name="related.${index}.type"]`,
+                    value
+                  );
+                }}
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(relatedTypeLabels).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <input
+                type="hidden"
+                {...register(`related.${index}.type` as const)}
+              />
+            </div>
+            <div className="col-span-12 sm:flex-1">
+              <Label className="text-xs text-muted-foreground">
+                Name or Email
+              </Label>
+              <Input
+                {...register(`related.${index}.value` as const)}
+                placeholder="Jane Doe"
+                className="bg-background"
+              />
+            </div>
+            <div className="col-span-6 sm:w-auto flex justify-end sm:mb-0.5">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => remove(index)}
+                className="shrink-0 text-muted-foreground hover:text-destructive"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
-          <div className="flex-1">
-            <Label className="text-xs text-muted-foreground">
-              Name or Email
-            </Label>
-            <Input
-              {...register(`related.${index}.value` as const)}
-              placeholder="Jane Doe"
-              className="bg-background"
-            />
-          </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={() => remove(index)}
-            className="shrink-0 text-muted-foreground hover:text-destructive"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
         </div>
       ))}
       <Button
@@ -890,7 +908,7 @@ export function ContactForm() {
           />
           <FormField name="suffix" label="Suffix" placeholder="Jr." />
         </div>
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
           <FormField name="nickname" label="Nickname" placeholder="Johnny" />
           <LanguageSelector />
           <TimezoneSelector />

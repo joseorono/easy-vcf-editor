@@ -8,7 +8,12 @@ import {
   QrCode,
   Image,
   ClipboardPaste,
+  Menu,
+  Settings,
+  Sun,
+  Moon,
 } from "lucide-react";
+import { useTheme } from "next-themes";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -28,8 +33,21 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuPortal,
+} from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SplitButton } from "@/components/shadcn-blocks/split-button";
+import { cn } from "@/lib/utils";
 import type { QrDownloadFormat } from "@/lib/qr-utils";
 import type { VCardVersion } from "@/types/vcard-types";
 
@@ -56,19 +74,21 @@ export function EditorNavbar({
   showPreview,
   onShowPreview,
 }: EditorNavbarProps) {
+  const { resolvedTheme, setTheme } = useTheme();
+
   return (
     <header className="sticky top-0 z-20 border-b border-border bg-background/80 backdrop-blur-sm">
-      <div className="flex items-center justify-between gap-3 px-4 py-3 sm:py-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-primary/10">
+      <div className="flex items-center justify-between gap-2 px-2 py-2 sm:gap-3 sm:px-4 sm:py-3">
+        <div className="flex items-center gap-1.5 sm:gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 sm:h-14 sm:w-14">
             <img
               src="vcf.svg"
               alt="Easy VCF Editor Logo"
-              className="h-10 w-10"
+              className="h-6 w-6 sm:h-10 sm:w-10"
             />
           </div>
           <div className="min-w-0">
-            <p className="truncate text-base font-semibold sm:text-lg">
+            <p className="hidden sm:block truncate text-sm font-semibold sm:text-base md:text-lg">
               Easy vCard Editor
             </p>
             <p className="hidden text-xs text-muted-foreground sm:block">
@@ -77,29 +97,15 @@ export function EditorNavbar({
           </div>
         </div>
 
-        <div className="flex flex-1 items-center justify-end gap-3">
-          {/*
-            <InstallPwaHint>
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                className="gap-1.5"
-                aria-label="Install Easy VCF Editor"
-              >
-                <MonitorDown className="h-4 w-4" />
-                <span className="hidden md:inline">Install app</span>
-              </Button>
-            </InstallPwaHint>
-            */}
-
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-1 items-center justify-end gap-1.5 sm:gap-3">
+          {/* Desktop Layout Buttons */}
+          <div className="hidden lg:flex items-center gap-1.5 sm:gap-2">
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="gap-1.5 bg-transparent"
+                  className="gap-1.5 bg-transparent h-8 sm:h-9"
                   aria-label="Clear current contact"
                 >
                   <RotateCcw className="h-4 w-4" />
@@ -124,6 +130,8 @@ export function EditorNavbar({
             <SplitButton
               variant="outline"
               size="sm"
+              mainButtonClassName="h-8 sm:h-9"
+              dropdownButtonClassName="h-8 sm:h-9"
               mainButtonText={<span className="hidden sm:inline">Import</span>}
               mainButtonIcon={Upload}
               mainButtonAriaLabel="Import contact from VCF file"
@@ -145,13 +153,13 @@ export function EditorNavbar({
                 },
               ]}
             />
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               <Select
                 name="vcf-version"
                 value={version}
                 onValueChange={(v) => onVersionChange(v as VCardVersion)}
               >
-                <SelectTrigger className="h-9 w-24">
+                <SelectTrigger className="h-8 w-20 text-xs sm:h-9 sm:w-24 sm:text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -162,6 +170,8 @@ export function EditorNavbar({
               </Select>
               <SplitButton
                 size="sm"
+                mainButtonClassName="h-8 sm:h-9"
+                dropdownButtonClassName="h-8 sm:h-9"
                 mainButtonText={
                   <span className="hidden sm:inline">Download</span>
                 }
@@ -199,13 +209,110 @@ export function EditorNavbar({
             </div>
           </div>
 
-          <ThemeToggle />
+          {/* Desktop ThemeToggle */}
+          <div className="hidden lg:block">
+            <ThemeToggle />
+          </div>
+
+          {/* Mobile/Tablet Settings Menu */}
+          <div className="lg:hidden flex items-center">
+            <DropdownMenu modal={false}>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 w-8 p-0 bg-transparent"
+                  aria-label="Menu"
+                >
+                  <Menu className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuLabel>Options</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Version ({version})</span>
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuPortal>
+                    <DropdownMenuSubContent>
+                      <DropdownMenuItem
+                        onClick={() => onVersionChange("4.0")}
+                        className={cn(version === "4.0" && "bg-accent")}
+                      >
+                        v4.0 {version === "4.0" && "✓"}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => onVersionChange("3.0")}
+                        className={cn(version === "3.0" && "bg-accent")}
+                      >
+                        v3.0 {version === "3.0" && "✓"}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => onVersionChange("2.1")}
+                        className={cn(version === "2.1" && "bg-accent")}
+                      >
+                        v2.1 {version === "2.1" && "✓"}
+                      </DropdownMenuItem>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuPortal>
+                </DropdownMenuSub>
+
+                <DropdownMenuSeparator />
+
+                <DropdownMenuItem
+                  onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+                >
+                  {resolvedTheme === "dark" ? (
+                    <>
+                      <Sun className="mr-2 h-4 w-4 text-amber-500" />
+                      <span>Light Theme</span>
+                    </>
+                  ) : (
+                    <>
+                      <Moon className="mr-2 h-4 w-4 text-sky-400" />
+                      <span>Dark Theme</span>
+                    </>
+                  )}
+                </DropdownMenuItem>
+
+                <DropdownMenuSeparator />
+
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <DropdownMenuItem
+                      onSelect={(e) => e.preventDefault()}
+                      className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                    >
+                      <RotateCcw className="mr-2 h-4 w-4" />
+                      <span>Clear Contact</span>
+                    </DropdownMenuItem>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Clear this contact?</AlertDialogTitle>
+                    </AlertDialogHeader>
+                    <p className="text-sm text-muted-foreground">
+                      This will remove all values from the form and reset it to a
+                      blank contact. This action cannot be undone.
+                    </p>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={onNew}>Clear</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
 
           <Button
             variant="outline"
             size="sm"
             onClick={onShowPreview}
-            className="gap-1.5 lg:hidden"
+            className="gap-1 px-2 lg:hidden h-8 sm:h-9"
             aria-label={showPreview ? "Hide preview" : "Show preview"}
           >
             <span>{showPreview ? "Hide" : "Preview"}</span>

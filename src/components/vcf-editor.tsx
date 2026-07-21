@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Upload } from "lucide-react";
+import { ChevronLeft, ChevronRight, Upload, Download, QrCode, Image, ClipboardPaste } from "lucide-react";
 import { useForm, FormProvider } from "react-hook-form";
 import { useDropzone } from "react-dropzone";
 import { Button } from "@/components/ui/button";
@@ -39,6 +39,7 @@ import { Footer } from "@/components/footer";
 import { PreviewTabs } from "@/components/preview-tabs";
 import { ImportVcardDialog } from "@/components/import-vcard-dialog";
 import { ExportContactImageDialog } from "@/components/export-contact-image-dialog";
+import { SplitButton } from "@/components/shadcn-blocks/split-button";
 
 export function VcfEditor() {
   const [version, setVersion] = useState<VCardVersion>("4.0");
@@ -235,7 +236,7 @@ export function VcfEditor() {
 
   return (
     <FormProvider {...methods}>
-      <div className="flex h-screen flex-col bg-background">
+      <div className="flex h-[100dvh] flex-col bg-background">
         <EditorNavbar
           version={version}
           onVersionChange={(v) => setVersion(v)}
@@ -250,7 +251,7 @@ export function VcfEditor() {
 
         <div
           {...getRootProps()}
-          className="relative flex flex-1 overflow-hidden"
+          className="relative flex flex-1 overflow-hidden pb-16 lg:pb-0"
         >
           {/* Drag-and-drop overlay */}
           {isDragActive && (
@@ -304,7 +305,7 @@ export function VcfEditor() {
           {/* Preview Panel - sticky on desktop, full-screen on mobile when active */}
           <div
             className={cn(
-              "border-l border-border/50 bg-card/50 pl-1 transition-all duration-300",
+              "border-l border-border/50 bg-card/50 pl-1 transition-all duration-300 flex flex-col h-full",
               showPreview
                 ? "fixed inset-0 z-50 bg-background lg:static lg:z-auto lg:w-[400px] lg:bg-transparent"
                 : "hidden lg:block lg:w-[400px]",
@@ -312,7 +313,7 @@ export function VcfEditor() {
                 "lg:w-0 lg:opacity-0 lg:pointer-events-none lg:border-l-0"
             )}
           >
-            <div className="flex flex-col overflow-hidden">
+            <div className="flex flex-col flex-1 h-full overflow-hidden">
               <div className="flex items-center justify-between border-b border-border/50 px-4 py-3">
                 <h2 className="font-semibold">Live Preview</h2>
                 <Button
@@ -330,6 +331,7 @@ export function VcfEditor() {
             </div>
           </div>
         </div>
+
 
         <Footer />
       </div>
@@ -374,6 +376,73 @@ export function VcfEditor() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      {/* Bottom Action Bar for Mobile/Tablet */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background/95 backdrop-blur-sm px-4 py-3 flex gap-3 items-center justify-center lg:hidden">
+        <SplitButton
+          variant="outline"
+          size="sm"
+          className="flex-1"
+          mainButtonClassName="flex-1 h-9 justify-center"
+          dropdownButtonClassName="h-9 px-3"
+          mainButtonText={<span>Import</span>}
+          mainButtonIcon={Upload}
+          mainButtonAriaLabel="Import contact from VCF file"
+          onMainButtonClick={() => openImport("file")}
+          menuLabel="Import contact from"
+          dropdownAriaLabel="Choose contact import option"
+          menuItems={[
+            {
+              id: "file",
+              label: "From file…",
+              icon: Upload,
+              onClick: () => openImport("file"),
+            },
+            {
+              id: "paste",
+              label: "Paste vCard…",
+              icon: ClipboardPaste,
+              onClick: () => openImport("paste"),
+            },
+          ]}
+        />
+        <SplitButton
+          size="sm"
+          className="flex-1"
+          mainButtonClassName="flex-1 h-9 justify-center"
+          dropdownButtonClassName="h-9 px-3"
+          mainButtonText={<span>Download</span>}
+          mainButtonIcon={Download}
+          onMainButtonClick={handleExportVcf}
+          menuLabel="Download contact as"
+          dropdownAriaLabel="Choose contact download option"
+          menuItems={[
+            {
+              id: "vcf",
+              label: "VCF File",
+              icon: Download,
+              onClick: handleExportVcf,
+            },
+            {
+              id: "qr-png",
+              label: "QR Code (PNG)",
+              icon: QrCode,
+              onClick: () => handleExportQr("png"),
+            },
+            {
+              id: "qr-svg",
+              label: "QR Code (SVG)",
+              icon: QrCode,
+              onClick: () => handleExportQr("svg"),
+            },
+            {
+              id: "image",
+              label: "Contact Image",
+              icon: Image,
+              onClick: handleExportContactImage,
+            },
+          ]}
+        />
+      </div>
       <Toaster />
     </FormProvider>
   );
