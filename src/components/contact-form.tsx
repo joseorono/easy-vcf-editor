@@ -805,8 +805,8 @@ export function ContactForm() {
 
   const handleToggleAll = () => {
     if (lastToggleAction === "expand") {
-      openSetters.current.forEach((setOpen, id) =>
-        setOpen(id === "basic")
+      openSetters.current.forEach((setOpen) =>
+        setOpen(false)
       );
       setLastToggleAction("collapse");
     } else {
