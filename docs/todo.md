@@ -20,10 +20,10 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done
   - [ ] Surface validation errors in the form UI.
   - [ ] Reuse the schema when parsing/serializing in `src/lib/vcf-utils.ts`.
 
-- [~] **Visual refresh** — Form layout refactored and spacing adjusted.
+- [x] **Visual refresh** — Form layout refactored and spacing adjusted.
   - [x] Refactor form layout.
   - [x] Adjust spacing.
-  - [ ] Check for any remaining visual issues.
+  - [x] Check for any remaining visual issues.
 
 - [x] **Test compatibility of outputted .VCF files with various clients** (e.g., Outlook, iOS Contacts).
   - [x] Validate exports against Outlook.
