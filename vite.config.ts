@@ -144,11 +144,13 @@ export default defineConfig(({ mode }) => {
       // Pinned so main.ts's dev `loadURL("http://localhost:5173")` can't drift.
       port: 5173,
       strictPort: true,
+      allowedHosts: true,
     },
     preview: {
       host: true,
       port: 4173,
       strictPort: true,
+      allowedHosts: true,
     },
   };
 });

@@ -13,10 +13,10 @@ export function PwaReloadPrompt() {
 
   const {
     offlineReady: [offlineReady, setOfflineReady],
-    needRefresh: [needRefresh, setNeedRefresh],
+    needRefresh: [needRefresh],
     updateServiceWorker,
   } = useRegisterSW({
-    onRegisteredSW(swUrl, r) {
+    onRegisteredSW(swUrl) {
       console.log(`Service Worker registered at: ${swUrl}`);
     },
     onRegisterError(error) {
