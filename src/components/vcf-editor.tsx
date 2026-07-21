@@ -267,12 +267,7 @@ export function VcfEditor() {
           )}
 
           {/* Form Panel */}
-          <div
-            className={cn(
-              "flex flex-col flex-1 overflow-hidden transition-all duration-300",
-              showPreview && "hidden lg:flex lg:flex-1"
-            )}
-          >
+          <div className="flex flex-col flex-1 overflow-hidden">
             <div className="flex-1 overflow-auto px-4 py-2">
               <Card className="border-border/50 shadow-lg py-2">
                 <CardContent className="p-4 py-2">
@@ -305,10 +300,12 @@ export function VcfEditor() {
           {/* Preview Panel - sticky on desktop, full-screen on mobile when active */}
           <div
             className={cn(
-              "border-l border-border/50 bg-card/50 pl-1 transition-all duration-300 flex flex-col h-full",
-              showPreview
-                ? "fixed inset-0 z-50 bg-background lg:static lg:z-auto lg:w-[400px] lg:bg-transparent"
-                : "hidden lg:block lg:w-[400px]",
+              "border-l border-border/50 bg-card/50 pl-1 flex flex-col h-full",
+              // Mobile transition styles (slide in from right)
+              "fixed inset-0 z-50 bg-background transform transition-transform duration-300 ease-in-out",
+              showPreview ? "translate-x-0" : "translate-x-full pointer-events-none lg:pointer-events-auto",
+              // Desktop overrides
+              "lg:static lg:translate-x-0 lg:z-auto lg:w-[400px] lg:bg-transparent lg:transform-none lg:transition-none lg:border-l lg:border-border/50",
               isPreviewCollapsed &&
                 "lg:w-0 lg:opacity-0 lg:pointer-events-none lg:border-l-0"
             )}
