@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import {
   Upload,
   Download,
@@ -8,6 +7,8 @@ import {
   ChevronRight,
   QrCode,
   Image,
+  ClipboardPaste,
+  Menu,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -28,8 +29,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { SplitButton } from "@/components/shadcn-blocks/split-button";
+import { ThemeToggle } from "@/components/theme-toggle";
 import type { QrDownloadFormat } from "@/lib/qr-utils";
 import type { VCardVersion } from "@/types/vcard-types";
 
@@ -37,41 +38,42 @@ interface EditorNavbarProps {
   version: VCardVersion;
   onVersionChange: (version: VCardVersion) => void;
   onNew: () => void;
-  onImportChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onOpenImport: (tab: "file" | "paste") => void;
   onExportVcf: () => void;
   onExportQr: (format: QrDownloadFormat) => void;
   onExportContactImage: () => void;
   showPreview: boolean;
   onShowPreview: () => void;
-  fileInputRef: React.RefObject<HTMLInputElement | null>;
+  onOpenMenu: () => void;
 }
 
 export function EditorNavbar({
   version,
   onVersionChange,
   onNew,
-  onImportChange,
+  onOpenImport,
   onExportVcf,
   onExportQr,
   onExportContactImage,
   showPreview,
   onShowPreview,
-  fileInputRef,
+  onOpenMenu,
 }: EditorNavbarProps) {
   return (
     <header className="sticky top-0 z-20 border-b border-border bg-background/80 backdrop-blur-sm">
-      <div className="flex items-center justify-between gap-3 px-4 py-3 sm:py-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+      <div className="flex items-center justify-between gap-2 px-2 py-2 sm:gap-3 sm:px-4 sm:py-3">
+        <div className="flex items-center gap-1.5 sm:gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 sm:h-14 sm:w-14">
             <img
-              src="/pwa-icon.svg"
+              src="vcf.svg"
               alt="Easy VCF Editor Logo"
-              className="h-6 w-6"
+              className="h-6 w-6 sm:h-10 sm:w-10"
             />
           </div>
           <div className="min-w-0">
-            <p className="truncate text-base font-semibold sm:text-lg">
-              Easy vCard Editor
+            <p className="truncate text-sm font-semibold sm:text-base md:text-lg">
+              <span className="inline sm:hidden">Easy VCF</span>
+              <span className="hidden sm:inline">Easy vCard Editor</span>
             </p>
             <p className="hidden text-xs text-muted-foreground sm:block">
               Create and edit VCF contacts
@@ -79,29 +81,15 @@ export function EditorNavbar({
           </div>
         </div>
 
-        <div className="flex flex-1 items-center justify-end gap-3">
-          {/*
-            <InstallPwaHint>
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                className="gap-1.5"
-                aria-label="Install Easy VCF Editor"
-              >
-                <MonitorDown className="h-4 w-4" />
-                <span className="hidden md:inline">Install app</span>
-              </Button>
-            </InstallPwaHint>
-            */}
-
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-1 items-center justify-end gap-1.5 sm:gap-3">
+          {/* Desktop Layout Buttons */}
+          <div className="hidden lg:flex items-center gap-1.5 sm:gap-2">
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="gap-1.5 bg-transparent"
+                  className="gap-1.5 bg-transparent h-8 sm:h-9"
                   aria-label="Clear current contact"
                 >
                   <RotateCcw className="h-4 w-4" />
@@ -123,23 +111,40 @@ export function EditorNavbar({
               </AlertDialogContent>
             </AlertDialog>
 
-            <Button
+            <SplitButton
               variant="outline"
               size="sm"
-              onClick={() => fileInputRef.current?.click()}
-              className="gap-1.5"
-              aria-label="Import contact from VCF file"
-            >
-              <Upload className="h-4 w-4" />
-              <span className="hidden sm:inline">Import</span>
-            </Button>
-            <div className="flex items-center gap-2">
+              mainButtonClassName="h-8 sm:h-9"
+              dropdownButtonClassName="h-8 sm:h-9"
+              className="hidden lg:inline-flex"
+              mainButtonText={<span className="hidden sm:inline">Import</span>}
+              mainButtonIcon={Upload}
+              mainButtonAriaLabel="Import contact from VCF file"
+              onMainButtonClick={() => onOpenImport("file")}
+              menuLabel="Import contact from"
+              dropdownAriaLabel="Choose contact import option"
+              menuItems={[
+                {
+                  id: "file",
+                  label: "From file…",
+                  icon: Upload,
+                  onClick: () => onOpenImport("file"),
+                },
+                {
+                  id: "paste",
+                  label: "Paste vCard…",
+                  icon: ClipboardPaste,
+                  onClick: () => onOpenImport("paste"),
+                },
+              ]}
+            />
+            <div className="flex items-center gap-1.5 sm:gap-2">
               <Select
                 name="vcf-version"
                 value={version}
                 onValueChange={(v) => onVersionChange(v as VCardVersion)}
               >
-                <SelectTrigger className="h-9 w-24">
+                <SelectTrigger className="h-8 w-20 text-xs sm:h-9 sm:w-24 sm:text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -150,6 +155,9 @@ export function EditorNavbar({
               </Select>
               <SplitButton
                 size="sm"
+                mainButtonClassName="h-8 sm:h-9"
+                dropdownButtonClassName="h-8 sm:h-9"
+                className="hidden lg:inline-flex"
                 mainButtonText={
                   <span className="hidden sm:inline">Download</span>
                 }
@@ -187,13 +195,29 @@ export function EditorNavbar({
             </div>
           </div>
 
-          <ThemeToggle />
+          {/* Desktop ThemeToggle */}
+          <div className="hidden lg:block">
+            <ThemeToggle />
+          </div>
+
+          {/* Mobile/Tablet Settings Menu Button */}
+          <div className="lg:hidden flex items-center">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 w-8 p-0 bg-transparent"
+              onClick={onOpenMenu}
+              aria-label="Open menu"
+            >
+              <Menu className="h-4 w-4" />
+            </Button>
+          </div>
 
           <Button
             variant="outline"
             size="sm"
             onClick={onShowPreview}
-            className="gap-1.5 lg:hidden"
+            className="gap-1 px-2 lg:hidden h-8 sm:h-9"
             aria-label={showPreview ? "Hide preview" : "Show preview"}
           >
             <span>{showPreview ? "Hide" : "Preview"}</span>
@@ -201,14 +225,6 @@ export function EditorNavbar({
           </Button>
         </div>
       </div>
-
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".vcf,.vcard"
-        onChange={onImportChange}
-        className="hidden"
-      />
     </header>
   );
 }

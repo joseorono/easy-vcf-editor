@@ -1,0 +1,20 @@
+{
+  // Typecheck-only for the Electron main/preload sources.
+  // vite-plugin-electron does the actual bundling/emit, so this config never
+  // emits — run via `npm run typecheck:electron`.
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "types": ["node", "electron"],
+    "skipLibCheck": true,
+    "noEmit": true,
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force"
+  },
+  "include": ["electron"]
+}

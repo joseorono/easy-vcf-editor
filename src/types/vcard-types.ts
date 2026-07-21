@@ -9,16 +9,19 @@ export interface VCardAddress {
   country: string;
   poBox: string;
   extendedAddress: string;
+  pref?: boolean;
 }
 
 export interface VCardPhone {
   type: "home" | "work" | "cell" | "fax" | "pager" | "other";
   value: string;
+  pref?: boolean;
 }
 
 export interface VCardEmail {
   type: "home" | "work" | "other";
   value: string;
+  pref?: boolean;
 }
 
 export interface VCardUrl {

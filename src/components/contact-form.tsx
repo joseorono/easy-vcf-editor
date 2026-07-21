@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/tooltip";
 import {
   ChevronDown,
+  ChevronsUpDown,
   User,
   Briefcase,
   Mail,
@@ -38,6 +39,7 @@ import {
   Plus,
   Trash2,
   Settings,
+  Star,
 } from "lucide-react";
 import type {
   VCardData,
@@ -56,7 +58,7 @@ import {
   imppTypeLabels,
   relatedTypeLabels,
 } from "@/constants/vcard-constants";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { cn, updateHiddenInputValue } from "@/lib/utils";
 import { LanguageSelector } from "@/components/language-selector";
 import { GeoInput } from "@/components/geo-input";
@@ -69,6 +71,10 @@ interface FormSectionProps {
   children: React.ReactNode;
   defaultOpen?: boolean;
   badge?: number;
+  sectionId: string;
+  openSettersRef: React.MutableRefObject<
+    Map<string, (open: boolean) => void>
+  >;
 }
 
 function FormSection({
@@ -77,8 +83,11 @@ function FormSection({
   children,
   defaultOpen = false,
   badge,
+  sectionId,
+  openSettersRef,
 }: FormSectionProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
+  openSettersRef.current.set(sectionId, setIsOpen);
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
@@ -137,19 +146,30 @@ function FormField({
   );
 }
 
-function PhonesField() {
-  const { control, register } = useFormContext<VCardData>();
+export function PhonesField() {
+  const { control, register, watch, getValues, setValue } =
+    useFormContext<VCardData>();
   const { fields, append, remove } = useFieldArray({ control, name: "phones" });
+  const phones = watch("phones") || [];
 
   // Store country codes separately (not in the phone value)
   const [countryCodes, setCountryCodes] = useState<Record<number, string>>({});
 
+  const handleStarClick = (index: number) => {
+    const current = getValues("phones");
+    const wasActive = !!current[index]?.pref;
+    current.forEach((_, i) => setValue(`phones.${i}.pref`, false));
+    if (!wasActive) {
+      setValue(`phones.${index}.pref`, true);
+    }
+  };
+
   return (
     <div className="space-y-3">
       {fields.map((field, index) => (
-        <div key={field.id} className="space-y-2">
-          <div className="flex items-end gap-2">
-            <div className="">
+        <div key={field.id} className="space-y-2 border-b border-border/20 pb-3 last:border-0 last:pb-0 sm:border-0 sm:pb-0">
+          <div className="grid grid-cols-12 gap-2 items-end sm:flex sm:gap-2">
+            <div className="col-span-6 sm:w-28 sm:shrink-0">
               <Label className="text-xs text-muted-foreground">Type</Label>
               <Select
                 defaultValue={field.type || "cell"}
@@ -176,7 +196,7 @@ function PhonesField() {
                 {...register(`phones.${index}.type` as const)}
               />
             </div>
-            <div className="w-24">
+            <div className="col-span-6 sm:w-24 sm:shrink-0">
               <CountryCodeSelector
                 inline
                 value={countryCodes[index]}
@@ -188,7 +208,7 @@ function PhonesField() {
                 }}
               />
             </div>
-            <div className="flex-1">
+            <div className="col-span-12 sm:flex-1">
               <Label className="text-xs text-muted-foreground">Number</Label>
               <Input
                 {...register(`phones.${index}.value` as const)}
@@ -196,16 +216,45 @@ function PhonesField() {
                 className="bg-background"
               />
             </div>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => remove(index)}
-              className="shrink-0 text-muted-foreground hover:text-destructive"
-              disabled={fields.length === 1}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            <div className="col-span-12 sm:w-auto flex justify-end gap-1 sm:mb-0.5">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => remove(index)}
+                className="shrink-0 text-muted-foreground hover:text-destructive"
+                disabled={fields.length === 1}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+              <input
+                type="hidden"
+                {...register(`phones.${index}.pref` as const)}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => handleStarClick(index)}
+                className={cn(
+                  "shrink-0",
+                  phones[index]?.pref
+                    ? "text-yellow-500"
+                    : "text-muted-foreground hover:text-yellow-500"
+                )}
+                aria-label={
+                  phones[index]?.pref ? "Remove preferred" : "Set as preferred"
+                }
+                aria-pressed={!!phones[index]?.pref}
+              >
+                <Star
+                  className={cn(
+                    "h-4 w-4",
+                    phones[index]?.pref && "fill-current"
+                  )}
+                />
+              </Button>
+            </div>
           </div>
         </div>
       ))}
@@ -224,59 +273,101 @@ function PhonesField() {
 }
 
 function EmailsField() {
-  const { control, register } = useFormContext<VCardData>();
+  const { control, register, watch, getValues, setValue } =
+    useFormContext<VCardData>();
   const { fields, append, remove } = useFieldArray({ control, name: "emails" });
+  const emails = watch("emails") || [];
+
+  const handleStarClick = (index: number) => {
+    const current = getValues("emails");
+    const wasActive = !!current[index]?.pref;
+    current.forEach((_, i) => setValue(`emails.${i}.pref`, false));
+    if (!wasActive) {
+      setValue(`emails.${index}.pref`, true);
+    }
+  };
 
   return (
     <div className="space-y-3">
       {fields.map((field, index) => (
-        <div key={field.id} className="flex items-end gap-2">
-          <div className="w-32">
-            <Label className="text-xs text-muted-foreground">Type</Label>
-            <Select
-              defaultValue={field.type || "home"} // Updated default value to be a non-empty string
-              onValueChange={(value) => {
-                updateHiddenInputValue(
-                  `input[name="emails.${index}.type"]`,
-                  value
-                );
-              }}
-            >
-              <SelectTrigger className="bg-background">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(emailTypeLabels).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <input
-              type="hidden"
-              {...register(`emails.${index}.type` as const)}
-            />
+        <div key={field.id} className="space-y-2 border-b border-border/20 pb-3 last:border-0 last:pb-0 sm:border-0 sm:pb-0">
+          <div className="grid grid-cols-12 gap-2 items-end sm:flex sm:gap-2">
+            <div className="col-span-6 sm:w-32 sm:shrink-0">
+              <Label className="text-xs text-muted-foreground">Type</Label>
+              <Select
+                defaultValue={field.type || "home"} // Updated default value to be a non-empty string
+                onValueChange={(value) => {
+                  updateHiddenInputValue(
+                    `input[name="emails.${index}.type"]`,
+                    value
+                  );
+                }}
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(emailTypeLabels).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <input
+                type="hidden"
+                {...register(`emails.${index}.type` as const)}
+              />
+            </div>
+            <div className="col-span-12 sm:flex-1">
+              <Label className="text-xs text-muted-foreground">Email</Label>
+              <Input
+                {...register(`emails.${index}.value` as const)}
+                type="email"
+                placeholder="john@example.com"
+                className="bg-background"
+              />
+            </div>
+            <div className="col-span-6 sm:w-auto flex justify-end gap-1 sm:mb-0.5">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => remove(index)}
+                className="shrink-0 text-muted-foreground hover:text-destructive"
+                disabled={fields.length === 1}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+              <input
+                type="hidden"
+                {...register(`emails.${index}.pref` as const)}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => handleStarClick(index)}
+                className={cn(
+                  "shrink-0",
+                  emails[index]?.pref
+                    ? "text-yellow-500"
+                    : "text-muted-foreground hover:text-yellow-500"
+                )}
+                aria-label={
+                  emails[index]?.pref ? "Remove preferred" : "Set as preferred"
+                }
+                aria-pressed={!!emails[index]?.pref}
+              >
+                <Star
+                  className={cn(
+                    "h-4 w-4",
+                    emails[index]?.pref && "fill-current"
+                  )}
+                />
+              </Button>
+            </div>
           </div>
-          <div className="flex-1">
-            <Label className="text-xs text-muted-foreground">Email</Label>
-            <Input
-              {...register(`emails.${index}.value` as const)}
-              type="email"
-              placeholder="john@example.com"
-              className="bg-background"
-            />
-          </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={() => remove(index)}
-            className="shrink-0 text-muted-foreground hover:text-destructive"
-            disabled={fields.length === 1}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
         </div>
       ))}
       <Button
@@ -294,11 +385,22 @@ function EmailsField() {
 }
 
 function AddressesField() {
-  const { control, register } = useFormContext<VCardData>();
+  const { control, register, watch, getValues, setValue } =
+    useFormContext<VCardData>();
   const { fields, append, remove } = useFieldArray({
     control,
     name: "addresses",
   });
+  const addresses = watch("addresses") || [];
+
+  const handleStarClick = (index: number) => {
+    const current = getValues("addresses");
+    const wasActive = !!current[index]?.pref;
+    current.forEach((_, i) => setValue(`addresses.${i}.pref`, false));
+    if (!wasActive) {
+      setValue(`addresses.${index}.pref`, true);
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -335,16 +437,47 @@ function AddressesField() {
                 {...register(`addresses.${index}.type` as const)}
               />
             </div>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => remove(index)}
-              className="shrink-0 text-muted-foreground hover:text-destructive"
-              disabled={fields.length === 1}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center gap-1">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => remove(index)}
+                className="shrink-0 text-muted-foreground hover:text-destructive"
+                disabled={fields.length === 1}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+              <input
+                type="hidden"
+                {...register(`addresses.${index}.pref` as const)}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => handleStarClick(index)}
+                className={cn(
+                  "shrink-0",
+                  addresses[index]?.pref
+                    ? "text-yellow-500"
+                    : "text-muted-foreground hover:text-yellow-500"
+                )}
+                aria-label={
+                  addresses[index]?.pref
+                    ? "Remove preferred"
+                    : "Set as preferred"
+                }
+                aria-pressed={!!addresses[index]?.pref}
+              >
+                <Star
+                  className={cn(
+                    "h-4 w-4",
+                    addresses[index]?.pref && "fill-current"
+                  )}
+                />
+              </Button>
+            </div>
           </div>
           <div className="space-y-2">
             <Input
@@ -425,50 +558,54 @@ function UrlsField() {
   return (
     <div className="space-y-3">
       {fields.map((field, index) => (
-        <div key={field.id} className="flex items-end gap-2">
-          <div className="w-32">
-            <Label className="text-xs text-muted-foreground">Type</Label>
-            <Select
-              defaultValue={field.type || "homepage"} // Updated default value to be a non-empty string
-              onValueChange={(value) => {
-                updateHiddenInputValue(
-                  `input[name="urls.${index}.type"]`,
-                  value
-                );
-              }}
-            >
-              <SelectTrigger className="bg-background">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(urlTypeLabels).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <input type="hidden" {...register(`urls.${index}.type` as const)} />
+        <div key={field.id} className="space-y-2 border-b border-border/20 pb-3 last:border-0 last:pb-0 sm:border-0 sm:pb-0">
+          <div className="grid grid-cols-12 gap-2 items-end sm:flex sm:gap-2">
+            <div className="col-span-6 sm:w-32 sm:shrink-0">
+              <Label className="text-xs text-muted-foreground">Type</Label>
+              <Select
+                defaultValue={field.type || "homepage"} // Updated default value to be a non-empty string
+                onValueChange={(value) => {
+                  updateHiddenInputValue(
+                    `input[name="urls.${index}.type"]`,
+                    value
+                  );
+                }}
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(urlTypeLabels).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <input type="hidden" {...register(`urls.${index}.type` as const)} />
+            </div>
+            <div className="col-span-12 sm:flex-1">
+              <Label className="text-xs text-muted-foreground">URL</Label>
+              <Input
+                {...register(`urls.${index}.value` as const)}
+                type="url"
+                placeholder="https://example.com"
+                className="bg-background"
+              />
+            </div>
+            <div className="col-span-6 sm:w-auto flex justify-end sm:mb-0.5">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => remove(index)}
+                className="shrink-0 text-muted-foreground hover:text-destructive"
+                disabled={fields.length === 1}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
-          <div className="flex-1">
-            <Label className="text-xs text-muted-foreground">URL</Label>
-            <Input
-              {...register(`urls.${index}.value` as const)}
-              type="url"
-              placeholder="https://example.com"
-              className="bg-background"
-            />
-          </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={() => remove(index)}
-            className="shrink-0 text-muted-foreground hover:text-destructive"
-            disabled={fields.length === 1}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
         </div>
       ))}
       <Button
@@ -497,51 +634,55 @@ function ImppField() {
         </p>
       )}
       {fields.map((field, index) => (
-        <div key={field.id} className="flex items-end gap-2">
-          <div className="w-32">
-            <Label className="text-xs text-muted-foreground">Service</Label>
-            <Select
-              defaultValue={field.type || "other"} // Updated default value to be a non-empty string
-              onValueChange={(value) => {
-                updateHiddenInputValue(
-                  `input[name="impps.${index}.type"]`,
-                  value
-                );
-              }}
-            >
-              <SelectTrigger className="bg-background">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(imppTypeLabels).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <input
-              type="hidden"
-              {...register(`impps.${index}.type` as const)}
-            />
+        <div key={field.id} className="space-y-2 border-b border-border/20 pb-3 last:border-0 last:pb-0 sm:border-0 sm:pb-0">
+          <div className="grid grid-cols-12 gap-2 items-end sm:flex sm:gap-2">
+            <div className="col-span-6 sm:w-32 sm:shrink-0">
+              <Label className="text-xs text-muted-foreground">Service</Label>
+              <Select
+                defaultValue={field.type || "other"} // Updated default value to be a non-empty string
+                onValueChange={(value) => {
+                  updateHiddenInputValue(
+                    `input[name="impps.${index}.type"]`,
+                    value
+                  );
+                }}
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(imppTypeLabels).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <input
+                type="hidden"
+                {...register(`impps.${index}.type` as const)}
+              />
+            </div>
+            <div className="col-span-12 sm:flex-1">
+              <Label className="text-xs text-muted-foreground">Handle</Label>
+              <Input
+                {...register(`impps.${index}.value` as const)}
+                placeholder="username"
+                className="bg-background"
+              />
+            </div>
+            <div className="col-span-6 sm:w-auto flex justify-end sm:mb-0.5">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => remove(index)}
+                className="shrink-0 text-muted-foreground hover:text-destructive"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
-          <div className="flex-1">
-            <Label className="text-xs text-muted-foreground">Handle</Label>
-            <Input
-              {...register(`impps.${index}.value` as const)}
-              placeholder="username"
-              className="bg-background"
-            />
-          </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={() => remove(index)}
-            className="shrink-0 text-muted-foreground hover:text-destructive"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
         </div>
       ))}
       <Button
@@ -573,55 +714,59 @@ function RelatedField() {
         </p>
       )}
       {fields.map((field, index) => (
-        <div key={field.id} className="flex items-end gap-2">
-          <div className="w-36">
-            <Label className="text-xs text-muted-foreground">
-              Relationship
-            </Label>
-            <Select
-              defaultValue={field.type || "friend"} // Updated default value to be a non-empty string
-              onValueChange={(value) => {
-                updateHiddenInputValue(
-                  `input[name="related.${index}.type"]`,
-                  value
-                );
-              }}
-            >
-              <SelectTrigger className="bg-background">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(relatedTypeLabels).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <input
-              type="hidden"
-              {...register(`related.${index}.type` as const)}
-            />
+        <div key={field.id} className="space-y-2 border-b border-border/20 pb-3 last:border-0 last:pb-0 sm:border-0 sm:pb-0">
+          <div className="grid grid-cols-12 gap-2 items-end sm:flex sm:gap-2">
+            <div className="col-span-6 sm:w-36 sm:shrink-0">
+              <Label className="text-xs text-muted-foreground">
+                Relationship
+              </Label>
+              <Select
+                defaultValue={field.type || "friend"} // Updated default value to be a non-empty string
+                onValueChange={(value) => {
+                  updateHiddenInputValue(
+                    `input[name="related.${index}.type"]`,
+                    value
+                  );
+                }}
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(relatedTypeLabels).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <input
+                type="hidden"
+                {...register(`related.${index}.type` as const)}
+              />
+            </div>
+            <div className="col-span-12 sm:flex-1">
+              <Label className="text-xs text-muted-foreground">
+                Name or Email
+              </Label>
+              <Input
+                {...register(`related.${index}.value` as const)}
+                placeholder="Jane Doe"
+                className="bg-background"
+              />
+            </div>
+            <div className="col-span-6 sm:w-auto flex justify-end sm:mb-0.5">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => remove(index)}
+                className="shrink-0 text-muted-foreground hover:text-destructive"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
-          <div className="flex-1">
-            <Label className="text-xs text-muted-foreground">
-              Name or Email
-            </Label>
-            <Input
-              {...register(`related.${index}.value` as const)}
-              placeholder="Jane Doe"
-              className="bg-background"
-            />
-          </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={() => remove(index)}
-            className="shrink-0 text-muted-foreground hover:text-destructive"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
         </div>
       ))}
       <Button
@@ -651,13 +796,50 @@ export function ContactForm() {
   const filledEmails = emails.filter((e) => e.value).length;
   const filledAddresses = addresses.filter((a) => a.street || a.city).length;
   const filledUrls = urls.filter((u) => u.value).length;
+  const openSetters = useRef<Map<string, (open: boolean) => void>>(
+    new Map()
+  );
+  const [lastToggleAction, setLastToggleAction] = useState<
+    "expand" | "collapse"
+  >("collapse");
+
+  const handleToggleAll = () => {
+    if (lastToggleAction === "expand") {
+      openSetters.current.forEach((setOpen) =>
+        setOpen(false)
+      );
+      setLastToggleAction("collapse");
+    } else {
+      openSetters.current.forEach((setOpen) => setOpen(true));
+      setLastToggleAction("expand");
+    }
+  };
 
   return (
     <div className="space-y-3">
+      <div className="flex justify-end px-4">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={handleToggleAll}
+          className="gap-1.5 text-muted-foreground"
+          aria-label={
+            lastToggleAction === "expand"
+              ? "Collapse all sections"
+              : "Expand all sections"
+          }
+        >
+          <ChevronsUpDown className="h-4 w-4" />
+          {lastToggleAction === "expand" ? "Collapse all" : "Expand all"}
+        </Button>
+      </div>
       <FormSection
         title="Basic Information"
         icon={<User className="h-4 w-4" />}
         defaultOpen
+        sectionId="basic"
+        openSettersRef={openSetters}
       >
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="space-y-2">
@@ -726,7 +908,7 @@ export function ContactForm() {
           />
           <FormField name="suffix" label="Suffix" placeholder="Jr." />
         </div>
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
           <FormField name="nickname" label="Nickname" placeholder="Johnny" />
           <LanguageSelector />
           <TimezoneSelector />
@@ -809,6 +991,8 @@ export function ContactForm() {
         title="Phone"
         icon={<Phone className="h-4 w-4" />}
         badge={filledPhones}
+        sectionId="phone"
+        openSettersRef={openSetters}
       >
         <PhonesField />
       </FormSection>
@@ -817,6 +1001,8 @@ export function ContactForm() {
         title="Email"
         icon={<Mail className="h-4 w-4" />}
         badge={filledEmails}
+        sectionId="email"
+        openSettersRef={openSetters}
       >
         <EmailsField />
       </FormSection>
@@ -824,6 +1010,8 @@ export function ContactForm() {
       <FormSection
         title="Work & Organization"
         icon={<Briefcase className="h-4 w-4" />}
+        sectionId="work"
+        openSettersRef={openSetters}
       >
         <div className="grid gap-4 sm:grid-cols-2">
           <FormField
@@ -850,6 +1038,8 @@ export function ContactForm() {
       <FormSection
         title="Dates & Calendar"
         icon={<Calendar className="h-4 w-4" />}
+        sectionId="dates"
+        openSettersRef={openSetters}
       >
         <div className="grid gap-4 sm:grid-cols-2">
           <FormField name="birthday" label="Birthday" type="date" />
@@ -911,6 +1101,8 @@ export function ContactForm() {
         title="Addresses"
         icon={<MapPin className="h-4 w-4" />}
         badge={filledAddresses}
+        sectionId="addresses"
+        openSettersRef={openSetters}
       >
         <AddressesField />
       </FormSection>
@@ -919,11 +1111,18 @@ export function ContactForm() {
         title="Websites & URLs"
         icon={<Globe className="h-4 w-4" />}
         badge={filledUrls}
+        sectionId="websites"
+        openSettersRef={openSetters}
       >
         <UrlsField />
       </FormSection>
 
-      <FormSection title="Geographic" icon={<MapPin className="h-4 w-4" />}>
+      <FormSection
+        title="Geographic"
+        icon={<MapPin className="h-4 w-4" />}
+        sectionId="geographic"
+        openSettersRef={openSetters}
+      >
         <GeoInput />
       </FormSection>
 
@@ -931,6 +1130,8 @@ export function ContactForm() {
         title="Instant Messaging"
         icon={<MessageSquare className="h-4 w-4" />}
         badge={impps.filter((i) => i.value).length}
+        sectionId="messaging"
+        openSettersRef={openSetters}
       >
         <ImppField />
       </FormSection>
@@ -939,11 +1140,18 @@ export function ContactForm() {
         title="Related People"
         icon={<Users className="h-4 w-4" />}
         badge={related.filter((r) => r.value).length}
+        sectionId="related"
+        openSettersRef={openSetters}
       >
         <RelatedField />
       </FormSection>
 
-      <FormSection title="Additional Info" icon={<Info className="h-4 w-4" />}>
+      <FormSection
+        title="Additional Info"
+        icon={<Info className="h-4 w-4" />}
+        sectionId="additional"
+        openSettersRef={openSetters}
+      >
         <FormField
           name="categories"
           label="Categories / Tags"
@@ -965,7 +1173,12 @@ export function ContactForm() {
         </div>
       </FormSection>
 
-      <FormSection title="Advanced" icon={<Settings className="h-4 w-4" />}>
+      <FormSection
+        title="Advanced"
+        icon={<Settings className="h-4 w-4" />}
+        sectionId="advanced"
+        openSettersRef={openSetters}
+      >
         <FormField
           name="publicKey"
           label="Public Key URL"

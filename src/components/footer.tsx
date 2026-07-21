@@ -4,7 +4,7 @@ import { Github } from "lucide-react";
 
 export function Footer() {
   return (
-    <footer className="border-t border-border/50 bg-background/50 py-4 text-center text-sm text-muted-foreground">
+    <footer className="border-t border-border/50 bg-background/50 py-4 text-center text-sm text-muted-foreground hidden lg:block">
       <p>
         Made with love by{" "}
         <a

@@ -4,48 +4,69 @@ import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
     setMounted(true);
   }, []);
 
-  if (!mounted) return null;
+  // Reserve the footprint before hydration so the navbar doesn't shift.
+  if (!mounted)
+    return <span className="h-8 w-14 shrink-0" aria-hidden="true" />;
 
-  const isDark = theme === "dark";
+  const isDark = resolvedTheme === "dark";
 
   return (
     <Button
       type="button"
       variant="ghost"
-      size="icon"
+      size="icon-sm"
+      role="switch"
+      aria-checked={isDark}
       onClick={() => setTheme(isDark ? "light" : "dark")}
-      className="relative inline-flex h-8 w-14 items-center rounded-full border border-border/60 bg-muted/60 px-1 text-foreground transition-colors duration-200 hover:bg-muted"
-      aria-label="Toggle theme"
+      className="relative h-8 w-14 rounded-full border border-border/60 bg-muted/60 p-0 hover:bg-muted"
+      aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
+      title={isDark ? "Switch to light theme" : "Switch to dark theme"}
     >
-      {/* Icons at the ends */}
-      <span className="pointer-events-none flex w-full items-center justify-between">
+      {/* Track markers: the destination the thumb is not currently sitting on. */}
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 flex items-center justify-between px-2"
+      >
         <Sun
-          className={`h-3.5 w-3.5 transition-colors duration-200 ${
-            isDark ? "text-yellow-300" : "text-yellow-500"
+          className={`size-3 transition-opacity duration-300 ease-out ${
+            isDark ? "opacity-40" : "opacity-0"
           }`}
         />
         <Moon
-          className={`h-3.5 w-3.5 transition-colors duration-200 ${
-            isDark ? "text-sky-300" : "text-slate-500"
+          className={`size-3 transition-opacity duration-300 ease-out ${
+            isDark ? "opacity-0" : "opacity-40"
           }`}
         />
       </span>
 
-      {/* Sliding thumb */}
+      {/* Sliding thumb, carrying the active icon. */}
       <span
-        className={`pointer-events-none absolute left-1 top-1 h-6 w-6 rounded-full bg-background shadow-sm transition-transform duration-200 ${
+        className={`pointer-events-none absolute left-1 top-1 flex size-6 items-center justify-center rounded-full bg-background shadow-sm transition-transform duration-300 ease-out ${
           isDark ? "translate-x-6" : "translate-x-0"
         }`}
-      />
-
-      <span className="sr-only">Toggle theme</span>
+      >
+        <Sun
+          className={`absolute size-3.5 text-amber-500 transition-all duration-300 ease-out ${
+            isDark
+              ? "rotate-90 scale-0 opacity-0"
+              : "rotate-0 scale-100 opacity-100"
+          }`}
+        />
+        <Moon
+          className={`absolute size-3.5 text-sky-400 transition-all duration-300 ease-out ${
+            isDark
+              ? "rotate-0 scale-100 opacity-100"
+              : "-rotate-90 scale-0 opacity-0"
+          }`}
+        />
+      </span>
     </Button>
   );
 }
