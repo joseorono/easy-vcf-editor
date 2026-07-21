@@ -62,7 +62,7 @@ export function EditorNavbar({
         <div className="flex items-center gap-3">
           <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-primary/10">
             <img
-              src="/vcf.svg"
+              src="vcf.svg"
               alt="Easy VCF Editor Logo"
               className="h-10 w-10"
             />

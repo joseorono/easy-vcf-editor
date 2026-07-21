@@ -7,6 +7,10 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const isDev = !app.isPackaged;
 
 function createWindow(): BrowserWindow {
+  const iconPath = isDev
+    ? path.join(__dirname, "..", "public", "pwa-192x192.png")
+    : path.join(__dirname, "..", "dist", "pwa-192x192.png");
+
   const mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
@@ -15,6 +19,7 @@ function createWindow(): BrowserWindow {
     show: false,
     autoHideMenuBar: true,
     title: "Easy VCF Editor",
+    icon: iconPath,
     webPreferences: {
       preload: path.join(__dirname, "preload.cjs"),
       contextIsolation: true,

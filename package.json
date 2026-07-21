@@ -96,7 +96,8 @@
       "dist-electron/**/*"
     ],
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "icon": "public/pwa-512x512.png"
     },
     "nsis": {
       "oneClick": false,

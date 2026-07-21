@@ -54,20 +54,20 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done
 
 - [x] **Establish project branding and name** — "Easy VCF Editor", with updated logo/navbar and README. - Assigned to Andreina
 
-- [~] **Wrap the app in Electron** — Scaffolded and building via `vite-plugin-electron`. - Assigned to Andreina
+- [x] **Wrap the app in Electron** — Scaffolded and building via `vite-plugin-electron`. - Assigned to Andreina
   - [x] `electron/main.ts` (secure `BrowserWindow`: `contextIsolation`, no `nodeIntegration`, `sandbox`).
   - [x] `electron/preload.ts` exposing `window.electronAPI` via `contextBridge`.
   - [x] Build integrated into `vite.config.ts` (`--mode electron`): main → ESM `main.js`, preload → CJS `preload.cjs`.
   - [x] Fix the sandbox/preload format bug (sandboxed preload must be CommonJS).
   - [x] electron-builder config (`appId`, Windows NSIS target) in `package.json`.
-  - [ ] `npm install` (pull the Electron binary + `vite-plugin-electron`).
-  - [ ] Verify `npm run electron:dev` opens a window and `window.electronAPI.isElectron === true`.
-  - [ ] Produce and smoke-test the NSIS installer via `npm run electron:build`.
+  - [x] `npm install` (pull the Electron binary + `vite-plugin-electron`) (Completed).
+  - [x] Verify `npm run electron:dev` opens a window and `window.electronAPI.isElectron === true` (Verified).
+  - [x] Produce and smoke-test the NSIS installer via `npm run electron:build` (Completed and verified with correct window and header icons).
 
 - [x] **Add PWA support** — Implemented with `vite-plugin-pwa`. - Assigned to Andreina
-  - [x] Manifest, `registerType: "autoUpdate"`, workbox (`skipWaiting`/`clientsClaim`).
+  - [x] Manifest, `registerType: "prompt"`, workbox (`skipWaiting`/`clientsClaim`) (Updated to prompt).
   - [x] Install-prompt UX (`use-pwa-install.ts` / `install-pwa-hint.tsx`).
   - [x] Disabled inside Electron builds (`disable: isElectron`).
-  - [ ] Generate raster PNG icons (192/512 + apple-touch) via `@vite-pwa/assets-generator` (manifest currently SVG-only).
-  - [ ] (Optional) Update/offline-ready toast via `virtual:pwa-register` (app already uses `sonner`).
-  - [ ] Verify installability and offline behavior in a production preview.
+  - [x] Generate raster PNG icons (192/512 + apple-touch) via `@vite-pwa/assets-generator` (manifest currently SVG-only) (Generated via pwa-assets-generator).
+  - [x] (Optional) Update/offline-ready toast via `virtual:pwa-register` (app already uses `sonner`) (Implemented via PwaReloadPrompt).
+  - [x] Verify installability and offline behavior in a production preview (Verified using localtunnel on mobile).
