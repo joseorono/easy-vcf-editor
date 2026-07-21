@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Upload, Download, QrCode, Image, ClipboardPaste } from "lucide-react";
+import { ChevronLeft, ChevronRight, Upload, Download, QrCode, Image, ClipboardPaste, Menu, Sun, Moon, X, Settings, RotateCcw } from "lucide-react";
 import { useForm, FormProvider } from "react-hook-form";
 import { useDropzone } from "react-dropzone";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import type { VCardData, VCardVersion } from "@/types/vcard-types";
 import { defaultVCardData } from "@/constants/vcard-constants";
@@ -40,6 +41,7 @@ import { PreviewTabs } from "@/components/preview-tabs";
 import { ImportVcardDialog } from "@/components/import-vcard-dialog";
 import { ExportContactImageDialog } from "@/components/export-contact-image-dialog";
 import { SplitButton } from "@/components/shadcn-blocks/split-button";
+import { useTheme } from "next-themes";
 
 export function VcfEditor() {
   const [version, setVersion] = useState<VCardVersion>("4.0");
@@ -48,6 +50,8 @@ export function VcfEditor() {
   const [importOpen, setImportOpen] = useState(false);
   const [importTab, setImportTab] = useState<"file" | "paste">("file");
   const [exportContactImageOpen, setExportContactImageOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { resolvedTheme, setTheme } = useTheme();
 
   const methods = useForm<VCardData>({
     defaultValues: defaultVCardData,
@@ -247,6 +251,7 @@ export function VcfEditor() {
           onExportContactImage={handleExportContactImage}
           showPreview={showPreview}
           onShowPreview={togglePreview}
+          onOpenMenu={() => setIsMenuOpen(true)}
         />
 
         <div
@@ -439,6 +444,132 @@ export function VcfEditor() {
             },
           ]}
         />
+      </div>
+
+      {/* Custom sliding drawer menu for Mobile/Tablet */}
+      <div
+        className={cn(
+          "fixed inset-0 z-40 bg-black/70 backdrop-blur-xs transition-opacity duration-300 lg:hidden",
+          isMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        )}
+        onClick={() => setIsMenuOpen(false)}
+      />
+
+      <div
+        className={cn(
+          "fixed top-0 right-0 bottom-0 w-72 z-50 bg-white dark:bg-neutral-950 border-l border-border shadow-2xl flex flex-col p-5 gap-6 transition-transform duration-300 ease-in-out transform lg:hidden",
+          isMenuOpen ? "translate-x-0" : "translate-x-full"
+        )}
+      >
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Options</h2>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 rounded-full"
+            onClick={() => setIsMenuOpen(false)}
+            aria-label="Close menu"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <div className="flex flex-col gap-5">
+          {/* VCF Version Section */}
+          <div className="space-y-2">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              VCF Version
+            </span>
+            <div className="grid grid-cols-3 gap-1 bg-neutral-100 dark:bg-neutral-900 p-1 rounded-md">
+              {(["4.0", "3.0", "2.1"] as VCardVersion[]).map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => setVersion(v)}
+                  className={cn(
+                    "py-1.5 px-2 text-xs font-medium rounded-sm transition-all",
+                    version === v
+                      ? "bg-white dark:bg-neutral-800 text-foreground shadow-xs"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  v{v}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Theme Section */}
+          <div className="space-y-2">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Theme
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              type="button"
+              onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+              className="w-full justify-between h-9"
+            >
+              {resolvedTheme === "dark" ? (
+                <>
+                  <span className="flex items-center gap-2">
+                    <Moon className="h-4 w-4 text-sky-400" />
+                    Dark Theme
+                  </span>
+                  <span className="text-xs text-muted-foreground">Active</span>
+                </>
+              ) : (
+                <>
+                  <span className="flex items-center gap-2">
+                    <Sun className="h-4 w-4 text-amber-500" />
+                    Light Theme
+                  </span>
+                  <span className="text-xs text-muted-foreground">Active</span>
+                </>
+              )}
+            </Button>
+          </div>
+
+          {/* Actions Section */}
+          <div className="space-y-2 pt-4 border-t border-border">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Actions
+            </span>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="w-full gap-2 justify-center h-9"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                  Clear Contact
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Clear this contact?</AlertDialogTitle>
+                </AlertDialogHeader>
+                <p className="text-sm text-muted-foreground">
+                  This will remove all values from the form and reset it to a
+                  blank contact. This action cannot be undone.
+                </p>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => {
+                      handleNew();
+                      setIsMenuOpen(false);
+                    }}
+                  >
+                    Clear
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </div>
       </div>
       <Toaster />
     </FormProvider>
