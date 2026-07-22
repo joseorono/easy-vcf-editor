@@ -41,6 +41,7 @@ import { SplitButton } from "@/components/shadcn-blocks/split-button";
 import { useTheme } from "next-themes";
 import { Loader } from "@/components/loader";
 import { useIsDesktop } from "@/hooks/use-is-desktop";
+import { useWebMcp } from "@/hooks/use-webmcp";
 
 // Lazy so react-qr-code and the rest of the preview code leave the initial
 // entry bundle — the panel is off-screen on mobile until the user opens it.
@@ -243,6 +244,17 @@ export function VcfEditor() {
   const togglePreview = () => {
     setShowPreview((prev) => !prev);
   };
+
+  // Expose the editor to agentic browsers via WebMCP. Feature-detected inside
+  // the hook, so this is inert in browsers without `navigator.modelContext`.
+  useWebMcp({
+    getContact: () => methods.getValues(),
+    setContact: (data) => methods.reset(data),
+    getVCardText: () => generateVcf(methods.getValues(), versionRef.current),
+    importVCardText: (text) => importFromText(text),
+    exportVCard: handleExportVcf,
+    clearContact: handleNew,
+  });
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {

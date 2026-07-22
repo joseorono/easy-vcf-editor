@@ -18,6 +18,33 @@ declare global {
   } & {};
 }
 
+// WebMCP (experimental agentic-browsing API, http://goo.gle/webmcp-docs).
+// Progressive enhancement: present only in agent-capable browsers, so every
+// use is feature-detected. Typed here to avoid `as any` at the call site.
+// Inside `declare global` so the types (and the Navigator augmentation) are
+// visible project-wide from this module file.
+declare global {
+  interface WebMcpToolResult {
+    content: Array<{ type: "text"; text: string }>;
+  }
+
+  interface WebMcpTool {
+    name: string;
+    description: string;
+    inputSchema?: Record<string, unknown>;
+    execute: (args: Record<string, unknown>) => Promise<WebMcpToolResult>;
+  }
+
+  interface WebMcpModelContext {
+    registerTool?: (tool: WebMcpTool) => { unregister?: () => void } | void;
+    unregisterTool?: (name: string) => void;
+  }
+
+  interface Navigator {
+    modelContext?: WebMcpModelContext;
+  }
+}
+
 // Plain CSS side-effect imports (e.g. `import '@fontsource/press-start-2p/index.css'`).
 // Required because noUncheckedSideEffectImports rejects untyped .css imports.
 declare module '*.css';

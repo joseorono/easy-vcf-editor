@@ -1,0 +1,21 @@
+# Easy VCF Editor
+
+> A free, offline-first web app for creating, editing, importing, and exporting vCard (.vcf) contact files. Everything runs in the browser — no account, no server, and no contact data ever leaves the user's device.
+
+Easy VCF Editor builds a contact from a structured form (names, phone numbers, emails, postal addresses, organization details, URLs, instant-messaging handles, important dates, notes, and more) with a live preview. Contacts can be exported as a `.vcf` file (vCard 2.1, 3.0, or 4.0), a QR code (PNG or SVG), or a shareable contact-card image. Existing vCards can be imported by choosing a file, pasting text, or dragging a `.vcf` onto the window. The app is installable as a Progressive Web App and also ships as a desktop application.
+
+## Features
+
+- [Live editor](https://easy-vcf-editor.vercel.app/): Create and edit a vCard through a detailed form with an instant live preview.
+- Import: Load a vCard from a file, from pasted text, or via drag-and-drop.
+- Export: Download as `.vcf` (vCard 2.1 / 3.0 / 4.0), as a QR code (PNG or SVG), or as a contact-card image.
+- Offline-first: Works entirely offline; all processing happens locally in the browser.
+
+## About
+
+- [Source code (GitHub)](https://github.com/joseorono/easy-vcf-editor): Open-source repository for the project.
+
+## Notes
+
+- This is a purely client-side tool. There is no public HTTP API and no server-side storage — all vCard parsing, generation, and file handling happens in the user's browser.
+- Agentic browsers that support WebMCP can drive the editor directly via registered tools (read the current contact, fill fields, import vCard text, export the `.vcf`, and clear the form).
