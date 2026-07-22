@@ -169,7 +169,7 @@ export function PhonesField() {
       {fields.map((field, index) => (
         <div key={field.id} className="space-y-2 border-b border-border/20 pb-3 last:border-0 last:pb-0 sm:border-0 sm:pb-0">
           <div className="grid grid-cols-12 gap-2 items-end sm:flex sm:gap-2">
-            <div className="col-span-6 sm:w-28 sm:shrink-0">
+            <div className="col-span-6 sm:w-28 sm:shrink-0 space-y-1.5">
               <Label className="text-xs text-muted-foreground">Type</Label>
               <Select
                 defaultValue={field.type || "cell"}
@@ -196,7 +196,8 @@ export function PhonesField() {
                 {...register(`phones.${index}.type` as const)}
               />
             </div>
-            <div className="col-span-6 sm:w-24 sm:shrink-0">
+            <div className="col-span-6 sm:w-24 sm:shrink-0 space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Code</Label>
               <CountryCodeSelector
                 inline
                 value={countryCodes[index]}
@@ -208,7 +209,7 @@ export function PhonesField() {
                 }}
               />
             </div>
-            <div className="col-span-12 sm:flex-1">
+            <div className="col-span-12 sm:flex-1 space-y-1.5">
               <Label className="text-xs text-muted-foreground">Number</Label>
               <Input
                 {...register(`phones.${index}.value` as const)}
@@ -292,7 +293,7 @@ function EmailsField() {
       {fields.map((field, index) => (
         <div key={field.id} className="space-y-2 border-b border-border/20 pb-3 last:border-0 last:pb-0 sm:border-0 sm:pb-0">
           <div className="grid grid-cols-12 gap-2 items-end sm:flex sm:gap-2">
-            <div className="col-span-6 sm:w-32 sm:shrink-0">
+            <div className="col-span-6 sm:w-32 sm:shrink-0 space-y-1.5">
               <Label className="text-xs text-muted-foreground">Type</Label>
               <Select
                 defaultValue={field.type || "home"} // Updated default value to be a non-empty string
@@ -319,7 +320,7 @@ function EmailsField() {
                 {...register(`emails.${index}.type` as const)}
               />
             </div>
-            <div className="col-span-12 sm:flex-1">
+            <div className="col-span-12 sm:flex-1 space-y-1.5">
               <Label className="text-xs text-muted-foreground">Email</Label>
               <Input
                 {...register(`emails.${index}.value` as const)}
@@ -410,7 +411,7 @@ function AddressesField() {
           className="rounded-lg border border-border/50 bg-secondary/20 p-4 space-y-3"
         >
           <div className="flex items-center justify-between">
-            <div className="w-32">
+            <div className="w-32 space-y-1.5">
               <Label className="text-xs text-muted-foreground">Type</Label>
               <Select
                 defaultValue={field.type || "home"} // Updated default value to be a non-empty string
@@ -560,7 +561,7 @@ function UrlsField() {
       {fields.map((field, index) => (
         <div key={field.id} className="space-y-2 border-b border-border/20 pb-3 last:border-0 last:pb-0 sm:border-0 sm:pb-0">
           <div className="grid grid-cols-12 gap-2 items-end sm:flex sm:gap-2">
-            <div className="col-span-6 sm:w-32 sm:shrink-0">
+            <div className="col-span-6 sm:w-32 sm:shrink-0 space-y-1.5">
               <Label className="text-xs text-muted-foreground">Type</Label>
               <Select
                 defaultValue={field.type || "homepage"} // Updated default value to be a non-empty string
@@ -584,7 +585,7 @@ function UrlsField() {
               </Select>
               <input type="hidden" {...register(`urls.${index}.type` as const)} />
             </div>
-            <div className="col-span-12 sm:flex-1">
+            <div className="col-span-12 sm:flex-1 space-y-1.5">
               <Label className="text-xs text-muted-foreground">URL</Label>
               <Input
                 {...register(`urls.${index}.value` as const)}
@@ -636,7 +637,7 @@ function ImppField() {
       {fields.map((field, index) => (
         <div key={field.id} className="space-y-2 border-b border-border/20 pb-3 last:border-0 last:pb-0 sm:border-0 sm:pb-0">
           <div className="grid grid-cols-12 gap-2 items-end sm:flex sm:gap-2">
-            <div className="col-span-6 sm:w-32 sm:shrink-0">
+            <div className="col-span-6 sm:w-32 sm:shrink-0 space-y-1.5">
               <Label className="text-xs text-muted-foreground">Service</Label>
               <Select
                 defaultValue={field.type || "other"} // Updated default value to be a non-empty string
@@ -663,7 +664,7 @@ function ImppField() {
                 {...register(`impps.${index}.type` as const)}
               />
             </div>
-            <div className="col-span-12 sm:flex-1">
+            <div className="col-span-12 sm:flex-1 space-y-1.5">
               <Label className="text-xs text-muted-foreground">Handle</Label>
               <Input
                 {...register(`impps.${index}.value` as const)}
@@ -716,7 +717,7 @@ function RelatedField() {
       {fields.map((field, index) => (
         <div key={field.id} className="space-y-2 border-b border-border/20 pb-3 last:border-0 last:pb-0 sm:border-0 sm:pb-0">
           <div className="grid grid-cols-12 gap-2 items-end sm:flex sm:gap-2">
-            <div className="col-span-6 sm:w-36 sm:shrink-0">
+            <div className="col-span-6 sm:w-36 sm:shrink-0 space-y-1.5">
               <Label className="text-xs text-muted-foreground">
                 Relationship
               </Label>
@@ -745,7 +746,7 @@ function RelatedField() {
                 {...register(`related.${index}.type` as const)}
               />
             </div>
-            <div className="col-span-12 sm:flex-1">
+            <div className="col-span-12 sm:flex-1 space-y-1.5">
               <Label className="text-xs text-muted-foreground">
                 Name or Email
               </Label>

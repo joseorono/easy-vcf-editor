@@ -144,7 +144,10 @@ export function EditorNavbar({
                 value={version}
                 onValueChange={(v) => onVersionChange(v as VCardVersion)}
               >
-                <SelectTrigger className="h-8 w-20 text-xs sm:h-9 sm:w-24 sm:text-sm">
+                <SelectTrigger
+                  aria-label="vCard version"
+                  className="h-8 w-20 text-xs sm:h-9 sm:w-24 sm:text-sm"
+                >
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
