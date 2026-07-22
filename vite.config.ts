@@ -142,38 +142,11 @@ export default defineConfig(({ mode }) => {
     build: {
       target: "esnext",
       cssCodeSplit: true,
-      rollupOptions: {
-        output: {
-          manualChunks(id) {
-            if (id.includes("node_modules")) {
-              if (
-                id.includes("react-dom") ||
-                id.includes("react-hook-form") ||
-                id.includes("jotai")
-              ) {
-                return "vendor-react-core";
-              }
-              if (id.includes("lucide-react")) {
-                return "vendor-icons";
-              }
-              if (id.includes("@radix-ui")) {
-                return "vendor-radix";
-              }
-              if (id.includes("vcard4") || id.includes("vcard-creator")) {
-                return "vendor-vcard";
-              }
-              if (
-                id.includes("countries-list") ||
-                id.includes("html-to-image") ||
-                id.includes("qrcode")
-              ) {
-                return "vendor-utils";
-              }
-              return "vendor-common";
-            }
-          },
-        },
-      },
+      // No manualChunks: hand-splitting interdependent libs (React, Radix)
+      // bisects their internal dependency cycles and breaks module init order
+      // in prod (TDZ "before initialization" / "unstable_now is undefined").
+      // Vite's default chunking respects those cycles. The real perf win is
+      // the lazy-loaded dialogs in vcf-editor.tsx, which is independent of this.
     },
     server: {
       host: true,
