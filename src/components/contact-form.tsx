@@ -26,6 +26,7 @@ import {
 import {
   ChevronDown,
   ChevronsUpDown,
+  ChevronsDownUp,
   User,
   Briefcase,
   Mail,
@@ -831,7 +832,11 @@ export function ContactForm() {
               : "Expand all sections"
           }
         >
-          <ChevronsUpDown className="h-4 w-4" />
+          {lastToggleAction === "expand" ? (
+            <ChevronsDownUp className="h-4 w-4" />
+          ) : (
+            <ChevronsUpDown className="h-4 w-4" />
+          )}
           {lastToggleAction === "expand" ? "Collapse all" : "Expand all"}
         </Button>
       </div>
