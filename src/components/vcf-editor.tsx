@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, lazy, Suspense } from "react";
 import { ChevronLeft, ChevronRight, Upload, Download, QrCode, Image, ClipboardPaste, Sun, Moon, X, RotateCcw } from "lucide-react";
 import { useForm, FormProvider } from "react-hook-form";
 import { useDropzone } from "react-dropzone";
@@ -38,10 +38,21 @@ import { cn } from "@/lib/utils";
 import { EditorNavbar } from "@/components/editor-navbar";
 import { Footer } from "@/components/footer";
 import { PreviewTabs } from "@/components/preview-tabs";
-import { ImportVcardDialog } from "@/components/import-vcard-dialog";
-import { ExportContactImageDialog } from "@/components/export-contact-image-dialog";
 import { SplitButton } from "@/components/shadcn-blocks/split-button";
 import { useTheme } from "next-themes";
+import { Loader } from "@/components/loader";
+
+const ImportVcardDialog = lazy(() =>
+  import("@/components/import-vcard-dialog").then((m) => ({
+    default: m.ImportVcardDialog,
+  }))
+);
+
+const ExportContactImageDialog = lazy(() =>
+  import("@/components/export-contact-image-dialog").then((m) => ({
+    default: m.ExportContactImageDialog,
+  }))
+);
 
 export function VcfEditor() {
   const [version, setVersion] = useState<VCardVersion>("4.0");
@@ -337,19 +348,27 @@ export function VcfEditor() {
 
         <Footer />
       </div>
-      <ImportVcardDialog
-        open={importOpen}
-        onOpenChange={setImportOpen}
-        tab={importTab}
-        onTabChange={setImportTab}
-        onImportText={handleImportText}
-      />
-      <ExportContactImageDialog
-        data={watchedData}
-        version={version}
-        open={exportContactImageOpen}
-        onOpenChange={setExportContactImageOpen}
-      />
+      <Suspense
+        fallback={
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/50 backdrop-blur-xs">
+            <Loader />
+          </div>
+        }
+      >
+        <ImportVcardDialog
+          open={importOpen}
+          onOpenChange={setImportOpen}
+          tab={importTab}
+          onTabChange={setImportTab}
+          onImportText={handleImportText}
+        />
+        <ExportContactImageDialog
+          data={watchedData}
+          version={version}
+          open={exportContactImageOpen}
+          onOpenChange={setExportContactImageOpen}
+        />
+      </Suspense>
       <AlertDialog
         open={showImportWarning}
         onOpenChange={setShowImportWarning}

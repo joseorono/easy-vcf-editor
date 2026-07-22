@@ -180,7 +180,7 @@ export function PhonesField() {
                   );
                 }}
               >
-                <SelectTrigger className="bg-background">
+                <SelectTrigger className="bg-background" aria-label="Phone type">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -303,7 +303,7 @@ function EmailsField() {
                   );
                 }}
               >
-                <SelectTrigger className="bg-background">
+                <SelectTrigger className="bg-background" aria-label="Email type">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -421,7 +421,7 @@ function AddressesField() {
                   );
                 }}
               >
-                <SelectTrigger className="bg-background">
+                <SelectTrigger className="bg-background" aria-label="Address type">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -571,7 +571,7 @@ function UrlsField() {
                   );
                 }}
               >
-                <SelectTrigger className="bg-background">
+                <SelectTrigger className="bg-background" aria-label="URL type">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -647,7 +647,7 @@ function ImppField() {
                   );
                 }}
               >
-                <SelectTrigger className="bg-background">
+                <SelectTrigger className="bg-background" aria-label="Instant messaging service">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -729,7 +729,7 @@ function RelatedField() {
                   );
                 }}
               >
-                <SelectTrigger className="bg-background">
+                <SelectTrigger className="bg-background" aria-label="Relationship type">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -885,7 +885,7 @@ export function ContactForm() {
                 updateHiddenInputValue('input[name="gender"]', value);
               }}
             >
-              <SelectTrigger className="bg-background">
+              <SelectTrigger className="bg-background" aria-label="Gender">
                 <SelectValue placeholder="Not specified" />
               </SelectTrigger>
               <SelectContent>
