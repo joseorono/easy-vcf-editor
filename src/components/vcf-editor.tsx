@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Upload, Download, QrCode, Image, ClipboardPaste, Menu, Sun, Moon, X, Settings, RotateCcw } from "lucide-react";
+import { ChevronLeft, ChevronRight, Upload, Download, QrCode, Image, ClipboardPaste, Sun, Moon, X, RotateCcw } from "lucide-react";
 import { useForm, FormProvider } from "react-hook-form";
 import { useDropzone } from "react-dropzone";
 import { Button } from "@/components/ui/button";
