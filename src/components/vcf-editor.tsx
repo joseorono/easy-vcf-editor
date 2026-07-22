@@ -37,10 +37,18 @@ import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import { EditorNavbar } from "@/components/editor-navbar";
 import { Footer } from "@/components/footer";
-import { PreviewTabs } from "@/components/preview-tabs";
 import { SplitButton } from "@/components/shadcn-blocks/split-button";
 import { useTheme } from "next-themes";
 import { Loader } from "@/components/loader";
+import { useIsDesktop } from "@/hooks/use-is-desktop";
+
+// Lazy so react-qr-code and the rest of the preview code leave the initial
+// entry bundle — the panel is off-screen on mobile until the user opens it.
+const PreviewTabs = lazy(() =>
+  import("@/components/preview-tabs").then((m) => ({
+    default: m.PreviewTabs,
+  }))
+);
 
 const ImportVcardDialog = lazy(() =>
   import("@/components/import-vcard-dialog").then((m) => ({
@@ -63,6 +71,7 @@ export function VcfEditor() {
   const [exportContactImageOpen, setExportContactImageOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { resolvedTheme, setTheme } = useTheme();
+  const isDesktop = useIsDesktop();
 
   const methods = useForm<VCardData>({
     defaultValues: defaultVCardData,
@@ -339,7 +348,19 @@ export function VcfEditor() {
                 </Button>
               </div>
               <div className="flex-1 overflow-hidden">
-                <PreviewTabs data={watchedData} version={version} />
+                {/* Desktop shows the preview by default; on mobile it stays
+                    unmounted (and its chunk unloaded) until the user opens it. */}
+                {(isDesktop || showPreview) && (
+                  <Suspense
+                    fallback={
+                      <div className="flex h-full items-center justify-center">
+                        <Loader />
+                      </div>
+                    }
+                  >
+                    <PreviewTabs data={watchedData} version={version} />
+                  </Suspense>
+                )}
               </div>
             </div>
           </div>
