@@ -24,6 +24,9 @@
   --popover-foreground: oklch(0.145 0 0);
   --primary: oklch(0.205 0 0);
   --primary-foreground: oklch(0.985 0 0);
+  /* Link color (GitHub-brand-inspired purple). Dark enough for AA on white. */
+  --link: #8534f3;
+  --link-hover: #6e40c9;
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
@@ -51,12 +54,18 @@
 
 a {
   font-weight: 500;
-  color: #646cff;
+  color: var(--link);
   text-decoration: inherit;
 }
 
+/* Explicit visited color so browsers don't fall back to the low-contrast UA
+   purple. Before :hover to respect the LVHA cascade order. */
+a:visited {
+  color: var(--link-hover);
+}
+
 a:hover {
-  color: #535bf2;
+  color: var(--link-hover);
 }
 
 body {
@@ -127,6 +136,9 @@ h1 {
   --popover-foreground: oklch(0.985 0 0);
   --primary: oklch(0.922 0 0);
   --primary-foreground: oklch(0.205 0 0);
+  /* Lighter purple so links stay AA-legible on the near-black dark background. */
+  --link: #d2a8ff;
+  --link-hover: #e2c5ff;
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
