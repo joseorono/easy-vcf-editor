@@ -1,3 +1,4 @@
+/* Loader animation */
 .loader {
   --color-1: #fff;
   --color-2: #38bdf8;
@@ -9,7 +10,6 @@
   position: relative;
   animation: loader-rotate 1s linear infinite;
 }
-
 .loader::before,
 .loader::after {
   content: '';
@@ -20,7 +20,6 @@
   border: calc(5 * var(--size)) solid var(--color-1);
   animation: loader-prix-clip-fix 2s linear infinite;
 }
-
 .loader::after {
   border-color: var(--color-2);
   animation:
