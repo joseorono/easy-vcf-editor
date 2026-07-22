@@ -146,10 +146,18 @@ export default defineConfig(({ mode }) => {
         output: {
           manualChunks(id) {
             if (id.includes("node_modules")) {
+              // React, react-dom and scheduler share internal state and MUST
+              // ship in one chunk. Splitting them (e.g. scheduler landing in
+              // vendor-common) breaks init order in prod: react-dom evaluates
+              // before scheduler and throws "can't access property
+              // 'unstable_now'". The surrounding slashes keep this from also
+              // matching lucide-react, react-qr-code, etc.
               if (
-                id.includes("react-dom") ||
-                id.includes("react-hook-form") ||
-                id.includes("jotai")
+                id.includes("/node_modules/react/") ||
+                id.includes("/node_modules/react-dom/") ||
+                id.includes("/node_modules/scheduler/") ||
+                id.includes("/node_modules/react-hook-form/") ||
+                id.includes("/node_modules/jotai/")
               ) {
                 return "vendor-react-core";
               }
