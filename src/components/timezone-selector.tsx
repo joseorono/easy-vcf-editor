@@ -63,6 +63,7 @@ export function TimezoneSelector() {
             variant="outline"
             role="combobox"
             aria-expanded={open}
+            aria-label="Select timezone"
             className="w-full justify-between bg-background"
           >
             {selectedTimezone ? (

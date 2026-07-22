@@ -81,6 +81,7 @@ export function LanguageSelector() {
               variant="outline"
               role="combobox"
               aria-expanded={open}
+              aria-label="Select a language"
               className="flex-1 justify-between bg-background"
             >
               {selectedLangInfo ? (
@@ -144,6 +145,7 @@ export function LanguageSelector() {
           variant="outline"
           onClick={addLanguage}
           disabled={!selectedLang}
+          aria-label="Add language"
           className="gap-1.5"
         >
           <Plus className="h-4 w-4" />
@@ -164,6 +166,7 @@ export function LanguageSelector() {
                 type="button"
                 variant="ghost"
                 size="icon"
+                aria-label={`Remove ${getLangDisplay(lang)}`}
                 className="h-4 w-4 p-0 hover:bg-transparent"
                 onClick={() => removeLanguage(lang)}
               >

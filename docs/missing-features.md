@@ -107,6 +107,15 @@ Each entry follows:
 - [ ] **Electron-only niceties** — native touches when running as the desktop app.
   **UI fit:** gate with the existing `useIsElectron()` hook (`src/hooks/use-is-electron.ts`) to conditionally render things like a "Save to file…" native flow, or hide the PWA-install hint; deeper OS integration (file association, app menu) lives in `electron/main.ts`. _(Effort: M)_
 
+  - [ ] **Native save/open dialogs** — replace the browser download with `dialog.showSaveDialog` so exports write straight to a user-chosen path (and remember the last-used folder), and back the Import button with `dialog.showOpenDialog`. **UI fit:** expose `saveVcf`/`openVcf` on the `preload.ts` bridge, call them behind `useIsElectron()` in `vcf-editor.tsx`, and fall back to the current web flow otherwise. _(Effort: M)_
+  - [ ] **`.vcf` file association** — register the app as a handler for vCard files so double-clicking one (or "Open with…") launches straight into the editor with it loaded. **UI fit:** declare the file type in the packager config and handle `open-file` (macOS) / `process.argv` (Windows/Linux) in `electron/main.ts`, forwarding the path to the renderer via IPC. _(Effort: M)_
+  - [ ] **Native application menu & accelerators** — a real menu bar (File → Import / Export / New, Edit, View → Toggle preview, Help) wiring the same handlers as the in-app buttons, with OS-standard accelerators. **UI fit:** build the `Menu` in `electron/main.ts` and dispatch actions over IPC; shares the shortcut set with the web keyboard-shortcuts item above. _(Effort: M)_
+  - [ ] **Recent files** — a "Recent" submenu (and jump list / dock recents) of the last vCards opened or exported. **UI fit:** track paths from the native open/save dialogs, persist them, and feed `app.addRecentDocument` plus a `Menu` submenu in `electron/main.ts`. _(Effort: S)_
+  - [ ] **Auto-update** — check for and install new desktop builds in the background instead of manual re-downloads. **UI fit:** `electron-updater` in `electron/main.ts`, surfacing an "update ready — restart" toast that mirrors the existing PWA reload prompt (`pwa-reload-prompt.tsx`). _(Effort: M)_
+  - [ ] **Window state persistence** — remember window size/position (and restore maximized state) between launches so the desktop app opens where the user left it. **UI fit:** persist bounds on `close` and apply them in `createWindow` in `electron/main.ts`. _(Effort: S)_
+  - [ ] **Native drag-out export** — drag the contact card out of the window directly onto the desktop / another app as a `.vcf` (or the exported card image), complementing the existing drag-*in* import. **UI fit:** `webContents.startDrag` triggered from a drag handle, using the already-generated VCF/image. _(Effort: M)_
+  - [ ] **Tray icon quick actions** — a system-tray/menu-bar icon for "New contact", "Open recent", and quick show/hide without keeping the full window around. **UI fit:** `Tray` + context `Menu` in `electron/main.ts`. _(Effort: S)_
+
 ---
 
 ## How to use this doc
