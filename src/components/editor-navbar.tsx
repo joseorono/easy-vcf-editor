@@ -189,7 +189,7 @@ export function EditorNavbar({
                   },
                   {
                     id: "image",
-                    label: "Contact Image",
+                    label: "Contact Card",
                     icon: Image,
                     onClick: onExportContactImage,
                   },

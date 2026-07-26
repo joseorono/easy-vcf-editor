@@ -490,7 +490,7 @@ export function VcfEditor() {
             },
             {
               id: "image",
-              label: "Contact Image",
+              label: "Contact Card",
               icon: Image,
               onClick: handleExportContactImage,
             },

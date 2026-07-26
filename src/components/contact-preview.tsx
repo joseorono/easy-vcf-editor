@@ -232,7 +232,7 @@ export function ContactPreview({ data, version, compact }: ContactPreviewProps) 
           )}
         </div>
         <div className="border-t px-4 py-2">
-          <VcfFormatFooter version={version} />
+          <VcfFormatFooter />
         </div>
       </div>
     );

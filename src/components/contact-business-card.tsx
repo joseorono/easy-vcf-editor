@@ -35,16 +35,16 @@ function InfoItem({
   if (!value) return null;
 
   return (
-    <div className="flex items-start gap-2 rounded-md p-1.5">
-      <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded bg-primary/10 text-primary">
+    <div className="flex items-center gap-2 rounded-md p-1.5">
+      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-primary/10 text-primary">
         {icon}
       </div>
-      <div className="min-w-0 flex-1">
-        <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-          {label}
-        </p>
-        <p className="break-words text-sm text-foreground">{value}</p>
-      </div>
+      <span className="shrink-0 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+        {label}
+      </span>
+      <span className="min-w-0 flex-1 truncate text-sm text-foreground">
+        {value}
+      </span>
     </div>
   );
 }
@@ -123,9 +123,9 @@ export function ContactBusinessCard({ data, version }: ContactBusinessCardProps)
           </div>
         </div>
 
-        {/* Bottom: contact info in two columns */}
-        <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <div className="space-y-0.5">
+        {/* Phones — below name / nickname */}
+        {phones.length > 0 && (
+          <div className="mt-4 space-y-0.5">
             {phones.map((phone, i) => (
               <InfoItem
                 key={i}
@@ -140,43 +140,51 @@ export function ContactBusinessCard({ data, version }: ContactBusinessCardProps)
                 value={phone.value}
               />
             ))}
-            {emails.map((email, i) => (
-              <InfoItem
-                key={i}
-                icon={<Mail className="h-3.5 w-3.5" />}
-                label={emailTypeLabels[email.type]}
-                value={email.value}
-              />
-            ))}
           </div>
+        )}
 
-          <div className="space-y-0.5">
-            {addresses.map((addr, i) => {
-              const formatted = [
-                addr.street,
-                addr.city,
-                addr.state,
-                addr.postalCode,
-                addr.country,
-              ]
-                .filter(Boolean)
-                .join(", ");
-              return (
+        {/* Emails and addresses in two columns */}
+        {(emails.length > 0 || addresses.length > 0) && (
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="space-y-0.5">
+              {emails.map((email, i) => (
                 <InfoItem
                   key={i}
-                  icon={<MapPin className="h-3.5 w-3.5" />}
-                  label={addressTypeLabels[addr.type]}
-                  value={formatted}
+                  icon={<Mail className="h-3.5 w-3.5" />}
+                  label={emailTypeLabels[email.type]}
+                  value={email.value}
                 />
-              );
-            })}
+              ))}
+            </div>
+
+            <div className="space-y-0.5">
+              {addresses.map((addr, i) => {
+                const formatted = [
+                  addr.street,
+                  addr.city,
+                  addr.state,
+                  addr.postalCode,
+                  addr.country,
+                ]
+                  .filter(Boolean)
+                  .join(", ");
+                return (
+                  <InfoItem
+                    key={i}
+                    icon={<MapPin className="h-3.5 w-3.5" />}
+                    label={addressTypeLabels[addr.type]}
+                    value={formatted}
+                  />
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Footer */}
       <div className="border-t px-5 py-2">
-        <VcfFormatFooter version={version} />
+        <VcfFormatFooter />
       </div>
     </div>
   );

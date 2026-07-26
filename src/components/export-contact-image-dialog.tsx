@@ -73,7 +73,7 @@ export function ExportContactImageDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Export Contact Image</DialogTitle>
+          <DialogTitle>Export Contact Card</DialogTitle>
           <DialogDescription>
             Choose a theme for the contact image.
           </DialogDescription>
@@ -94,7 +94,7 @@ export function ExportContactImageDialog({
         </RadioGroup>
         {/* Preview */}
         <div className="overflow-hidden rounded-lg border max-h-[520px] overflow-y-auto">
-          <div className={`min-h-0 ${theme === "dark" ? "dark bg-background" : "bg-white"}`}>
+          <div className={`min-h-0 ${theme === "dark" ? "dark bg-background" : "light bg-background"}`}>
             <ContactBusinessCard data={data} version={version} />
           </div>
         </div>
