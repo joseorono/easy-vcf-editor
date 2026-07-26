@@ -27,3 +27,5 @@ release/
 *.sln
 *.sw?
 .atl/
+.playwright/
+.playwright-mcp/

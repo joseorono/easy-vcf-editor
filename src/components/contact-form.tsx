@@ -1,4 +1,8 @@
 "use client";
+// react-hook-form's register() inputs must re-render and re-register for
+// reset() (import/clear) to write values into the DOM; the React Compiler's
+// memoization breaks that (react-hook-form#7607), so opt this file out.
+"use no memo";
 
 import type React from "react";
 import { useFormContext, useFieldArray } from "react-hook-form";
@@ -60,7 +64,7 @@ import {
   relatedTypeLabels,
 } from "@/constants/vcard-constants";
 import { useState, useRef } from "react";
-import { cn, updateHiddenInputValue } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { LanguageSelector } from "@/components/language-selector";
 import { GeoInput } from "@/components/geo-input";
 import { TimezoneSelector } from "@/components/timezone-selector";
@@ -173,12 +177,11 @@ export function PhonesField() {
             <div className="col-span-6 sm:w-28 sm:shrink-0 flex flex-col gap-1.5">
               <Label className="text-xs text-muted-foreground">Type</Label>
               <Select
-                defaultValue={field.type || "cell"}
+                value={phones[index]?.type || "cell"}
                 onValueChange={(value) => {
-                  updateHiddenInputValue(
-                    `input[name="phones.${index}.type"]`,
-                    value
-                  );
+                  setValue(`phones.${index}.type`, value as VCardPhone["type"], {
+                    shouldDirty: true,
+                  });
                 }}
               >
                 <SelectTrigger className="bg-background" aria-label="Phone type">
@@ -192,10 +195,6 @@ export function PhonesField() {
                   ))}
                 </SelectContent>
               </Select>
-              <input
-                type="hidden"
-                {...register(`phones.${index}.type` as const)}
-              />
             </div>
             <div className="col-span-6 sm:w-24 sm:shrink-0 flex flex-col gap-1.5">
               <Label className="text-xs text-muted-foreground">Code</Label>
@@ -297,12 +296,11 @@ function EmailsField() {
             <div className="col-span-6 sm:w-32 sm:shrink-0 flex flex-col gap-1.5">
               <Label className="text-xs text-muted-foreground">Type</Label>
               <Select
-                defaultValue={field.type || "home"} // Updated default value to be a non-empty string
+                value={emails[index]?.type || "home"}
                 onValueChange={(value) => {
-                  updateHiddenInputValue(
-                    `input[name="emails.${index}.type"]`,
-                    value
-                  );
+                  setValue(`emails.${index}.type`, value as VCardEmail["type"], {
+                    shouldDirty: true,
+                  });
                 }}
               >
                 <SelectTrigger className="bg-background" aria-label="Email type">
@@ -316,10 +314,6 @@ function EmailsField() {
                   ))}
                 </SelectContent>
               </Select>
-              <input
-                type="hidden"
-                {...register(`emails.${index}.type` as const)}
-              />
             </div>
             <div className="col-span-12 sm:flex-1 flex flex-col gap-1.5">
               <Label className="text-xs text-muted-foreground">Email</Label>
@@ -415,11 +409,12 @@ function AddressesField() {
             <div className="w-32 flex flex-col gap-1.5">
               <Label className="text-xs text-muted-foreground">Type</Label>
               <Select
-                defaultValue={field.type || "home"} // Updated default value to be a non-empty string
+                value={addresses[index]?.type || "home"}
                 onValueChange={(value) => {
-                  updateHiddenInputValue(
-                    `input[name="addresses.${index}.type"]`,
-                    value
+                  setValue(
+                    `addresses.${index}.type`,
+                    value as VCardAddress["type"],
+                    { shouldDirty: true }
                   );
                 }}
               >
@@ -434,10 +429,6 @@ function AddressesField() {
                   ))}
                 </SelectContent>
               </Select>
-              <input
-                type="hidden"
-                {...register(`addresses.${index}.type` as const)}
-              />
             </div>
             <div className="flex items-center gap-1">
               <Button
@@ -554,8 +545,9 @@ function AddressesField() {
 }
 
 function UrlsField() {
-  const { control, register } = useFormContext<VCardData>();
+  const { control, register, watch, setValue } = useFormContext<VCardData>();
   const { fields, append, remove } = useFieldArray({ control, name: "urls" });
+  const urls = watch("urls") || [];
 
   return (
     <div className="space-y-3">
@@ -565,12 +557,11 @@ function UrlsField() {
             <div className="col-span-6 sm:w-32 sm:shrink-0 flex flex-col gap-1.5">
               <Label className="text-xs text-muted-foreground">Type</Label>
               <Select
-                defaultValue={field.type || "homepage"} // Updated default value to be a non-empty string
+                value={urls[index]?.type || "homepage"}
                 onValueChange={(value) => {
-                  updateHiddenInputValue(
-                    `input[name="urls.${index}.type"]`,
-                    value
-                  );
+                  setValue(`urls.${index}.type`, value as VCardUrl["type"], {
+                    shouldDirty: true,
+                  });
                 }}
               >
                 <SelectTrigger className="w-full bg-background" aria-label="URL type">
@@ -584,7 +575,6 @@ function UrlsField() {
                   ))}
                 </SelectContent>
               </Select>
-              <input type="hidden" {...register(`urls.${index}.type` as const)} />
             </div>
             <div className="col-span-12 sm:flex-1 flex flex-col gap-1.5">
               <Label className="text-xs text-muted-foreground">URL</Label>
@@ -625,8 +615,9 @@ function UrlsField() {
 }
 
 function ImppField() {
-  const { control, register } = useFormContext<VCardData>();
+  const { control, register, watch, setValue } = useFormContext<VCardData>();
   const { fields, append, remove } = useFieldArray({ control, name: "impps" });
+  const impps = watch("impps") || [];
 
   return (
     <div className="space-y-3">
@@ -641,12 +632,11 @@ function ImppField() {
             <div className="col-span-6 sm:w-32 sm:shrink-0 flex flex-col gap-1.5">
               <Label className="text-xs text-muted-foreground">Service</Label>
               <Select
-                defaultValue={field.type || "other"} // Updated default value to be a non-empty string
+                value={impps[index]?.type || "other"}
                 onValueChange={(value) => {
-                  updateHiddenInputValue(
-                    `input[name="impps.${index}.type"]`,
-                    value
-                  );
+                  setValue(`impps.${index}.type`, value as VCardImpp["type"], {
+                    shouldDirty: true,
+                  });
                 }}
               >
                 <SelectTrigger className="bg-background" aria-label="Instant messaging service">
@@ -660,10 +650,6 @@ function ImppField() {
                   ))}
                 </SelectContent>
               </Select>
-              <input
-                type="hidden"
-                {...register(`impps.${index}.type` as const)}
-              />
             </div>
             <div className="col-span-12 sm:flex-1 flex flex-col gap-1.5">
               <Label className="text-xs text-muted-foreground">Handle</Label>
@@ -702,11 +688,12 @@ function ImppField() {
 }
 
 function RelatedField() {
-  const { control, register } = useFormContext<VCardData>();
+  const { control, register, watch, setValue } = useFormContext<VCardData>();
   const { fields, append, remove } = useFieldArray({
     control,
     name: "related",
   });
+  const related = watch("related") || [];
 
   return (
     <div className="space-y-3">
@@ -723,11 +710,12 @@ function RelatedField() {
                 Relationship
               </Label>
               <Select
-                defaultValue={field.type || "friend"} // Updated default value to be a non-empty string
+                value={related[index]?.type || "friend"}
                 onValueChange={(value) => {
-                  updateHiddenInputValue(
-                    `input[name="related.${index}.type"]`,
-                    value
+                  setValue(
+                    `related.${index}.type`,
+                    value as VCardRelated["type"],
+                    { shouldDirty: true }
                   );
                 }}
               >
@@ -742,10 +730,6 @@ function RelatedField() {
                   ))}
                 </SelectContent>
               </Select>
-              <input
-                type="hidden"
-                {...register(`related.${index}.type` as const)}
-              />
             </div>
             <div className="col-span-12 sm:flex-1 flex flex-col gap-1.5">
               <Label className="text-xs text-muted-foreground">
@@ -786,7 +770,7 @@ function RelatedField() {
 }
 
 export function ContactForm() {
-  const { register, watch } = useFormContext<VCardData>();
+  const { register, watch, setValue } = useFormContext<VCardData>();
   const phones = watch("phones") || [];
   const emails = watch("emails") || [];
   const addresses = watch("addresses") || [];
@@ -887,8 +871,11 @@ export function ContactForm() {
               Gender
             </Label>
             <Select
+              value={watch("gender") || ""}
               onValueChange={(value) => {
-                updateHiddenInputValue('input[name="gender"]', value);
+                setValue("gender", value as VCardData["gender"], {
+                  shouldDirty: true,
+                });
               }}
             >
               <SelectTrigger className="bg-background" aria-label="Gender">
@@ -902,7 +889,6 @@ export function ContactForm() {
                 <SelectItem value="U">Unknown</SelectItem>
               </SelectContent>
             </Select>
-            <input type="hidden" {...register("gender")} />
           </div>
         </div>
         <div className="grid gap-4 sm:grid-cols-3">

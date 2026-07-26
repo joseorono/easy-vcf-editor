@@ -101,7 +101,7 @@ export function parseVcf(vcfString: string): VCardData {
         data.nickname = unescapeValue(value);
         break;
       case "PHOTO":
-        data.photo = value;
+        data.photo = normalizeInlineImage(value, params);
         break;
       case "BDAY":
         data.birthday = formatDateForInput(value);
@@ -125,7 +125,7 @@ export function parseVcf(vcfString: string): VCardData {
         data.role = unescapeValue(value);
         break;
       case "LOGO":
-        data.logo = value;
+        data.logo = normalizeInlineImage(value, params);
         break;
       case "EMAIL": {
         const emailType = getTypeFromParams(params, [
@@ -271,6 +271,35 @@ function unfoldLines(vcf: string): string[] {
     .replace(/\n[ \t]/g, "")
     .split(/\r?\n/)
     .filter((line) => line.trim());
+}
+
+/**
+ * Normalizes an imported PHOTO/LOGO value for use as an `<img src>`.
+ *
+ * vCard 2.1/3.0 exports (and this app's own older exports) embed images as raw
+ * base64 with `ENCODING=b`/`ENCODING=BASE64`. The form and preview expect a
+ * URL or a `data:` URI, so raw base64 is wrapped as a data URI, deriving the
+ * image subtype from the property's `TYPE=` parameter. URLs and existing
+ * `data:` URIs pass through untouched.
+ *
+ * @param value - The raw property value (already unfolded and trimmed).
+ * @param params - The uppercased property key with parameters (e.g. `PHOTO;ENCODING=B;TYPE=JPEG`).
+ * @returns A value suitable for `<img src>`.
+ */
+function normalizeInlineImage(value: string, params: string): string {
+  if (
+    value.startsWith("data:") ||
+    value.startsWith("http://") ||
+    value.startsWith("https://")
+  ) {
+    return value;
+  }
+
+  const subtypeMatch = params.match(/TYPE=(JPE?G|PNG|GIF|WEBP)/);
+  const subtype = subtypeMatch
+    ? subtypeMatch[1].replace("JPG", "JPEG").toLowerCase()
+    : "jpeg";
+  return `data:image/${subtype};base64,${value}`;
 }
 
 function unescapeValue(value: string): string {

@@ -110,6 +110,42 @@ describe("parseVcf PREF detection", () => {
   });
 });
 
+describe("parseVcf inline image normalization", () => {
+  it("wraps ENCODING=b base64 PHOTO as a data URI using the TYPE param", () => {
+    const vcf = `BEGIN:VCARD\nVERSION:4.0\nFN:Jane\nPHOTO;ENCODING=b;TYPE=JPEG:iVBORw0KGgoAAAANSUhE\n UgAAAIAAAACACAYAAADD\nEND:VCARD`;
+    const parsed = parseVcf(vcf);
+    expect(parsed.photo).toBe(
+      "data:image/jpeg;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADD"
+    );
+  });
+
+  it("uses image/png for TYPE=PNG on LOGO", () => {
+    const vcf = `BEGIN:VCARD\nVERSION:3.0\nFN:Jane\nLOGO;ENCODING=BASE64;TYPE=PNG:aGVsbG8=\nEND:VCARD`;
+    const parsed = parseVcf(vcf);
+    expect(parsed.logo).toBe("data:image/png;base64,aGVsbG8=");
+  });
+
+  it("defaults to image/jpeg when no TYPE param is present", () => {
+    const vcf = `BEGIN:VCARD\nVERSION:3.0\nFN:Jane\nPHOTO;ENCODING=b:aGVsbG8=\nEND:VCARD`;
+    const parsed = parseVcf(vcf);
+    expect(parsed.photo).toBe("data:image/jpeg;base64,aGVsbG8=");
+  });
+
+  it("passes data: URIs through untouched", () => {
+    const uri = "data:image/png;base64,aGVsbG8=";
+    const vcf = `BEGIN:VCARD\nVERSION:4.0\nFN:Jane\nPHOTO:${uri}\nEND:VCARD`;
+    const parsed = parseVcf(vcf);
+    expect(parsed.photo).toBe(uri);
+  });
+
+  it("passes http(s) URLs through untouched", () => {
+    const url = "https://example.com/photo.jpg";
+    const vcf = `BEGIN:VCARD\nVERSION:4.0\nFN:Jane\nPHOTO;VALUE=URI:${url}\nEND:VCARD`;
+    const parsed = parseVcf(vcf);
+    expect(parsed.photo).toBe(url);
+  });
+});
+
 describe("PREF round-trip", () => {
   it("preserves pref after export and re-import", () => {
     const data = makeData({

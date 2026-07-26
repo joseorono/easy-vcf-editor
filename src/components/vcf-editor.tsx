@@ -117,10 +117,12 @@ export function VcfEditor() {
     }
 
     methods.reset(parsedData);
+    const importedName =
+      `${parsedData.firstName} ${parsedData.lastName}`.trim();
     toast.success("Contact imported", {
-      description:
-        `Successfully imported ${parsedData.firstName} ${parsedData.lastName}`.trim() ||
-        "Contact data loaded",
+      description: importedName
+        ? `Successfully imported ${importedName}`
+        : "Contact data loaded",
     });
     return true;
   };
