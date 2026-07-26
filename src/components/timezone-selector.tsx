@@ -1,3 +1,8 @@
+// react-hook-form's register() input must re-render and re-register for
+// reset() (import/clear) to write values into the DOM; the React Compiler's
+// memoization breaks that (react-hook-form#7607), so opt this file out.
+"use no memo";
+
 import { useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import type { VCardData } from "@/types/vcard-types";
