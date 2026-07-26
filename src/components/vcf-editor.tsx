@@ -123,6 +123,14 @@ export function VcfEditor() {
         ? `Successfully imported ${importedName}`
         : "Contact data loaded",
     });
+
+    // The editor holds a single contact; parseVcf reads only the first card.
+    const cardCount = (text.match(/BEGIN:VCARD/gi) ?? []).length;
+    if (cardCount > 1) {
+      toast.info("Multiple contacts detected", {
+        description: `This vCard has ${cardCount} contacts — only the first one was imported.`,
+      });
+    }
     return true;
   };
 

@@ -76,18 +76,32 @@ export function parseVcf(vcfString: string): VCardData {
   data.related = [];
   data.customFields = [];
 
-  const lines = unfoldLines(vcfString);
+  const lines = mergeQuotedPrintableSoftBreaks(unfoldLines(vcfString));
+
+  // FN is kept aside as a fallback for cards that omit N (legal in 4.0).
+  let formattedName = "";
 
   for (const line of lines) {
     const colonIndex = line.indexOf(":");
     if (colonIndex === -1) continue;
 
     const rawKey = line.substring(0, colonIndex);
-    const value = line.substring(colonIndex + 1).trim();
-    const key = rawKey.split(";")[0].toUpperCase();
+    let value = line.substring(colonIndex + 1).trim();
+    const key = stripGroupPrefix(rawKey.split(";")[0].toUpperCase());
     const params = rawKey.toUpperCase();
 
+    if (params.includes("ENCODING=QUOTED-PRINTABLE")) {
+      value = decodeQuotedPrintable(value, getCharsetParam(params));
+    }
+
+    // Multi-contact files: import only the first vCard instead of merging
+    // every card's properties into one contact.
+    if (key === "END" && value.toUpperCase() === "VCARD") break;
+
     switch (key) {
+      case "FN":
+        formattedName = unescapeValue(value);
+        break;
       case "N": {
         const parts = value.split(";");
         data.lastName = unescapeValue(parts[0] || "");
@@ -228,6 +242,14 @@ export function parseVcf(vcfString: string): VCardData {
     }
   }
 
+  // FN fallback: vCard 4.0 requires only FN, so many exporters omit N.
+  // Split the formatted name into given/family on the first space.
+  if (!data.firstName && !data.lastName && formattedName) {
+    const nameParts = formattedName.split(/\s+/).filter(Boolean);
+    data.firstName = nameParts[0] ?? "";
+    data.lastName = nameParts.slice(1).join(" ");
+  }
+
   resolveSinglePref(data.emails);
   resolveSinglePref(data.phones);
   resolveSinglePref(data.addresses);
@@ -271,6 +293,82 @@ function unfoldLines(vcf: string): string[] {
     .replace(/\n[ \t]/g, "")
     .split(/\r?\n/)
     .filter((line) => line.trim());
+}
+
+/**
+ * Strips an RFC 6350 group prefix from a property name, e.g. Apple/Google
+ * exports write `item1.EMAIL` / `item1.URL` — the group only ties related
+ * lines together and carries no meaning of its own.
+ *
+ * @param key - The uppercased property name, possibly group-prefixed.
+ * @returns The property name without its group prefix.
+ */
+function stripGroupPrefix(key: string): string {
+  const dotIndex = key.indexOf(".");
+  return dotIndex === -1 ? key : key.slice(dotIndex + 1);
+}
+
+/**
+ * Merges vCard 2.1 quoted-printable soft line breaks. A QP-encoded value
+ * continues onto the next physical line when it ends with `=`; unlike RFC
+ * folding the continuation has no leading whitespace, so it must be joined
+ * per-property after standard unfolding (which would otherwise drop the
+ * continuation line for having no colon).
+ *
+ * @param lines - Unfolded logical lines.
+ * @returns Lines with QP continuations joined onto their property line.
+ */
+function mergeQuotedPrintableSoftBreaks(lines: string[]): string[] {
+  const merged: string[] = [];
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i];
+    if (/ENCODING=QUOTED-PRINTABLE/i.test(line.split(":")[0])) {
+      while (line.endsWith("=") && i + 1 < lines.length) {
+        line = line.slice(0, -1) + lines[i + 1];
+        i++;
+      }
+    }
+    merged.push(line);
+  }
+  return merged;
+}
+
+/**
+ * Decodes a quoted-printable encoded property value (vCard 2.1 style,
+ * e.g. `N;CHARSET=UTF-8;ENCODING=QUOTED-PRINTABLE:J=C3=B6rg`), honoring the
+ * property's CHARSET parameter.
+ *
+ * @param value - The QP-encoded value with soft breaks already merged.
+ * @param charset - A TextDecoder charset label (defaults handled by caller).
+ * @returns The decoded string; falls back to UTF-8 on unknown charsets.
+ */
+function decodeQuotedPrintable(value: string, charset: string): string {
+  const bytes: number[] = [];
+  for (let i = 0; i < value.length; i++) {
+    const hex = value.slice(i + 1, i + 3);
+    if (value[i] === "=" && /^[0-9A-F]{2}$/i.test(hex)) {
+      bytes.push(parseInt(hex, 16));
+      i += 2;
+    } else {
+      bytes.push(value.charCodeAt(i));
+    }
+  }
+  try {
+    return new TextDecoder(charset).decode(new Uint8Array(bytes));
+  } catch {
+    return new TextDecoder().decode(new Uint8Array(bytes));
+  }
+}
+
+/**
+ * Extracts the CHARSET parameter from an uppercased parameter string.
+ *
+ * @param params - The uppercased property key with parameters.
+ * @returns The charset label, or UTF-8 when absent.
+ */
+function getCharsetParam(params: string): string {
+  const match = params.match(/CHARSET=([^;:]+)/);
+  return match ? match[1] : "utf-8";
 }
 
 /**

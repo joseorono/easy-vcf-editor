@@ -12,33 +12,25 @@ export function GeoInput() {
   const [lat, setLat] = useState("");
   const [lng, setLng] = useState("");
 
-  // Parse geo string on mount and when it changes externally
+  // Sync the local inputs when the form value changes externally
+  // (import/clear). Skipped while the change came from these inputs, so
+  // in-progress edits (e.g. latitude typed, longitude still empty) survive.
   useEffect(() => {
-    if (geo) {
-      const parts = geo.split(",").map((p) => p.trim());
-      if (parts.length === 2) {
-        setLat(parts[0]);
-        setLng(parts[1]);
-      }
-    }
-  }, [geo]);
+    const composed = lat && lng ? `${lat},${lng}` : "";
+    if (geo === composed) return;
+    const parts = geo.split(",").map((p) => p.trim());
+    setLat(parts[0] ?? "");
+    setLng(parts[1] ?? "");
+  }, [geo, lat, lng]);
 
   const handleLatChange = (value: string) => {
     setLat(value);
-    if (value && lng) {
-      setValue("geo", `${value},${lng}`);
-    } else if (!value && !lng) {
-      setValue("geo", "");
-    }
+    setValue("geo", value && lng ? `${value},${lng}` : "");
   };
 
   const handleLngChange = (value: string) => {
     setLng(value);
-    if (lat && value) {
-      setValue("geo", `${lat},${value}`);
-    } else if (!lat && !value) {
-      setValue("geo", "");
-    }
+    setValue("geo", lat && value ? `${lat},${value}` : "");
   };
 
   return (
