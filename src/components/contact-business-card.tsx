@@ -23,26 +23,32 @@ interface ContactBusinessCardProps {
   version: VCardVersion;
 }
 
+type InfoItemField = "phone" | "email" | "address";
+
 function InfoItem({
   icon,
   label,
   value,
+  fieldType,
 }: {
   icon: React.ReactNode;
   label: string;
   value: string;
+  fieldType: InfoItemField;
 }) {
   if (!value) return null;
 
+  const modifier = `contact-card__field--${fieldType}`;
+
   return (
-    <div className="flex items-center gap-2 rounded-md p-1.5">
-      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-primary/10 text-primary">
+    <div className={`contact-card__field ${modifier} flex items-center gap-2 rounded-md`}>
+      <div className="contact-card__field-icon flex h-6 w-6 shrink-0 items-center justify-center rounded bg-primary/10 text-primary">
         {icon}
       </div>
-      <span className="shrink-0 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+      <span className="contact-card__field-label shrink-0 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
         {label}
       </span>
-      <span className="min-w-0 flex-1 truncate text-sm text-foreground">
+      <span className="contact-card__field-value min-w-0 flex-1 truncate text-sm text-foreground">
         {value}
       </span>
     </div>
@@ -72,41 +78,62 @@ export function ContactBusinessCard({ data, version }: ContactBusinessCardProps)
   }
 
   return (
-    <div className="w-full overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm">
+    <div className="contact-card w-full overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm">
       <div className="p-5">
         {/* Top row: identity + QR */}
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex min-w-0 items-center gap-3">
-            <Avatar className="h-16 w-16 text-lg">
+        <div className="contact-card__header flex items-start justify-between gap-4">
+          <div className="flex min-w-0 items-start gap-3">
+            <Avatar className="contact-card__avatar h-16 w-16 text-lg">
               {data.photo && (
                 <AvatarImage
+                  className="contact-card__avatar-image"
                   src={data.photo || "/placeholder.svg"}
                   alt={fullName}
                 />
               )}
-              <AvatarFallback className="bg-primary text-primary-foreground">
+              <AvatarFallback className="contact-card__avatar-fallback bg-primary text-primary-foreground">
                 {initials}
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0">
-              <h3 className="truncate text-xl font-semibold">
+              <h3 className="contact-card__name truncate text-xl font-semibold">
                 {fullName || "Unnamed Contact"}
               </h3>
               {titleOrg && (
-                <p className="truncate text-sm text-muted-foreground">
+                <p className="contact-card__title truncate text-sm text-muted-foreground">
                   {titleOrg}
                 </p>
               )}
               {data.nickname && (
-                <p className="text-xs text-muted-foreground">
+                <p className="contact-card__nickname text-xs text-muted-foreground">
                   &ldquo;{data.nickname}&rdquo;
                 </p>
+              )}
+              {/* Phones — inside identity block, below nickname */}
+              {phones.length > 0 && (
+                <div className="mt-1.5 space-y-0.5">
+                  {phones.map((phone, i) => (
+                    <InfoItem
+                      key={i}
+                      icon={
+                        phone.type === "cell" ? (
+                          <Smartphone className="h-3.5 w-3.5" />
+                        ) : (
+                          <Phone className="h-3.5 w-3.5" />
+                        )
+                      }
+                      label={phoneTypeLabels[phone.type]}
+                      value={phone.value}
+                      fieldType="phone"
+                    />
+                  ))}
+                </div>
               )}
             </div>
           </div>
 
           {/* QR code with white background for scanability */}
-          <div className="shrink-0 rounded bg-white p-1.5 shadow-sm">
+          <div className="contact-card__qr shrink-0 rounded bg-white p-1.5 shadow-sm">
             {qrStatus.isValid ? (
               <QRCode
                 value={vcfContent}
@@ -123,41 +150,22 @@ export function ContactBusinessCard({ data, version }: ContactBusinessCardProps)
           </div>
         </div>
 
-        {/* Phones — below name / nickname */}
-        {phones.length > 0 && (
-          <div className="mt-4 space-y-0.5">
-            {phones.map((phone, i) => (
-              <InfoItem
-                key={i}
-                icon={
-                  phone.type === "cell" ? (
-                    <Smartphone className="h-3.5 w-3.5" />
-                  ) : (
-                    <Phone className="h-3.5 w-3.5" />
-                  )
-                }
-                label={phoneTypeLabels[phone.type]}
-                value={phone.value}
-              />
-            ))}
-          </div>
-        )}
-
         {/* Emails and addresses in two columns */}
         {(emails.length > 0 || addresses.length > 0) && (
-          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div className="space-y-0.5">
+          <div className="contact-card__details mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="contact-card__emails space-y-0.5">
               {emails.map((email, i) => (
                 <InfoItem
                   key={i}
                   icon={<Mail className="h-3.5 w-3.5" />}
                   label={emailTypeLabels[email.type]}
                   value={email.value}
+                  fieldType="email"
                 />
               ))}
             </div>
 
-            <div className="space-y-0.5">
+            <div className="contact-card__addresses space-y-0.5">
               {addresses.map((addr, i) => {
                 const formatted = [
                   addr.street,
@@ -174,6 +182,7 @@ export function ContactBusinessCard({ data, version }: ContactBusinessCardProps)
                     icon={<MapPin className="h-3.5 w-3.5" />}
                     label={addressTypeLabels[addr.type]}
                     value={formatted}
+                    fieldType="address"
                   />
                 );
               })}
@@ -183,7 +192,7 @@ export function ContactBusinessCard({ data, version }: ContactBusinessCardProps)
       </div>
 
       {/* Footer */}
-      <div className="border-t px-5 py-2">
+      <div className="contact-card__footer border-t px-5 py-2">
         <VcfFormatFooter />
       </div>
     </div>

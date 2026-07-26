@@ -89,7 +89,7 @@ export function PreviewTabs({ data, version }: PreviewTabsProps) {
       </TabsList>
 
       <TabsContent value="visual" className="flex-1 overflow-hidden">
-        <ContactPreview data={data} version={version} />
+        <ContactPreview data={data} />
       </TabsContent>
 
       <TabsContent

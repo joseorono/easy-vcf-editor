@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, lazy, Suspense } from "react";
+import { useState, useRef, useEffect, lazy, Suspense, useDeferredValue } from "react";
 import { ChevronLeft, ChevronRight, Upload, Download, QrCode, Image, ClipboardPaste, Sun, Moon, X, RotateCcw } from "lucide-react";
 import { useForm, FormProvider } from "react-hook-form";
 import { useDropzone } from "react-dropzone";
@@ -79,6 +79,7 @@ export function VcfEditor() {
   });
 
   const watchedData = methods.watch();
+  const deferredData = useDeferredValue(watchedData);
   const [pendingImportText, setPendingImportText] = useState<string | null>(
     null
   );
@@ -315,7 +316,7 @@ export function VcfEditor() {
 
           {/* Form Panel */}
           <div className="flex flex-col flex-1 overflow-hidden">
-            <div className="flex-1 overflow-auto px-4 py-2">
+            <div className="flex-1 overflow-auto px-4 py-2 [will-change:scroll-position] [contain:layout_style_paint]">
               <Card className="border-border/50 shadow-lg py-2">
                 <CardContent className="p-4 py-2">
                   <ContactForm />
@@ -380,7 +381,7 @@ export function VcfEditor() {
                       </div>
                     }
                   >
-                    <PreviewTabs data={watchedData} version={version} />
+                    <PreviewTabs data={deferredData} version={version} />
                   </Suspense>
                 )}
               </div>
@@ -406,7 +407,7 @@ export function VcfEditor() {
           onImportText={handleImportText}
         />
         <ExportContactImageDialog
-          data={watchedData}
+          data={deferredData}
           version={version}
           open={exportContactImageOpen}
           onOpenChange={setExportContactImageOpen}
