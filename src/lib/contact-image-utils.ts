@@ -4,7 +4,9 @@ import { ContactBusinessCard } from "@/components/contact-business-card";
 export type ContactImageTheme = "light" | "dark";
 
 /** Creates a temporary off-screen DOM element, renders the ContactBusinessCard with
- *  the selected theme, and captures it via html2canvas at 2x scale.
+ *  the selected theme, and captures it via html-to-image's foreignObject approach
+ *  at 2x pixel ratio. Uses the browser's native rendering engine, so modern CSS
+ *  color functions (oklch, oklab, etc.) are supported.
  *  Returns the canvas element. */
 export async function captureContactImage(
   data: VCardData,
@@ -18,26 +20,28 @@ export async function captureContactImage(
   document.body.appendChild(container);
 
   const wrapper = document.createElement("div");
-  wrapper.className = theme === "dark" ? "dark" : "";
+  // Apply the correct theme class so CSS custom properties cascade correctly.
+  // `.light` mirrors :root values but wins when <html> has class="dark"
+  // (avoids dark-tinged captures when the user is in dark mode).
+  wrapper.className = theme === "dark" ? "dark" : "light";
   container.appendChild(wrapper);
 
   try {
-    const [{ createElement }, { createRoot }, { default: html2canvas }] =
-      await Promise.all([
-        import("react"),
-        import("react-dom/client"),
-        import("html2canvas"),
-      ]);
+    const [{ createElement }, { createRoot }, { toCanvas }] = await Promise.all([
+      import("react"),
+      import("react-dom/client"),
+      import("html-to-image"),
+    ]);
 
     const root = createRoot(wrapper);
     root.render(createElement(ContactBusinessCard, { data, version }));
 
+    // Wait for rendering to settle and fonts to load
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    await document.fonts.ready;
 
-    const canvas = await html2canvas(wrapper.firstChild as HTMLElement, {
-      scale: 2,
-      backgroundColor: null,
-    });
+    const node = wrapper.firstChild as HTMLElement;
+    const canvas = await toCanvas(node, { pixelRatio: 2 });
 
     root.unmount();
     return canvas;

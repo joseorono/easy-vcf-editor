@@ -20,7 +20,7 @@ import {
   Clock,
   FileText,
 } from "lucide-react";
-import type { VCardData, VCardVersion } from "@/types/vcard-types";
+import type { VCardData } from "@/types/vcard-types";
 import { buildFullName, buildInitials, isVCardEmpty } from "@/lib/vcf-utils";
 import {
   phoneTypeLabels,
@@ -34,33 +34,52 @@ import {
 
 interface ContactPreviewProps {
   data: VCardData;
-  version: VCardVersion;
   compact?: boolean;
 }
+
+type PreviewFieldType =
+  | "phone"
+  | "email"
+  | "address"
+  | "url"
+  | "impp"
+  | "related"
+  | "date"
+  | "organization"
+  | "role"
+  | "categories"
+  | "languages"
+  | "note"
+  | "geo"
+  | "timezone";
 
 function PreviewItem({
   icon,
   label,
   value,
   href,
+  fieldType,
 }: {
   icon: React.ReactNode;
   label: string;
   value: string;
   href?: string;
+  fieldType?: PreviewFieldType;
 }) {
   if (!value) return null;
 
+  const modifier = fieldType ? `contact-preview__field--${fieldType}` : "";
+
   const content = (
-    <div className="flex items-start gap-3 rounded-lg p-2 transition-colors hover:bg-secondary/50">
-      <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+    <div className={`contact-preview__field ${modifier} flex items-start gap-3 rounded-lg p-2 transition-colors hover:bg-secondary/50`}>
+      <div className="contact-preview__field-icon mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
         {icon}
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+        <p className="contact-preview__field-label text-xs font-medium uppercase tracking-wide text-muted-foreground">
           {label}
         </p>
-        <p className="mt-0.5 break-words text-sm text-foreground">{value}</p>
+        <p className="contact-preview__field-value mt-0.5 break-words text-sm text-foreground">{value}</p>
       </div>
     </div>
   );
@@ -81,12 +100,11 @@ function PreviewItem({
   return content;
 }
 
-export function ContactPreview({ data, version, compact }: ContactPreviewProps) {
+export function ContactPreview({ data, compact }: ContactPreviewProps) {
   const fullName = buildFullName(data);
   const initials = buildInitials(data);
 
-  const hasContactInfo =
-    data.emails?.some((e) => e.value) || data.phones?.some((p) => p.value);
+  const hasContactInfo = data.emails?.some((e) => e.value);
   const hasAddresses = data.addresses?.some((a) => a.street || a.city);
   const hasWorkInfo =
     data.organization || data.title || data.role || data.department;
@@ -123,57 +141,58 @@ export function ContactPreview({ data, version, compact }: ContactPreviewProps) 
     const addresses = data.addresses?.filter((a) => a.street || a.city) ?? [];
 
     return (
-      <div className="mx-auto w-full max-w-[600px] overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm">
+      <div className="contact-preview contact-preview--compact mx-auto w-full max-w-[600px] overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm">
         <div className="space-y-2 p-4">
-          {/* Header */}
-          <div className="flex items-center gap-3 pb-2">
-            <Avatar className="h-14 w-14 text-lg">
+          {/* Header — grid: avatar | name + fields */}
+          <div className="contact-preview__header grid grid-cols-[auto_1fr] items-start gap-x-3 pb-2">
+            <Avatar className="contact-preview__avatar h-14 w-14 text-lg">
               {data.photo && (
                 <AvatarImage
+                  className="contact-preview__avatar-image"
                   src={data.photo || "/placeholder.svg"}
                   alt={fullName}
                 />
               )}
-              <AvatarFallback className="bg-primary text-primary-foreground">
+              <AvatarFallback className="contact-preview__avatar-fallback bg-primary text-primary-foreground">
                 {initials}
               </AvatarFallback>
             </Avatar>
-            <div className="min-w-0 flex-1">
-              <h3 className="truncate text-lg font-semibold">
+            <div className="min-w-0">
+              <h3 className="contact-preview__name truncate text-lg font-semibold">
                 {fullName || "Unnamed Contact"}
               </h3>
               {titleOrg && (
-                <p className="truncate text-sm text-muted-foreground">
+                <p className="contact-preview__title truncate text-sm text-muted-foreground">
                   {titleOrg}
                 </p>
               )}
               {data.nickname && (
-                <p className="text-xs text-muted-foreground">
+                <p className="contact-preview__nickname text-xs text-muted-foreground">
                   &ldquo;{data.nickname}&rdquo;
                 </p>
               )}
+              {/* Phones — same column, below nickname */}
+              {phones.length > 0 && (
+                <div className="mt-1.5 space-y-0.5">
+                  {phones.map((phone, i) => (
+                    <PreviewItem
+                      key={i}
+                      icon={
+                        phone.type === "cell" ? (
+                          <Smartphone className="h-3.5 w-3.5" />
+                        ) : (
+                          <Phone className="h-3.5 w-3.5" />
+                        )
+                      }
+                      label={phoneTypeLabels[phone.type]}
+                      value={phone.value}
+                      fieldType="phone"
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
-
-          {/* Phones */}
-          {phones.length > 0 && (
-            <div className="space-y-0.5">
-              {phones.map((phone, i) => (
-                <PreviewItem
-                  key={i}
-                  icon={
-                    phone.type === "cell" ? (
-                      <Smartphone className="h-3.5 w-3.5" />
-                    ) : (
-                      <Phone className="h-3.5 w-3.5" />
-                    )
-                  }
-                  label={phoneTypeLabels[phone.type]}
-                  value={phone.value}
-                />
-              ))}
-            </div>
-          )}
 
           {/* Emails */}
           {emails.length > 0 && (
@@ -184,6 +203,7 @@ export function ContactPreview({ data, version, compact }: ContactPreviewProps) 
                   icon={<Mail className="h-3.5 w-3.5" />}
                   label={emailTypeLabels[email.type]}
                   value={email.value}
+                  fieldType="email"
                 />
               ))}
             </div>
@@ -208,6 +228,7 @@ export function ContactPreview({ data, version, compact }: ContactPreviewProps) 
                     icon={<MapPin className="h-3.5 w-3.5" />}
                     label={addressTypeLabels[addr.type]}
                     value={formatted}
+                    fieldType="address"
                   />
                 );
               })}
@@ -216,22 +237,22 @@ export function ContactPreview({ data, version, compact }: ContactPreviewProps) 
 
           {/* Note */}
           {data.note && (
-            <div className="flex items-start gap-3 rounded-lg p-2">
-              <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+            <div className="contact-preview__field contact-preview__field--note flex items-start gap-3 rounded-lg p-2">
+              <div className="contact-preview__field-icon mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
                 <FileText className="h-3.5 w-3.5" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                <p className="contact-preview__field-label text-xs font-medium uppercase tracking-wide text-muted-foreground">
                   Notes
                 </p>
-                <p className="mt-0.5 whitespace-pre-wrap text-sm text-foreground">
+                <p className="contact-preview__field-value mt-0.5 whitespace-pre-wrap text-sm text-foreground">
                   {data.note}
                 </p>
               </div>
             </div>
           )}
         </div>
-        <div className="border-t px-4 py-2">
+        <div className="contact-preview__footer border-t px-4 py-2">
           <VcfFormatFooter />
         </div>
       </div>
@@ -239,45 +260,63 @@ export function ContactPreview({ data, version, compact }: ContactPreviewProps) 
   }
 
   return (
-    <ScrollArea className="h-full">
-      <div className="space-y-5 p-4">
+    <ScrollArea className="h-full [will-change:scroll-position] [contain:layout_style_paint]">
+      <div className="contact-preview space-y-5 p-4">
         {/* Header Card */}
-        <div className="flex items-center gap-4 rounded-xl border border-border/50 bg-secondary/30 p-4">
-          <Avatar className="h-16 w-16 text-lg">
+        <div className="contact-preview__header grid grid-cols-[auto_1fr] items-start gap-x-4 rounded-xl border border-border/50 bg-secondary/30 p-4">
+          <Avatar className="contact-preview__avatar h-16 w-16 text-lg">
             {data.photo && (
               <AvatarImage
+                className="contact-preview__avatar-image"
                 src={data.photo || "/placeholder.svg"}
                 alt={fullName}
               />
             )}
-            <AvatarFallback className="bg-primary text-primary-foreground">
+            <AvatarFallback className="contact-preview__avatar-fallback bg-primary text-primary-foreground">
               {initials}
             </AvatarFallback>
           </Avatar>
-          <div className="min-w-0 flex-1">
-            <h3 className="truncate text-lg font-semibold">
+          <div className="min-w-0">
+            <h3 className="contact-preview__name truncate text-lg font-semibold">
               {fullName || "Unnamed Contact"}
             </h3>
             {data.nickname && (
-              <p className="text-sm text-muted-foreground">"{data.nickname}"</p>
+              <p className="contact-preview__nickname text-sm text-muted-foreground">"{data.nickname}"</p>
             )}
             {(data.title || data.organization) && (
-              <p className="mt-1 text-sm text-muted-foreground">
+              <p className="contact-preview__title mt-1 text-sm text-muted-foreground">
                 {[data.title, data.organization].filter(Boolean).join(" at ")}
               </p>
             )}
             {data.gender && (
-              <Badge variant="outline" className="mt-1.5 text-xs">
+              <Badge variant="outline" className="contact-preview__gender mt-1.5 text-xs">
                 {genderLabels[data.gender]}
               </Badge>
             )}
+            {/* Phones — same column, below identity */}
+            {data.phones?.filter((p) => p.value).map((phone, i) => (
+              <PreviewItem
+                key={i}
+                icon={
+                  phone.type === "cell" ? (
+                    <Smartphone className="h-3.5 w-3.5" />
+                  ) : (
+                    <Phone className="h-3.5 w-3.5" />
+                  )
+                }
+                label={phoneTypeLabels[phone.type]}
+                value={phone.value}
+                href={`tel:${phone.value}`}
+                fieldType="phone"
+              />
+            ))}
           </div>
         </div>
 
         {/* Contact Info */}
         {hasContactInfo && (
-          <div>
-            <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <div className="contact-preview__section contact-preview__section--contact">
+            <h4 className="contact-preview__section-title mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Contact
             </h4>
             <div className="space-y-1">
@@ -290,23 +329,7 @@ export function ContactPreview({ data, version, compact }: ContactPreviewProps) 
                     label={emailTypeLabels[email.type]}
                     value={email.value}
                     href={`mailto:${email.value}`}
-                  />
-                ))}
-              {data.phones
-                ?.filter((p) => p.value)
-                .map((phone, i) => (
-                  <PreviewItem
-                    key={i}
-                    icon={
-                      phone.type === "cell" ? (
-                        <Smartphone className="h-3.5 w-3.5" />
-                      ) : (
-                        <Phone className="h-3.5 w-3.5" />
-                      )
-                    }
-                    label={phoneTypeLabels[phone.type]}
-                    value={phone.value}
-                    href={`tel:${phone.value}`}
+                    fieldType="email"
                   />
                 ))}
             </div>
@@ -315,8 +338,8 @@ export function ContactPreview({ data, version, compact }: ContactPreviewProps) 
 
         {/* Work */}
         {hasWorkInfo && (
-          <div>
-            <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <div className="contact-preview__section contact-preview__section--work">
+            <h4 className="contact-preview__section-title mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Work
             </h4>
             <div className="space-y-1">
@@ -329,6 +352,7 @@ export function ContactPreview({ data, version, compact }: ContactPreviewProps) 
                       ? `${data.organization} - ${data.department}`
                       : data.organization
                   }
+                  fieldType="organization"
                 />
               )}
               {data.role && data.role !== data.title && (
@@ -336,6 +360,7 @@ export function ContactPreview({ data, version, compact }: ContactPreviewProps) 
                   icon={<Briefcase className="h-3.5 w-3.5" />}
                   label="Role"
                   value={data.role}
+                  fieldType="role"
                 />
               )}
             </div>
@@ -344,8 +369,8 @@ export function ContactPreview({ data, version, compact }: ContactPreviewProps) 
 
         {/* Addresses */}
         {hasAddresses && (
-          <div>
-            <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <div className="contact-preview__section contact-preview__section--addresses">
+            <h4 className="contact-preview__section-title mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Addresses
             </h4>
             <div className="space-y-1">
@@ -367,6 +392,7 @@ export function ContactPreview({ data, version, compact }: ContactPreviewProps) 
                       icon={<MapPin className="h-3.5 w-3.5" />}
                       label={addressTypeLabels[addr.type]}
                       value={formatted}
+                      fieldType="address"
                     />
                   );
                 })}
@@ -376,8 +402,8 @@ export function ContactPreview({ data, version, compact }: ContactPreviewProps) 
 
         {/* URLs */}
         {hasUrls && (
-          <div>
-            <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <div className="contact-preview__section contact-preview__section--web">
+            <h4 className="contact-preview__section-title mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Web
             </h4>
             <div className="space-y-1">
@@ -390,6 +416,7 @@ export function ContactPreview({ data, version, compact }: ContactPreviewProps) 
                     label={urlTypeLabels[url.type]}
                     value={url.value}
                     href={url.value}
+                    fieldType="url"
                   />
                 ))}
             </div>
@@ -398,8 +425,8 @@ export function ContactPreview({ data, version, compact }: ContactPreviewProps) 
 
         {/* Instant Messaging */}
         {hasImpp && (
-          <div>
-            <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <div className="contact-preview__section contact-preview__section--messaging">
+            <h4 className="contact-preview__section-title mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Messaging
             </h4>
             <div className="space-y-1">
@@ -411,6 +438,7 @@ export function ContactPreview({ data, version, compact }: ContactPreviewProps) 
                     icon={<MessageSquare className="h-3.5 w-3.5" />}
                     label={imppTypeLabels[impp.type]}
                     value={impp.value}
+                    fieldType="impp"
                   />
                 ))}
             </div>
@@ -419,8 +447,8 @@ export function ContactPreview({ data, version, compact }: ContactPreviewProps) 
 
         {/* Dates */}
         {hasDates && (
-          <div>
-            <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <div className="contact-preview__section contact-preview__section--dates">
+            <h4 className="contact-preview__section-title mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Dates
             </h4>
             <div className="space-y-1">
@@ -429,6 +457,7 @@ export function ContactPreview({ data, version, compact }: ContactPreviewProps) 
                   icon={<Calendar className="h-3.5 w-3.5" />}
                   label="Birthday"
                   value={data.birthday}
+                  fieldType="date"
                 />
               )}
               {data.anniversary && (
@@ -436,6 +465,7 @@ export function ContactPreview({ data, version, compact }: ContactPreviewProps) 
                   icon={<Calendar className="h-3.5 w-3.5" />}
                   label="Anniversary"
                   value={data.anniversary}
+                  fieldType="date"
                 />
               )}
             </div>
@@ -444,8 +474,8 @@ export function ContactPreview({ data, version, compact }: ContactPreviewProps) 
 
         {/* Related People */}
         {hasRelated && (
-          <div>
-            <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <div className="contact-preview__section contact-preview__section--related">
+            <h4 className="contact-preview__section-title mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Related
             </h4>
             <div className="space-y-1">
@@ -457,6 +487,7 @@ export function ContactPreview({ data, version, compact }: ContactPreviewProps) 
                     icon={<Users className="h-3.5 w-3.5" />}
                     label={relatedTypeLabels[rel.type]}
                     value={rel.value}
+                    fieldType="related"
                   />
                 ))}
             </div>
@@ -465,8 +496,8 @@ export function ContactPreview({ data, version, compact }: ContactPreviewProps) 
 
         {/* Geographic */}
         {hasGeo && (
-          <div>
-            <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <div className="contact-preview__section contact-preview__section--location">
+            <h4 className="contact-preview__section-title mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Location
             </h4>
             <div className="space-y-1">
@@ -475,6 +506,7 @@ export function ContactPreview({ data, version, compact }: ContactPreviewProps) 
                   icon={<MapPin className="h-3.5 w-3.5" />}
                   label="Coordinates"
                   value={data.geo}
+                  fieldType="geo"
                 />
               )}
               {data.timezone && (
@@ -482,6 +514,7 @@ export function ContactPreview({ data, version, compact }: ContactPreviewProps) 
                   icon={<Clock className="h-3.5 w-3.5" />}
                   label="Timezone"
                   value={data.timezone}
+                  fieldType="timezone"
                 />
               )}
             </div>
@@ -490,8 +523,8 @@ export function ContactPreview({ data, version, compact }: ContactPreviewProps) 
 
         {/* Additional */}
         {hasAdditional && (
-          <div>
-            <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <div className="contact-preview__section contact-preview__section--additional">
+            <h4 className="contact-preview__section-title mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Additional
             </h4>
             <div className="space-y-1">
@@ -500,6 +533,7 @@ export function ContactPreview({ data, version, compact }: ContactPreviewProps) 
                   icon={<Tag className="h-3.5 w-3.5" />}
                   label="Categories"
                   value={data.categories}
+                  fieldType="categories"
                 />
               )}
               {data.languages && (
@@ -507,14 +541,15 @@ export function ContactPreview({ data, version, compact }: ContactPreviewProps) 
                   icon={<Globe className="h-3.5 w-3.5" />}
                   label="Languages"
                   value={data.languages}
+                  fieldType="languages"
                 />
               )}
               {data.note && (
-                <div className="rounded-lg p-2">
-                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                <div className="contact-preview__field contact-preview__field--note rounded-lg p-2">
+                  <p className="contact-preview__field-label text-xs font-medium uppercase tracking-wide text-muted-foreground">
                     Notes
                   </p>
-                  <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">
+                  <p className="contact-preview__field-value mt-1 whitespace-pre-wrap text-sm text-foreground">
                     {data.note}
                   </p>
                 </div>
@@ -523,7 +558,9 @@ export function ContactPreview({ data, version, compact }: ContactPreviewProps) 
           </div>
         )}
 
-        <VcfFormatFooter version={version} />
+        <div className="contact-preview__footer">
+          <VcfFormatFooter />
+        </div>
       </div>
     </ScrollArea>
   );
