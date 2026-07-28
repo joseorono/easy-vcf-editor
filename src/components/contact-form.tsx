@@ -69,6 +69,7 @@ import { LanguageSelector } from "@/components/language-selector";
 import { GeoInput } from "@/components/geo-input";
 import { TimezoneSelector } from "@/components/timezone-selector";
 import { CountryCodeSelector } from "@/components/country-code-selector";
+import { splitPhoneNumber } from "@/lib/phone-helper";
 
 interface FormSectionProps {
   title: string;
@@ -157,9 +158,6 @@ export function PhonesField() {
   const { fields, append, remove } = useFieldArray({ control, name: "phones" });
   const phones = watch("phones") || [];
 
-  // Store country codes separately (not in the phone value)
-  const [countryCodes, setCountryCodes] = useState<Record<number, string>>({});
-
   const handleStarClick = (index: number) => {
     const current = getValues("phones");
     const wasActive = !!current[index]?.pref;
@@ -171,94 +169,110 @@ export function PhonesField() {
 
   return (
     <div className="space-y-3">
-      {fields.map((field, index) => (
-        <div key={field.id} className="space-y-2 border-b border-border/20 pb-3 last:border-0 last:pb-0 sm:border-0 sm:pb-0">
-          <div className="grid grid-cols-12 gap-2 items-end sm:flex sm:gap-2">
-            <div className="col-span-6 sm:w-28 sm:shrink-0 flex flex-col gap-1.5">
-              <Label className="text-xs text-muted-foreground">Type</Label>
-              <Select
-                value={phones[index]?.type || "cell"}
-                onValueChange={(value) => {
-                  setValue(`phones.${index}.type`, value as VCardPhone["type"], {
-                    shouldDirty: true,
-                  });
-                }}
-              >
-                <SelectTrigger className="bg-background" aria-label="Phone type">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(phoneTypeLabels).map(([value, label]) => (
-                    <SelectItem key={value} value={value}>
-                      {label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="col-span-6 sm:w-24 sm:shrink-0 flex flex-col gap-1.5">
-              <Label className="text-xs text-muted-foreground">Code</Label>
-              <CountryCodeSelector
-                inline
-                value={countryCodes[index]}
-                onSelect={(code) => {
-                  setCountryCodes((prev) => ({
-                    ...prev,
-                    [index]: code,
-                  }));
-                }}
-              />
-            </div>
-            <div className="col-span-12 sm:flex-1 flex flex-col gap-1.5">
-              <Label className="text-xs text-muted-foreground">Number</Label>
-              <Input
-                {...register(`phones.${index}.value` as const)}
-                placeholder="555 123 4567"
-                className="bg-background"
-              />
-            </div>
-            <div className="col-span-12 sm:w-auto flex justify-end gap-1 sm:mb-0.5">
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => remove(index)}
-                className="shrink-0 text-muted-foreground hover:text-destructive"
-                disabled={fields.length === 1}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-              <input
-                type="hidden"
-                {...register(`phones.${index}.pref` as const)}
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => handleStarClick(index)}
-                className={cn(
-                  "shrink-0",
-                  phones[index]?.pref
-                    ? "text-yellow-500"
-                    : "text-muted-foreground hover:text-yellow-500"
-                )}
-                aria-label={
-                  phones[index]?.pref ? "Remove preferred" : "Set as preferred"
-                }
-                aria-pressed={!!phones[index]?.pref}
-              >
-                <Star
-                  className={cn(
-                    "h-4 w-4",
-                    phones[index]?.pref && "fill-current"
-                  )}
+      {fields.map((field, index) => {
+        const fullPhone = phones[index]?.value || "";
+        const { countryCode, localNumber } = splitPhoneNumber(fullPhone);
+
+        return (
+          <div key={field.id} className="space-y-2 border-b border-border/20 pb-3 last:border-0 last:pb-0 sm:border-0 sm:pb-0">
+            <div className="grid grid-cols-12 gap-2 items-end sm:flex sm:gap-2">
+              <div className="col-span-6 sm:w-28 sm:shrink-0 flex flex-col gap-1.5">
+                <Label className="text-xs text-muted-foreground">Type</Label>
+                <Select
+                  value={phones[index]?.type || "cell"}
+                  onValueChange={(value) => {
+                    setValue(`phones.${index}.type`, value as VCardPhone["type"], {
+                      shouldDirty: true,
+                    });
+                  }}
+                >
+                  <SelectTrigger className="bg-background" aria-label="Phone type">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(phoneTypeLabels).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="col-span-6 sm:w-24 sm:shrink-0 flex flex-col gap-1.5">
+                <Label className="text-xs text-muted-foreground">Code</Label>
+                <CountryCodeSelector
+                  inline
+                  value={countryCode}
+                  onSelect={(selectedCode) => {
+                    const combined = selectedCode
+                      ? `${selectedCode} ${localNumber}`.trim()
+                      : localNumber;
+                    setValue(`phones.${index}.value`, combined, {
+                      shouldDirty: true,
+                    });
+                  }}
                 />
-              </Button>
+              </div>
+              <div className="col-span-12 sm:flex-1 flex flex-col gap-1.5">
+                <Label className="text-xs text-muted-foreground">Number</Label>
+                <Input
+                  value={localNumber}
+                  onChange={(e) => {
+                    const newLocal = e.target.value;
+                    const combined = countryCode
+                      ? `${countryCode} ${newLocal}`.trim()
+                      : newLocal;
+                    setValue(`phones.${index}.value`, combined, {
+                      shouldDirty: true,
+                    });
+                  }}
+                  placeholder="555 123 4567"
+                  className="bg-background"
+                />
+              </div>
+              <div className="col-span-12 sm:w-auto flex justify-end gap-1 sm:mb-0.5">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => remove(index)}
+                  className="shrink-0 text-muted-foreground hover:text-destructive"
+                  disabled={fields.length === 1}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+                <input
+                  type="hidden"
+                  {...register(`phones.${index}.pref` as const)}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleStarClick(index)}
+                  className={cn(
+                    "shrink-0",
+                    phones[index]?.pref
+                      ? "text-yellow-500"
+                      : "text-muted-foreground hover:text-yellow-500"
+                  )}
+                  aria-label={
+                    phones[index]?.pref ? "Remove preferred" : "Set as preferred"
+                  }
+                  aria-pressed={!!phones[index]?.pref}
+                >
+                  <Star
+                    className={cn(
+                      "h-4 w-4",
+                      phones[index]?.pref && "fill-current"
+                    )}
+                  />
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
       <Button
         type="button"
         variant="outline"
