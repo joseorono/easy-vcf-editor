@@ -17,7 +17,7 @@ export function Footer() {
         </a>
         <span className="text-muted-foreground">•</span>
         <a
-          href="https://github.com/joseorono/easy-vcf-editor"
+          href="https://github.com/joseorono/easy-vcard-manager"
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1 font-medium transition-colors"

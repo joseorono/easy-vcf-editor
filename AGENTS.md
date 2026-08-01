@@ -1,4 +1,4 @@
-# easy-vcf-editor
+# easy-vcard-manager
 
 Shared rules for AI coding agents (Claude Code, Devin Desktop, etc.). This is the single source of truth — `CLAUDE.md` imports this file.
 

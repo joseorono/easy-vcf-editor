@@ -1,5 +1,6 @@
 {
-  "name": "easy-vcf-editor",
+  "name": "easy-vcard-manager",
+  "description": "An offline-first contact library to import, edit, search, and bulk-export vCard files.",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -86,8 +87,8 @@
     "vitest": "^4.0.15"
   },
   "build": {
-    "appId": "com.exologic.easy-vcf-editor",
-    "productName": "Easy VCF Editor",
+    "appId": "com.exologic.easy-vcard-manager",
+    "productName": "Easy vCard Manager",
     "directories": {
       "output": "release"
     },
