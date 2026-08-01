@@ -69,11 +69,61 @@ export function formatPhoneNumber(phone: string): string {
   return normalized;
 }
 
+import { countries } from "countries-list";
+
+/**
+ * Pre-sorted list of valid country phone codes (e.g. +1246, +58, +1) by length descending
+ */
+const sortedCountryCodes: string[] = Array.from(
+  new Set(
+    Object.values(countries)
+      .map((c) => (Array.isArray(c.phone) ? c.phone[0] : c.phone))
+      .filter(Boolean)
+      .map((p) => `+${p}`)
+  )
+).sort((a, b) => b.length - a.length);
+
+/**
+ * Splits a phone number into its country code and local number.
+ * E.g. "+584121111111" => { countryCode: "+58", localNumber: "4121111111" }
+ * E.g. "+1 (555) 123-4567" => { countryCode: "+1", localNumber: "(555) 123-4567" }
+ *
+ * @param phone - The full phone number string.
+ * @returns Object with countryCode and localNumber.
+ */
+export function splitPhoneNumber(phone: string): {
+  countryCode: string;
+  localNumber: string;
+} {
+  if (!phone) return { countryCode: "", localNumber: "" };
+  const trimmed = phone.trim();
+  if (!trimmed.startsWith("+")) {
+    return { countryCode: "", localNumber: trimmed };
+  }
+
+  const normalized = normalizePhoneNumber(trimmed);
+  const matchedCode = sortedCountryCodes.find((code) =>
+    normalized.startsWith(code)
+  );
+
+  if (matchedCode) {
+    const rawDigitsOnlyCode = matchedCode.replace("+", "");
+    const regex = new RegExp(`^\\+?\\s*${rawDigitsOnlyCode}[\\s\\-.]*`);
+    const localNumber = trimmed.replace(regex, "");
+    return { countryCode: matchedCode, localNumber };
+  }
+
+  return { countryCode: "", localNumber: trimmed };
+}
+
 /**
  * Extract country code from a phone number
+ *
+ * @param phone - The full phone number string.
+ * @returns The matching country code or null.
  */
 export function extractCountryCode(phone: string): string | null {
-  const normalized = normalizePhoneNumber(phone);
-  const match = normalized.match(/^(\+\d{1,4})/);
-  return match ? match[1] : null;
+  const { countryCode } = splitPhoneNumber(phone);
+  return countryCode || null;
 }
+

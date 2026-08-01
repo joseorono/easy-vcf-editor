@@ -8,9 +8,21 @@ import {
 
 const mockCanvas = document.createElement("canvas");
 
-vi.mock("html2canvas", () => ({
-  default: vi.fn().mockResolvedValue(mockCanvas),
+vi.mock("html-to-image", () => ({
+  toCanvas: vi.fn().mockResolvedValue(mockCanvas),
 }));
+
+// jsdom implements neither the FontFaceSet API nor (by default)
+// requestAnimationFrame, both of which captureContactImage awaits.
+if (!document.fonts) {
+  Object.defineProperty(document, "fonts", {
+    value: { ready: Promise.resolve() },
+  });
+}
+if (!globalThis.requestAnimationFrame) {
+  globalThis.requestAnimationFrame = (callback: FrameRequestCallback) =>
+    setTimeout(() => callback(0), 0) as unknown as number;
+}
 
 function makeData(overrides: Partial<VCardData> = {}): VCardData {
   return {
@@ -23,7 +35,7 @@ function makeData(overrides: Partial<VCardData> = {}): VCardData {
 }
 
 describe("captureContactImage", () => {
-  it("returns the canvas produced by html2canvas", async () => {
+  it("returns the canvas produced by html-to-image", async () => {
     const data = makeData();
     const canvas = await captureContactImage(data, "3.0", "light");
     expect(canvas).toBe(mockCanvas);
@@ -35,7 +47,7 @@ describe("captureContactImage", () => {
     await captureContactImage(data, "3.0", "light");
     const container = appendChildSpy.mock.calls[0][0] as HTMLDivElement;
     const wrapper = container.firstChild as HTMLDivElement;
-    expect(wrapper.className).toBe("");
+    expect(wrapper.className).toBe("light");
     appendChildSpy.mockRestore();
   });
 

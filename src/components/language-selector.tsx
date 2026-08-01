@@ -1,3 +1,8 @@
+// react-hook-form's watch() must be re-called on every render to re-register
+// its subscription after reset() (import/clear); the React Compiler's
+// memoization breaks that (react-hook-form#7607), so opt this file out.
+"use no memo";
+
 import { useFormContext } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Plus, X, ChevronsUpDown, Check } from "lucide-react";

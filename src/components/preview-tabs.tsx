@@ -89,7 +89,7 @@ export function PreviewTabs({ data, version }: PreviewTabsProps) {
       </TabsList>
 
       <TabsContent value="visual" className="flex-1 overflow-hidden">
-        <ContactPreview data={data} version={version} />
+        <ContactPreview data={data} />
       </TabsContent>
 
       <TabsContent
@@ -133,7 +133,7 @@ export function PreviewTabs({ data, version }: PreviewTabsProps) {
           </ScrollArea>
         </div>
 
-        <VcfFormatFooter version={version} />
+        <VcfFormatFooter />
       </TabsContent>
 
       <TabsContent value="qr" className="flex-1 overflow-hidden space-y-5 p-4">
@@ -218,7 +218,7 @@ export function PreviewTabs({ data, version }: PreviewTabsProps) {
           </div>
         )}
 
-        <VcfFormatFooter version={version} />
+        <VcfFormatFooter />
       </TabsContent>
     </Tabs>
   );
