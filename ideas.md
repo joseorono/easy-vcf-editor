@@ -1,4 +1,4 @@
-# easy-vcf-editor – TODO
+# easy-vcard-manager – TODO
 
 This file tracks missing features, improvements, and tech debt for the vCard editor.
 

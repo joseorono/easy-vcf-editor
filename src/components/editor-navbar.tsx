@@ -66,14 +66,14 @@ export function EditorNavbar({
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 sm:h-14 sm:w-14">
             <img
               src="vcf.svg"
-              alt="Easy VCF Editor Logo"
+              alt="Easy vCard Manager Logo"
               className="h-6 w-6 sm:h-10 sm:w-10"
             />
           </div>
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold sm:text-base md:text-lg">
-              <span className="inline sm:hidden">Easy VCF</span>
-              <span className="hidden sm:inline">Easy vCard Editor</span>
+              <span className="inline sm:hidden">Easy vCard</span>
+              <span className="hidden sm:inline">Easy vCard Manager</span>
             </p>
             <p className="hidden text-xs text-muted-foreground sm:block">
               Create and edit VCF contacts

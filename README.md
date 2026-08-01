@@ -1,6 +1,6 @@
-# Easy VCF Editor
+# Easy vCard Manager
 
-An offline-first, modern editor for vCard (`.vcf`) files. Create, edit, visualize, and convert contact files directly in your browser.
+An offline-first contact library to import, edit, search, and bulk-export vCard files. Create, edit, visualize, and convert contact files directly in your browser.
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Status](https://img.shields.io/badge/status-active-success.svg)
@@ -39,8 +39,8 @@ An offline-first, modern editor for vCard (`.vcf`) files. Create, edit, visualiz
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/joseorono/easy-vcf-editor.git
-   cd easy-vcf-editor
+   git clone https://github.com/joseorono/easy-vcard-manager.git
+   cd easy-vcard-manager
    ```
 
 2. Install dependencies:
@@ -68,7 +68,7 @@ This project is optimized for deployment on Vercel.
 1. Update `vite.config.ts` to set the `base` path if you are not deploying to a custom domain:
    ```ts
    export default defineConfig({
-     base: '/easy-vcf-editor/', // Replace with your repo name
+     base: '/easy-vcard-manager/', // Replace with your repo name
      // ...
    })
    ```
