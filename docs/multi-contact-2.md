@@ -142,7 +142,11 @@ export function useContactAutosave(methods: UseFormReturn<VCardData>): UseContac
 
 Internals, all refs: `isLoadingRef`, `activeIdRef` (mirrors the atom, assigned during render — the same pattern the file already uses for `versionRef` at L87-88, so the watch subscription registers once instead of re-subscribing per selection), `pendingRef: { id, data } | null`, `timerRef`.
 
-**Save — a `methods.watch(callback)` subscription, not a `useEffect` on `watchedData`.** Two reasons. First, the subscription callback receives `{ name }` metadata, and RHF broadcasts `name === undefined` for a programmatic `reset()`; that lets us distinguish a load-reset from a real user edit declaratively instead of relying entirely on guard timing. Second, `watchedData` already feeds the preview through `useDeferredValue` — putting persistence on the render path couples saving to render timing for no benefit.
+**Save — a `methods.watch(callback)` subscription, not a `useEffect` on `watchedData`.** `watchedData` already feeds the preview through `useDeferredValue`; putting persistence on the render path would couple saving to render timing for no benefit.
+
+> **Corrected during implementation.** The plan assumed react-hook-form reports `name === undefined` for a programmatic `reset()`, and that this alone could tell a load apart from a user edit. A probe test disproved it: `reset()` does notify with an undefined name, but **every mounted `useFieldArray` then re-syncs and emits its own named notification** (`phones`, `emails`, …) *after* the microtask that clears the loading guard. Left unhandled, opening a contact rewrote it and bumped `updatedAt`, so merely viewing a contact jumped it to the top of "Recently edited".
+>
+> The fix is a `lastSavedRef` holding `{ id, serialized }` for the contact as last loaded or saved. `flushPendingSave` serializes the pending payload and skips the write when it matches — catching the echo regardless of when it lands, and dropping redundant writes generally. Serializing at flush time rather than per keystroke keeps it to one comparison per debounce window. The `name === undefined` check stays as a cheap early-out, but nothing depends on it.
 
 ```ts
 useEffect(() => {
@@ -161,9 +165,7 @@ useEffect(() => {
 
 **The id is captured when the keystroke happens, not when the timer fires.** That is what makes a late-firing timer harmless rather than dangerous — it writes to the contact the user was actually editing.
 
-> **Verify during implementation:** confirm that `useFieldArray`'s `append`/`remove` in `contact-form.tsx` notify with a defined `name` in RHF 7.68. If any of them broadcast without one, drop the `name` filter and rely solely on `isLoadingRef`. Test by adding and removing phone/email rows and confirming they persist.
-
-**`applyToActiveContact` exists precisely because of that `name === undefined` filter:** since resets are deliberately not autosaved, any code path that replaces the whole form must persist explicitly. Silently relying on autosave after a `reset()` would drop the data.
+**`applyToActiveContact` exists because resets are deliberately not autosaved:** any code path that replaces the whole form must persist explicitly. Silently relying on autosave after a `reset()` would drop the data.
 
 ```ts
 async function flushPendingSave() {
@@ -359,7 +361,9 @@ Also add a work-log subitem to `docs/todo.md` (design doc §14 asks for it) and 
 ## 9. Risks & edge cases
 
 1. **Cross-contact writes** — three layers of defense: `selectContact` flushes before switching; the pending snapshot captures its target id at schedule time; the load effect uses a `stale` flag against out-of-order reads.
-2. **`reset` echo writes** — the `name === undefined` filter plus `isLoadingRef`. Verify field-array notifications carry names in RHF 7.68 (§5.4); fallback documented.
+2. **`reset` echo writes** — field arrays re-sync after a load and emit named notifications past the loading guard. Neutralized by the no-op write check in `flushPendingSave` (§5.4), with a regression test asserting that opening a contact leaves its `updatedAt` untouched.
+2b. **Dexie transactions and `async`/`await`** — native `await` inside a `db.transaction()` callback drops Dexie's zone tracking and throws `PrematureCommitError`. `ensureSeedContact` uses Dexie promise chaining instead.
+2c. **jotai's default store is module-global** — fine for the app (one store for its lifetime), but tests must wrap in a `Provider` or the active contact id leaks between them.
 3. **Whole-form replacements silently not saving** — the flip side of that filter. Every replace path must go through `applyToActiveContact`.
 4. **StrictMode double effects** — transactional `ensureSeedContact`, idempotent load effect, symmetric subscribe/unsubscribe.
 5. **`defaultVCardData` shared nested arrays** — all minting goes through `createBlankVCardData()`.

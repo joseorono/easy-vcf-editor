@@ -20,6 +20,15 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done
   - [ ] Surface validation errors in the form UI.
   - [ ] Reuse the schema when parsing/serializing in `src/lib/vcf-utils.ts`.
 
+- [~] **Multi-contact support** — Contacts library persisted in IndexedDB. Design in [`multi-contact.md`](./multi-contact.md), implementation plan in [`multi-contact-2.md`](./multi-contact-2.md).
+  - [x] Persistence layer — `src/types/contact-db.ts`, `src/constants/nanoid.ts`, `src/db/main.ts`, `src/db/queries.ts` (+ tests).
+  - [x] Multi-card parse/generate — `parseSingleVcard`, `parseVcfCollection`, `generateVcfCollection`, `downloadVcfCollection` (+ tests).
+  - [x] State & autosave — `activeContactIdAtom`, `use-contacts`, `use-contact-filters`, `use-contact-autosave` (+ tests).
+  - [x] Contact-list rail with search/sort, New and per-row delete.
+  - [x] Import chooser (add vs replace), multi-file drop, and Export all.
+  - [ ] Multi-select checkboxes, Export selected, and batch delete (deferred).
+  - [ ] Manual end-to-end pass — see the verification checklist in `multi-contact-2.md`.
+
 - [x] **Visual refresh** — Form layout refactored and spacing adjusted.
   - [x] Refactor form layout.
   - [x] Adjust spacing.
