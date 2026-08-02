@@ -1,7 +1,9 @@
 import Dexie, { type EntityTable } from "dexie";
 import type { StoredContact } from "@/types/contact-db";
 
-const db = new Dexie("EasyVcfEditor") as Dexie & {
+// Names the browser-level database. Changing it points the app at a different
+// store, so it is effectively permanent once the feature ships.
+const db = new Dexie("EasyVcardManager") as Dexie & {
   contacts: EntityTable<StoredContact, "id">;
 };
 

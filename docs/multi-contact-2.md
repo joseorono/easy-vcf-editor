@@ -8,7 +8,7 @@ Execution plan for the architecture in [`multi-contact.md`](./multi-contact.md).
 
 ## 1. Context
 
-Easy vCard Editor currently holds exactly one contact in a single React Hook Form instance inside `src/components/vcf-editor.tsx`, and loses it on reload. `parseVcf` reads only the first card of a file and the app apologizes for it with a "only the first one was imported" toast. This change turns the app into a persisted contacts library: many contacts in IndexedDB, a left-hand list rail feeding the existing editor, autosave, and multi-card import/export.
+Easy vCard Manager currently holds exactly one contact in a single React Hook Form instance inside `src/components/vcf-editor.tsx`, and loses it on reload. `parseVcf` reads only the first card of a file and the app apologizes for it with a "only the first one was imported" toast. This change turns the app into a persisted contacts library: many contacts in IndexedDB, a left-hand list rail feeding the existing editor, autosave, and multi-card import/export.
 
 The form, the preview, and the vCard field model do not change. `VCardData` stays exactly as it is; a contact is just a `VCardData` wrapped in a stored row.
 
@@ -51,7 +51,7 @@ Follow the design doc's code for these files; they need no adaptation beyond wha
 | `src/types/contact-db.ts` | `StoredContact` — `id`, `data: VCardData`, `displayName`, `organization`, `createdAt: Date`, `updatedAt: Date`. |
 | `src/constants/nanoid.ts` | `CONTACT_ID_LENGTH`, `ID_DICTIONARY`, `nanoidContactId`. |
 | `src/constants/contacts.ts` | `AUTOSAVE_DEBOUNCE_MS = 500`, `DEFAULT_CONTACT_FILTERS`. |
-| `src/db/main.ts` | Dexie singleton `"EasyVcfEditor"`, `db.version(1).stores({ contacts: "id, displayName, organization, createdAt, updatedAt" })`. Plain `id` PK, not `++id`. |
+| `src/db/main.ts` | Dexie singleton `"EasyVcardManager"`, `db.version(1).stores({ contacts: "id, displayName, organization, createdAt, updatedAt" })`. Plain `id` PK, not `++id`. |
 | `src/db/queries.ts` | `ContactDBQueries` static class — the only code that touches `db.contacts`. |
 
 `ContactDBQueries`: `getAllContacts`, `getContactById`, `insertContact`, `updateContact`, `deleteContact`, `bulkInsertContacts` (→ `string[]`), `clearAll`, `count`, plus `ensureSeedContact` below. `deriveIndexFields` stamps `displayName` (via the existing `buildFullName` from `src/lib/vcf-utils.ts`, falling back to nickname → first email → `"Unnamed contact"`) and `organization`. Timestamps are stamped here, never by callers. No import cycle: `vcf-utils` never imports from `db`.
