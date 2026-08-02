@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, lazy, Suspense, useDeferredValue } from "react";
-import { ChevronLeft, ChevronRight, Upload, Download, QrCode, Image, ClipboardPaste, Sun, Moon, X, RotateCcw } from "lucide-react";
+import { ChevronLeft, ChevronRight, Upload, Download, QrCode, Image, ClipboardPaste, Sun, Moon, X, RotateCcw, Users } from "lucide-react";
 import { useForm, FormProvider } from "react-hook-form";
 import { useDropzone } from "react-dropzone";
 import { Button } from "@/components/ui/button";
@@ -11,20 +11,25 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import type { VCardData, VCardVersion } from "@/types/vcard-types";
-import { defaultVCardData } from "@/constants/vcard-constants";
 import {
   parseVcf,
+  parseVcfCollection,
   downloadVcf,
+  downloadVcfCollection,
   generateVcf,
   isVCardEmpty,
+  createBlankVCardData,
 } from "@/lib/vcf-utils";
+import { ContactDBQueries } from "@/db/queries";
+import { useContactAutosave } from "@/hooks/use-contact-autosave";
+import { ContactList } from "@/components/contact-list/contact-list";
+import { ImportModeDialog } from "@/components/import-mode-dialog";
 import {
   checkQrDataSize,
   downloadQrCode,
@@ -75,15 +80,21 @@ export function VcfEditor() {
   const isDesktop = useIsDesktop();
 
   const methods = useForm<VCardData>({
-    defaultValues: defaultVCardData,
+    defaultValues: createBlankVCardData(),
   });
 
   const watchedData = methods.watch();
   const deferredData = useDeferredValue(watchedData);
-  const [pendingImportText, setPendingImportText] = useState<string | null>(
-    null
-  );
-  const [showImportWarning, setShowImportWarning] = useState(false);
+  const {
+    activeContactId,
+    selectContact,
+    flushPendingSave,
+    cancelPendingSave,
+    applyToActiveContact,
+  } = useContactAutosave(methods);
+  const [pendingImport, setPendingImport] = useState<VCardData[] | null>(null);
+  const [isContactListOpen, setIsContactListOpen] = useState(false);
+  const [isRailCollapsed, setIsRailCollapsed] = useState(false);
   const versionRef = useRef(version);
   versionRef.current = version;
 
@@ -92,13 +103,16 @@ export function VcfEditor() {
     setImportOpen(true);
   };
 
-  // Shared import path used by the import modal (file + paste) and the
-  // whole-window drop. Returns true on success so callers can react.
-  const importFromText = (text: string): boolean => {
-    // parseVcf never throws on malformed input — it returns a mostly-empty
-    // VCardData. Guard explicitly so garbage input gives real feedback.
-    const parsedData = parseVcf(text);
+  const describeContact = (data: VCardData): string =>
+    `${data.firstName} ${data.lastName}`.trim();
 
+  /**
+   * Shared import path for the modal (file + paste) and the whole-window drop.
+   * Returns true when the import is finished, so the modal knows it can close;
+   * false either means it failed, or that we've handed off to the chooser
+   * dialog and the modal should stay put behind it.
+   */
+  const handleIncomingVcfText = (text: string): boolean => {
     // Not a vCard at all — the user picked the wrong file.
     if (!/BEGIN:VCARD/i.test(text)) {
       toast.error("Import failed", {
@@ -107,60 +121,94 @@ export function VcfEditor() {
       return false;
     }
 
-    // A real vCard, just with no contact details in it. Nothing went wrong,
+    const contacts = parseVcfCollection(text).filter(
+      (contact) => !isVCardEmpty(contact)
+    );
+
+    // Real vCards, just with no contact details in them. Nothing went wrong,
     // so say so plainly instead of reporting a failure.
-    if (isVCardEmpty(parsedData)) {
-      toast.info("This vCard is empty", {
-        description: "It's a valid vCard, but it has no contact details to import.",
+    if (contacts.length === 0) {
+      toast.info("Nothing to import", {
+        description: "Those are valid vCards, but they have no contact details.",
       });
       return false;
     }
 
-    methods.reset(parsedData);
-    const importedName =
-      `${parsedData.firstName} ${parsedData.lastName}`.trim();
-    toast.success("Contact imported", {
-      description: importedName
-        ? `Successfully imported ${importedName}`
+    // A single card landing on an untouched contact needs no decision — this is
+    // the original one-contact behavior, preserved.
+    if (contacts.length === 1 && isVCardEmpty(methods.getValues())) {
+      void applyToActiveContact(contacts[0]);
+      toast.success("Contact imported", {
+        description: describeContact(contacts[0])
+          ? `Successfully imported ${describeContact(contacts[0])}`
+          : "Contact data loaded",
+      });
+      return true;
+    }
+
+    setPendingImport(contacts);
+    return false;
+  };
+
+  const handleImportAsNew = async () => {
+    if (!pendingImport) return;
+    const contacts = pendingImport;
+    setPendingImport(null);
+
+    // An auto-created blank contact would just sit there as clutter above the
+    // contacts we're about to add, so retire it.
+    const shouldDropBlankActive =
+      contacts.length > 1 && isVCardEmpty(methods.getValues());
+    const blankActiveId = activeContactId;
+
+    await flushPendingSave();
+    const ids = await ContactDBQueries.bulkInsertContacts(contacts);
+
+    if (shouldDropBlankActive && blankActiveId) {
+      cancelPendingSave();
+      await ContactDBQueries.deleteContact(blankActiveId);
+    }
+
+    await selectContact(ids[0]);
+    setImportOpen(false);
+    toast.success(
+      contacts.length === 1 ? "Contact imported" : "Contacts imported",
+      {
+        description:
+          contacts.length === 1
+            ? `${describeContact(contacts[0]) || "Contact"} added to your library`
+            : `${contacts.length} contacts added to your library`,
+      }
+    );
+  };
+
+  const handleImportAsReplacement = async () => {
+    if (!pendingImport) return;
+    const [contact] = pendingImport;
+    setPendingImport(null);
+
+    await applyToActiveContact(contact);
+    setImportOpen(false);
+    toast.success("Contact replaced", {
+      description: describeContact(contact)
+        ? `Now editing ${describeContact(contact)}`
         : "Contact data loaded",
     });
-
-    // The editor holds a single contact; parseVcf reads only the first card.
-    const cardCount = (text.match(/BEGIN:VCARD/gi) ?? []).length;
-    if (cardCount > 1) {
-      toast.info("Multiple contacts detected", {
-        description: `This vCard has ${cardCount} contacts — only the first one was imported.`,
-      });
-    }
-    return true;
   };
 
   const onDrop = async (acceptedFiles: File[]) => {
-    const file = acceptedFiles[0];
-    if (!file) return;
-    const text = await file.text();
-    if (isVCardEmpty(methods.getValues())) {
-      importFromText(text);
-    } else {
-      setPendingImportText(text);
-      setShowImportWarning(true);
-    }
-  };
-
-  const handleImportText = (text: string): boolean => {
-    if (isVCardEmpty(methods.getValues())) {
-      return importFromText(text);
-    }
-    setPendingImportText(text);
-    setShowImportWarning(true);
-    return false;
+    if (acceptedFiles.length === 0) return;
+    // Concatenating is enough — the parser re-splits on BEGIN:VCARD, so several
+    // files behave exactly like one multi-contact file.
+    const texts = await Promise.all(acceptedFiles.map((file) => file.text()));
+    handleIncomingVcfText(texts.join("\r\n"));
   };
 
   const { getRootProps, isDragActive } = useDropzone({
     onDrop,
     noClick: true,
     noKeyboard: true,
-    multiple: false,
+    multiple: true,
     accept: {
       "text/vcard": [".vcf", ".vcard"],
       "text/directory": [".vcf"],
@@ -245,14 +293,67 @@ export function VcfEditor() {
     setExportContactImageOpen(true);
   };
 
-  const handleNew = () => {
-    methods.reset(defaultVCardData);
+  const handleExportAllVcf = async () => {
+    await flushPendingSave();
+    const rows = await ContactDBQueries.getAllContacts();
+    const list = rows
+      .map((row) => row.data)
+      .filter((data) => !isVCardEmpty(data));
+
+    if (list.length === 0) {
+      toast.error("Nothing to export", {
+        description: "Your library has no filled-in contacts yet.",
+      });
+      return;
+    }
+
+    downloadVcfCollection(list, version);
+    toast.success("Contacts exported", {
+      description: `${list.length} contacts downloaded as contacts.vcf`,
+    });
+  };
+
+  /** Blanks the contact being edited, leaving it in the library. */
+  const handleClearContact = () => {
+    void applyToActiveContact(createBlankVCardData());
     toast("Form cleared", {
       description: "All fields have been reset",
     });
   };
 
+  const handleNewContact = async () => {
+    await flushPendingSave();
+    const id = await ContactDBQueries.insertContact(createBlankVCardData());
+    await selectContact(id);
+    toast.success("Contact created", {
+      description: "Start filling in the new contact",
+    });
+  };
+
+  const handleDeleteContact = async (id: string) => {
+    const wasActive = id === activeContactId;
+    // Don't let a queued edit resurrect the row we're about to delete.
+    if (wasActive) cancelPendingSave();
+
+    // Work out the neighbour before deleting, so selection lands next to where
+    // the user was rather than jumping to the top of the list.
+    const rows = await ContactDBQueries.getAllContacts();
+    const index = rows.findIndex((row) => row.id === id);
+    const neighbourId = rows[index + 1]?.id ?? rows[index - 1]?.id ?? null;
+
+    await ContactDBQueries.deleteContact(id);
+    toast.success("Contact deleted");
+
+    if (wasActive) {
+      // Deleting the last contact re-seeds a blank one, so the editor always
+      // has something to edit.
+      await selectContact(neighbourId ?? (await ContactDBQueries.ensureSeedContact()));
+    }
+  };
+
   const togglePreview = () => {
+    // Both overlays are full-screen on mobile, so only one can be up at a time.
+    setIsContactListOpen(false);
     setShowPreview((prev) => !prev);
   };
 
@@ -260,11 +361,19 @@ export function VcfEditor() {
   // the hook, so this is inert in browsers without `navigator.modelContext`.
   useWebMcp({
     getContact: () => methods.getValues(),
-    setContact: (data) => methods.reset(data),
+    // Goes through the autosave hook so agent edits are persisted, not just
+    // shown — a bare `reset` is deliberately invisible to autosave.
+    setContact: (data) => void applyToActiveContact(data),
     getVCardText: () => generateVcf(methods.getValues(), versionRef.current),
-    importVCardText: (text) => importFromText(text),
+    importVCardText: (text) => {
+      if (!/BEGIN:VCARD/i.test(text)) return false;
+      const parsed = parseVcf(text);
+      if (isVCardEmpty(parsed)) return false;
+      void applyToActiveContact(parsed);
+      return true;
+    },
     exportVCard: handleExportVcf,
-    clearContact: handleNew,
+    clearContact: handleClearContact,
   });
 
   useEffect(() => {
@@ -287,9 +396,10 @@ export function VcfEditor() {
         <EditorNavbar
           version={version}
           onVersionChange={(v) => setVersion(v)}
-          onNew={handleNew}
+          onClear={handleClearContact}
           onOpenImport={openImport}
           onExportVcf={handleExportVcf}
+          onExportAllVcf={() => void handleExportAllVcf()}
           onExportQr={handleExportQr}
           onExportContactImage={handleExportContactImage}
           showPreview={showPreview}
@@ -313,6 +423,36 @@ export function VcfEditor() {
               </p>
             </div>
           )}
+
+          {/* Contact List Rail */}
+          <ContactList
+            isOpen={isContactListOpen}
+            onClose={() => setIsContactListOpen(false)}
+            isCollapsed={isRailCollapsed}
+            onSelectContact={(id) => void selectContact(id)}
+            onNewContact={() => void handleNewContact()}
+            onDeleteContact={(id) => void handleDeleteContact(id)}
+          />
+
+          {/* Contact list collapse handle - desktop only */}
+          <div className="relative hidden h-full items-center justify-center lg:flex">
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={() => setIsRailCollapsed((prev) => !prev)}
+              className="z-20 h-10 w-6 mx-1 flex items-center justify-center rounded-full border border-border/60 bg-background/90 text-muted-foreground shadow-sm transition-colors hover:bg-background"
+              aria-label={
+                isRailCollapsed ? "Show contact list" : "Hide contact list"
+              }
+            >
+              {isRailCollapsed ? (
+                <ChevronRight className="h-4 w-4" />
+              ) : (
+                <ChevronLeft className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
 
           {/* Form Panel */}
           <div className="flex flex-col flex-1 overflow-hidden">
@@ -404,7 +544,7 @@ export function VcfEditor() {
           onOpenChange={setImportOpen}
           tab={importTab}
           onTabChange={setImportTab}
-          onImportText={handleImportText}
+          onImportText={handleIncomingVcfText}
         />
         <ExportContactImageDialog
           data={deferredData}
@@ -413,36 +553,31 @@ export function VcfEditor() {
           onOpenChange={setExportContactImageOpen}
         />
       </Suspense>
-      <AlertDialog
-        open={showImportWarning}
-        onOpenChange={setShowImportWarning}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Replace contact?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will overwrite all current values.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setPendingImportText(null)}>
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                if (pendingImportText) {
-                  importFromText(pendingImportText);
-                  setImportOpen(false);
-                }
-              }}
-            >
-              Replace
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ImportModeDialog
+        open={pendingImport !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingImport(null);
+        }}
+        contactCount={pendingImport?.length ?? 0}
+        incomingName={pendingImport?.[0] ? describeContact(pendingImport[0]) : ""}
+        canReplace={pendingImport?.length === 1}
+        onAddNew={() => void handleImportAsNew()}
+        onReplace={() => void handleImportAsReplacement()}
+      />
       {/* Bottom Action Bar for Mobile/Tablet */}
       <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background/95 backdrop-blur-sm px-4 py-3 flex gap-3 items-center justify-center lg:hidden">
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-9 px-3"
+          onClick={() => {
+            setShowPreview(false);
+            setIsContactListOpen(true);
+          }}
+          aria-label="Show contact list"
+        >
+          <Users className="h-4 w-4" />
+        </Button>
         <SplitButton
           variant="outline"
           size="sm"
@@ -486,6 +621,12 @@ export function VcfEditor() {
               label: "VCF File",
               icon: Download,
               onClick: handleExportVcf,
+            },
+            {
+              id: "vcf-all",
+              label: "All contacts (.vcf)",
+              icon: Users,
+              onClick: () => void handleExportAllVcf(),
             },
             {
               id: "qr-png",
@@ -624,7 +765,7 @@ export function VcfEditor() {
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                   <AlertDialogAction
                     onClick={() => {
-                      handleNew();
+                      handleClearContact();
                       setIsMenuOpen(false);
                     }}
                   >

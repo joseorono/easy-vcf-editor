@@ -9,6 +9,7 @@ import {
   Image,
   ClipboardPaste,
   Menu,
+  Users,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -37,9 +38,11 @@ import type { VCardVersion } from "@/types/vcard-types";
 interface EditorNavbarProps {
   version: VCardVersion;
   onVersionChange: (version: VCardVersion) => void;
-  onNew: () => void;
+  /** Blanks the contact being edited. Creating a new one lives in the rail. */
+  onClear: () => void;
   onOpenImport: (tab: "file" | "paste") => void;
   onExportVcf: () => void;
+  onExportAllVcf: () => void;
   onExportQr: (format: QrDownloadFormat) => void;
   onExportContactImage: () => void;
   showPreview: boolean;
@@ -50,9 +53,10 @@ interface EditorNavbarProps {
 export function EditorNavbar({
   version,
   onVersionChange,
-  onNew,
+  onClear,
   onOpenImport,
   onExportVcf,
+  onExportAllVcf,
   onExportQr,
   onExportContactImage,
   showPreview,
@@ -106,7 +110,7 @@ export function EditorNavbar({
                 </p>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={onNew}>Clear</AlertDialogAction>
+                  <AlertDialogAction onClick={onClear}>Clear</AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
@@ -174,6 +178,12 @@ export function EditorNavbar({
                     label: "VCF File",
                     icon: Download,
                     onClick: onExportVcf,
+                  },
+                  {
+                    id: "vcf-all",
+                    label: "All contacts (.vcf)",
+                    icon: Users,
+                    onClick: onExportAllVcf,
                   },
                   {
                     id: "qr-png",

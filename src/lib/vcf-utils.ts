@@ -64,8 +64,25 @@ export function isVCardEmpty(data: VCardData): boolean {
   );
 }
 
-export function parseVcf(vcfString: string): VCardData {
-  const data: VCardData = JSON.parse(JSON.stringify(defaultVCardData));
+/**
+ * Creates a fresh, blank `VCardData`.
+ *
+ * `defaultVCardData` holds mutable nested arrays (emails, phones, addresses,
+ * urls), so it must never be handed out directly — two contacts sharing it
+ * would edit each other. Always mint blanks through this helper.
+ */
+export function createBlankVCardData(): VCardData {
+  return JSON.parse(JSON.stringify(defaultVCardData));
+}
+
+/**
+ * Parses a single `BEGIN:VCARD`…`END:VCARD` block.
+ *
+ * Stops at the first `END:VCARD`, so passing a multi-card file returns only its
+ * first contact. Use {@link parseVcfCollection} to read every card.
+ */
+export function parseSingleVcard(vcfString: string): VCardData {
+  const data: VCardData = createBlankVCardData();
 
   // Clear default arrays for fresh import
   data.emails = [];
@@ -273,6 +290,34 @@ export function parseVcf(vcfString: string): VCardData {
   if (data.urls.length === 0) data.urls = [{ type: "homepage", value: "" }];
 
   return data;
+}
+
+/**
+ * Parses the first contact out of vCard text.
+ *
+ * Kept for single-contact callers (the QR/WebMCP paths); prefer
+ * {@link parseVcfCollection} anywhere a file may hold several cards.
+ */
+export function parseVcf(vcfString: string): VCardData {
+  return parseSingleVcard(vcfString);
+}
+
+/**
+ * Parses every `BEGIN:VCARD`…`END:VCARD` block in a file.
+ *
+ * Splits the raw text on card boundaries before parsing, which is safe because
+ * RFC 6350 line folding never continues across a `BEGIN:VCARD` line — each
+ * block then gets its own unfolding and quoted-printable pass. Blank-line
+ * separators can't be used for this, since unfolding drops blank lines.
+ *
+ * Empty-but-valid cards are returned as-is; callers decide whether to drop them
+ * with {@link isVCardEmpty}. Nested `AGENT:` vCards are not supported.
+ */
+export function parseVcfCollection(text: string): VCardData[] {
+  return text
+    .split(/(?=BEGIN:VCARD)/i)
+    .filter((block) => /^\s*BEGIN:VCARD/i.test(block))
+    .map(parseSingleVcard);
 }
 
 function resolveSinglePref<T extends { pref?: boolean }>(items: T[]): void {
@@ -663,11 +708,40 @@ function foldLine(line: string): string {
 
 export function downloadVcf(data: VCardData, version: VCardVersion = "4.0") {
   const vcfContent = generateVcf(data, version);
+  downloadVcfText(vcfContent, buildContactFileName(data));
+}
+
+/**
+ * Serializes several contacts into one multi-card vCard file.
+ *
+ * `generateVcf` emits no trailing CRLF, so a plain join produces well-formed
+ * output; a trailing CRLF is appended so the file ends on a complete line.
+ */
+export function generateVcfCollection(
+  list: VCardData[],
+  version: VCardVersion = "4.0"
+): string {
+  if (list.length === 0) return "";
+  return `${list.map((data) => generateVcf(data, version)).join("\r\n")}\r\n`;
+}
+
+/** Downloads several contacts as a single multi-card `.vcf` file. */
+export function downloadVcfCollection(
+  list: VCardData[],
+  version: VCardVersion = "4.0",
+  fileName = "contacts"
+) {
+  downloadVcfText(generateVcfCollection(list, version), fileName);
+}
+
+function buildContactFileName(data: VCardData): string {
+  return [data.firstName, data.lastName].filter(Boolean).join("_") || "contact";
+}
+
+function downloadVcfText(vcfContent: string, fileName: string) {
   const blob = new Blob([vcfContent], { type: "text/vcard" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
-  const fileName =
-    [data.firstName, data.lastName].filter(Boolean).join("_") || "contact";
   link.href = url;
   link.download = `${fileName}.vcf`;
   document.body.appendChild(link);
