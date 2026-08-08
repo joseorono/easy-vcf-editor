@@ -204,7 +204,7 @@ export function VcfEditor() {
     handleIncomingVcfText(texts.join("\r\n"));
   };
 
-  const { getRootProps, isDragActive } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     noClick: true,
     noKeyboard: true,
@@ -411,15 +411,16 @@ export function VcfEditor() {
           {...getRootProps()}
           className="relative flex flex-1 overflow-hidden pb-16 lg:pb-0"
         >
+          <input {...getInputProps()} />
           {/* Drag-and-drop overlay */}
           {isDragActive && (
             <div className="pointer-events-none absolute inset-2 z-40 flex flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-primary bg-primary/5 backdrop-blur-sm transition-colors">
               <Upload className="h-10 w-10 text-primary" />
               <p className="text-lg font-medium text-primary">
-                Drop your .vcf file here
+                Drop your .vcf file(s) here
               </p>
               <p className="text-sm text-muted-foreground">
-                Release to import the contact
+                Release to import the contact(s)
               </p>
             </div>
           )}
