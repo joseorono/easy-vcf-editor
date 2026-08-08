@@ -73,8 +73,10 @@ export function ContactList({
       />
 
       <div
+        id="contact-list-rail"
+        data-collapsed={isCollapsed}
         className={cn(
-          "flex h-full flex-col border-r border-border/50 bg-background",
+          "flex h-full min-w-0 flex-col border-r border-border/50 bg-background",
           // Mobile: slide in from the left.
           "fixed inset-y-0 left-0 z-50 w-80 max-w-[85vw] transform transition-transform duration-300 ease-in-out",
           isOpen
@@ -83,7 +85,7 @@ export function ContactList({
           // Desktop overrides: a static column.
           "lg:static lg:z-auto lg:w-72 lg:translate-x-0 lg:transform-none lg:transition-none xl:w-80",
           isCollapsed &&
-            "lg:w-0 lg:overflow-hidden lg:border-r-0 lg:opacity-0 lg:pointer-events-none"
+            "lg:w-0 xl:w-0 lg:overflow-hidden lg:border-r-0 lg:opacity-0 lg:pointer-events-none"
         )}
       >
         <div className="flex items-center justify-between gap-2 px-3 py-3">

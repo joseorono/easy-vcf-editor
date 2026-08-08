@@ -435,8 +435,12 @@ export function VcfEditor() {
           />
 
           {/* Contact list collapse handle - desktop only */}
-          <div className="relative hidden h-full items-center justify-center lg:flex">
+          <div
+            id="contact-list-collapse-handle"
+            className="relative hidden h-full items-center justify-center lg:flex"
+          >
             <Button
+              id="contact-list-collapse-button"
               type="button"
               variant="outline"
               size="icon"
@@ -455,7 +459,7 @@ export function VcfEditor() {
           </div>
 
           {/* Form Panel */}
-          <div className="flex flex-col flex-1 overflow-hidden">
+          <div id="contact-form-panel" className="flex flex-col flex-1 overflow-hidden">
             <div className="flex-1 overflow-auto px-4 py-2 [will-change:scroll-position] [contain:layout_style_paint]">
               <Card className="border-border/50 shadow-lg py-2">
                 <CardContent className="p-4 py-2">
@@ -466,8 +470,12 @@ export function VcfEditor() {
           </div>
 
           {/* Preview collapse handle - desktop only */}
-          <div className="relative hidden h-full items-center justify-center lg:flex">
+          <div
+            id="preview-collapse-handle"
+            className="relative hidden h-full items-center justify-center lg:flex"
+          >
             <Button
+              id="preview-collapse-button"
               type="button"
               variant="outline"
               size="icon"
@@ -487,15 +495,17 @@ export function VcfEditor() {
 
           {/* Preview Panel - sticky on desktop, full-screen on mobile when active */}
           <div
+            id="preview-panel"
+            data-collapsed={isPreviewCollapsed}
             className={cn(
-              "border-l border-border/50 bg-card/50 pl-1 flex flex-col h-full",
+              "border-l border-border/50 bg-card/50 pl-1 flex flex-col h-full min-w-0",
               // Mobile transition styles (slide in from right)
               "fixed inset-0 z-50 bg-background transform transition-transform duration-300 ease-in-out",
               showPreview ? "translate-x-0" : "translate-x-full pointer-events-none lg:pointer-events-auto",
               // Desktop overrides
               "lg:static lg:translate-x-0 lg:z-auto lg:w-[400px] lg:bg-transparent lg:transform-none lg:transition-none lg:border-l lg:border-border/50",
               isPreviewCollapsed &&
-                "lg:w-0 lg:opacity-0 lg:pointer-events-none lg:border-l-0"
+                "lg:w-0 lg:overflow-hidden lg:pl-0 lg:opacity-0 lg:pointer-events-none lg:border-l-0"
             )}
           >
             <div className="flex flex-col flex-1 h-full overflow-hidden">
