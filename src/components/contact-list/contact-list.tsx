@@ -122,7 +122,8 @@ export function ContactList({
 
         <ContactListFilters filters={filters} onFiltersChange={setFilters} />
 
-        <ScrollArea className="flex-1">
+        {/* TEMP: removed ScrollArea to debug button visibility */}
+        <div className="flex-1 overflow-auto">
           <div className="flex flex-col gap-0.5 p-2 pb-20 lg:pb-2">
             {filtered.map((contact) => (
               <ContactListRow
@@ -144,7 +145,7 @@ export function ContactList({
               </p>
             )}
           </div>
-        </ScrollArea>
+        </div>
       </div>
 
       <AlertDialog

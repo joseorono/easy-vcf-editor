@@ -24,7 +24,7 @@ export function ContactListRow({
   return (
     <div
       className={cn(
-        "group relative flex items-center gap-3 rounded-md px-2 py-2 transition-colors",
+        "group relative flex items-center gap-3 rounded-md py-2 pl-2 pr-8 transition-colors",
         isActive ? "bg-accent" : "hover:bg-muted/60"
       )}
     >
@@ -58,7 +58,7 @@ export function ContactListRow({
         size="icon"
         onClick={onRequestDelete}
         aria-label={`Delete ${contact.displayName}`}
-        className="h-7 w-7 shrink-0 text-muted-foreground opacity-100 transition-opacity hover:text-destructive lg:opacity-0 lg:group-hover:opacity-100 lg:focus-visible:opacity-100"
+        className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 shrink-0 text-muted-foreground opacity-70 transition-opacity hover:opacity-100 hover:text-destructive"
       >
         <Trash2 className="h-4 w-4" />
       </Button>
