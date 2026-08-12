@@ -129,6 +129,104 @@ describe("ContactDBQueries.bulkInsertContacts", () => {
   });
 });
 
+describe("ContactDBQueries.replaceContact", () => {
+  it("overwrites the existing row under the same id without merging", async () => {
+    const id = await ContactDBQueries.insertContact(
+      makeContact({
+        firstName: "Jane",
+        lastName: "Doe",
+        note: "original note",
+      })
+    );
+    expect((await ContactDBQueries.getContactById(id))?.data.note).toBe(
+      "original note"
+    );
+
+    // No `note` in the incoming payload — full replace means it is cleared.
+    await ContactDBQueries.replaceContact(
+      id,
+      makeContact({ firstName: "Janet", lastName: "Roe" })
+    );
+
+    const after = await ContactDBQueries.getContactById(id);
+    expect(after?.id).toBe(id);
+    expect(after?.data.firstName).toBe("Janet");
+    expect(after?.data.lastName).toBe("Roe");
+    expect(after?.data.note).toBe("");
+    expect(after?.displayName).toBe("Janet Roe");
+  });
+
+  it("reuses the existing id and does not create an additional row", async () => {
+    const id = await ContactDBQueries.insertContact(
+      makeContact({ firstName: "One" })
+    );
+    expect(await ContactDBQueries.count()).toBe(1);
+
+    await ContactDBQueries.replaceContact(
+      id,
+      makeContact({ firstName: "Two" })
+    );
+
+    expect(await ContactDBQueries.count()).toBe(1);
+    expect((await ContactDBQueries.getContactById(id))?.data.firstName).toBe(
+      "Two"
+    );
+  });
+
+  it("preserves createdAt and bumps updatedAt", async () => {
+    const id = await ContactDBQueries.insertContact(
+      makeContact({ firstName: "Old" })
+    );
+    const original = await ContactDBQueries.getContactById(id);
+    const originalCreatedAt = original?.createdAt;
+    expect(originalCreatedAt).toBeInstanceOf(Date);
+
+    // Guarantees millisecond resolution differs between the original write
+    // and the `updatedAt` stamped by replaceContact.
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    await ContactDBQueries.replaceContact(
+      id,
+      makeContact({ firstName: "New" })
+    );
+
+    const after = await ContactDBQueries.getContactById(id);
+    expect(after?.createdAt).toEqual(originalCreatedAt);
+    expect(after?.updatedAt).toBeInstanceOf(Date);
+    expect(
+      (after?.updatedAt?.getTime() ?? 0) >
+        (originalCreatedAt?.getTime() ?? 0)
+    ).toBe(true);
+  });
+
+  it("re-derives the denormalized index columns", async () => {
+    const id = await ContactDBQueries.insertContact(
+      makeContact({ firstName: "Jane", lastName: "Doe", organization: "Acme" })
+    );
+
+    await ContactDBQueries.replaceContact(
+      id,
+      makeContact({ firstName: "Janet", lastName: "Roe", organization: "Globex" })
+    );
+
+    const after = await ContactDBQueries.getContactById(id);
+    expect(after?.displayName).toBe("Janet Roe");
+    expect(after?.organization).toBe("Globex");
+  });
+
+  it("no-ops silently when the target id was already deleted", async () => {
+    const id = await ContactDBQueries.insertContact(
+      makeContact({ firstName: "One" })
+    );
+    await ContactDBQueries.deleteContact(id);
+
+    await expect(
+      ContactDBQueries.replaceContact(id, makeContact({ firstName: "Two" }))
+    ).resolves.toBeUndefined();
+    expect(await ContactDBQueries.count()).toBe(0);
+  });
+});
+
 describe("ContactDBQueries.ensureSeedContact", () => {
   it("creates a blank contact when the library is empty", async () => {
     const id = await ContactDBQueries.ensureSeedContact();

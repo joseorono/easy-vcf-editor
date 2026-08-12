@@ -28,6 +28,8 @@ import {
 } from "@/lib/vcf-utils";
 import { ContactDBQueries } from "@/db/queries";
 import { useContactAutosave } from "@/hooks/use-contact-autosave";
+import { useContacts } from "@/hooks/use-contacts";
+import { findDuplicates } from "@/lib/duplicate-detection";
 import { ContactList } from "@/components/contact-list/contact-list";
 import { ImportModeDialog } from "@/components/import-mode-dialog";
 import {
@@ -92,6 +94,11 @@ export function VcfEditor() {
     cancelPendingSave,
     applyToActiveContact,
   } = useContactAutosave(methods);
+  // The whole contact library, observed via the existing LiveQuery. We treat
+  // `undefined` (first load still in flight) as an empty array so the very
+  // first import into a fresh library is unaffected — it just finds nothing
+  // to match against and writes the whole batch through.
+  const library = useContacts();
   const [pendingImport, setPendingImport] = useState<VCardData[] | null>(null);
   const [isContactListOpen, setIsContactListOpen] = useState(false);
   const [isRailCollapsed, setIsRailCollapsed] = useState(false);
@@ -162,24 +169,69 @@ export function VcfEditor() {
     const blankActiveId = activeContactId;
 
     await flushPendingSave();
-    const ids = await ContactDBQueries.bulkInsertContacts(contacts);
+
+    // Partition the batch against the live library before persisting. By
+    // default, duplicates are skipped — only unique contacts reach
+    // `bulkInsertContacts`, and the summary toast reports both counts.
+    const result = findDuplicates(contacts, library ?? []);
+    const ids = await ContactDBQueries.bulkInsertContacts(result.unique);
 
     if (shouldDropBlankActive && blankActiveId) {
       cancelPendingSave();
       await ContactDBQueries.deleteContact(blankActiveId);
     }
 
-    await selectContact(ids[0]);
+    // Land the editor on the first newly imported contact, if any. When the
+    // whole batch was duplicates, leave the current selection alone so the
+    // user is not bounced off the contact they were viewing.
+    if (ids.length > 0) {
+      await selectContact(ids[0]);
+    }
     setImportOpen(false);
-    toast.success(
-      contacts.length === 1 ? "Contact imported" : "Contacts imported",
-      {
-        description:
-          contacts.length === 1
-            ? `${describeContact(contacts[0]) || "Contact"} added to your library`
-            : `${contacts.length} contacts added to your library`,
-      }
+    toast.success("Import complete", {
+      description: `${result.unique.length} imported, ${result.duplicates.length} duplicates skipped`,
+    });
+  };
+
+  const handleImportForce = async () => {
+    if (!pendingImport) return;
+    const contacts = pendingImport;
+    setPendingImport(null);
+
+    const shouldDropBlankActive =
+      contacts.length > 1 && isVCardEmpty(methods.getValues());
+    const blankActiveId = activeContactId;
+
+    await flushPendingSave();
+
+    // Force-import: each duplicate fully replaces its matched existing row in
+    // place (Dexie `put`, original `id` reused), and the unique contacts are
+    // still added as new. The toast reports "0 duplicates skipped" because
+    // every duplicate was overwritten rather than skipped.
+    const result = findDuplicates(contacts, library ?? []);
+    await Promise.all(
+      result.duplicates.map(({ incoming, existingId }) =>
+        ContactDBQueries.replaceContact(existingId, incoming)
+      )
     );
+    const ids = await ContactDBQueries.bulkInsertContacts(result.unique);
+
+    if (shouldDropBlankActive && blankActiveId) {
+      cancelPendingSave();
+      await ContactDBQueries.deleteContact(blankActiveId);
+    }
+
+    // Prefer the first contact the user just force-replaced so the editor
+    // visibly lands on the row that changed; otherwise select the first new
+    // insertion so the editor isn't left dangling.
+    const focusId = result.duplicates[0]?.existingId ?? ids[0] ?? activeContactId;
+    if (focusId && focusId !== activeContactId) {
+      await selectContact(focusId);
+    }
+    setImportOpen(false);
+    toast.success("Import complete", {
+      description: `${result.unique.length} imported, 0 duplicates skipped`,
+    });
   };
 
   const handleImportAsReplacement = async () => {
@@ -572,8 +624,19 @@ export function VcfEditor() {
         contactCount={pendingImport?.length ?? 0}
         incomingName={pendingImport?.[0] ? describeContact(pendingImport[0]) : ""}
         canReplace={pendingImport?.length === 1}
+        // Duplicate count is computed upfront so the dialog can show a force
+        // button only when there's something to replace. The matcher is pure
+        // and runs against the already-loaded library, so the cost is bounded
+        // by `pendingImport.length × library.length` — negligible while the
+        // dialog is on screen.
+        duplicateCount={
+          pendingImport
+            ? findDuplicates(pendingImport, library ?? []).duplicates.length
+            : 0
+        }
         onAddNew={() => void handleImportAsNew()}
         onReplace={() => void handleImportAsReplacement()}
+        onForceImport={() => void handleImportForce()}
       />
       {/* Bottom Action Bar for Mobile/Tablet */}
       <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background/95 backdrop-blur-sm px-4 py-3 flex gap-3 items-center justify-center lg:hidden">

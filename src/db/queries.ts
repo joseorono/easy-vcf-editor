@@ -57,6 +57,40 @@ export class ContactDBQueries {
     });
   }
 
+  /**
+   * Force-import: fully replaces an existing contact in place by primary key.
+   *
+   * Reads the existing row inside a read/write transaction to capture its
+   * `createdAt`, then overwrites the whole record via `put` — reusing the
+   * existing `id`, overwriting `data` and the denormalized index columns (no
+   * field merging), preserving the original `createdAt`, and bumping
+   * `updatedAt` to now so the replaced contact surfaces as recently edited
+   * without jumping to the top as newly created.
+   *
+   * Silently no-ops when `existingId` is no longer in the library — the
+   * collision that the caller is acting on may point at a row that was
+   * concurrently deleted, and the import should not mint a fresh record.
+   *
+   * Chained deliberately instead of `async/await`: Dexie tracks the active
+   * transaction through its own promise implementation, and a native `await`
+   * inside the callback drops that zone and commits the transaction early
+   * (see {@link ensureSeedContact} for the same pattern).
+   */
+  static async replaceContact(existingId: string, data: VCardData): Promise<void> {
+    return db.transaction("rw", db.contacts, () =>
+      db.contacts.get(existingId).then((existing) => {
+        if (!existing) return undefined;
+        return db.contacts.put({
+          id: existingId,
+          data,
+          ...this.deriveIndexFields(data),
+          createdAt: existing.createdAt,
+          updatedAt: new Date(),
+        }).then(() => undefined);
+      })
+    );
+  }
+
   static async deleteContact(id: string): Promise<void> {
     await db.contacts.delete(id);
   }
