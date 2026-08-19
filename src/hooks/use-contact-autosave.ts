@@ -29,7 +29,7 @@ export interface UseContactAutosaveResult {
  * fires after a switch lands on the row the user was actually editing.
  */
 export function useContactAutosave(
-  methods: UseFormReturn<VCardData>
+  methods: UseFormReturn<VCardData>,
 ): UseContactAutosaveResult {
   const [activeContactId, setActiveContactId] = useAtom(activeContactIdAtom);
 
@@ -41,6 +41,10 @@ export function useContactAutosave(
   const isLoadingRef = useRef(false);
   const pendingRef = useRef<{ id: string; data: VCardData } | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  // Bumped by applyToActiveContact so any in-flight load-effect callback
+  // knows the form has been replaced externally and must not overwrite it.
+  const loadVersionRef = useRef(0);
 
   // What the active contact looked like the last time we loaded or saved it.
   // Writes that would be a no-op are dropped by comparing against this — see
@@ -82,12 +86,23 @@ export function useContactAutosave(
   const applyToActiveContact = async (data: VCardData) => {
     // Whole-form replacements are deliberately invisible to autosave (see the
     // watch subscription below), so they have to be written explicitly.
+    // Bump the load version so any in-flight load-effect callback bails out
+    // instead of overwriting this data with stale blank values.
+    loadVersionRef.current++;
     cancelPendingSave();
     methods.reset(data);
-    const id = store.get(activeContactIdAtom);
+
+    let id = store.get(activeContactIdAtom);
     if (id) {
       rememberSaved(id, data);
       await ContactDBQueries.updateContact(id, structuredClone(data));
+    } else {
+      // Cold-start race: the seed contact hasn't been created yet, so there
+      // is no active id to update. Insert a new row and select it so the
+      // subsequent ensureSeedContact sees a non-empty library and skips.
+      id = await ContactDBQueries.insertContact(structuredClone(data));
+      rememberSaved(id, data);
+      setActiveContactId(id);
     }
   };
 
@@ -99,7 +114,8 @@ export function useContactAutosave(
 
     if (!store.get(activeContactIdAtom)) {
       ContactDBQueries.ensureSeedContact().then((id) => {
-        if (!cancelled && !store.get(activeContactIdAtom)) setActiveContactId(id);
+        if (!cancelled && !store.get(activeContactIdAtom))
+          setActiveContactId(id);
       });
     }
 
@@ -113,11 +129,13 @@ export function useContactAutosave(
     if (!activeContactId) return;
 
     let stale = false;
+    const version = ++loadVersionRef.current;
     isLoadingRef.current = true;
 
     ContactDBQueries.getContactById(activeContactId).then((row) => {
-      // A newer selection already won, or this row was deleted in another tab.
-      if (stale) return;
+      // A newer selection already won, this row was deleted in another tab,
+      // or applyToActiveContact replaced the form while we were loading.
+      if (stale || version !== loadVersionRef.current) return;
 
       if (row) {
         rememberSaved(row.id, row.data);
