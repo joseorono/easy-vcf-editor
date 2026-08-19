@@ -1,6 +1,7 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 import path from "path";
+import { copyFileSync, mkdirSync } from "node:fs";
 import tailwindcss from "@tailwindcss/vite";
 import { VitePWA } from "vite-plugin-pwa";
 import electron from "vite-plugin-electron";
@@ -28,7 +29,7 @@ export default defineConfig(({ mode }) => {
           "vcf-without-bg-black.svg",
           "vite.svg",
           "apple-touch-icon-180x180.png",
-          "favicon.ico"
+          "favicon.ico",
         ],
         manifest: {
           name: "Easy VCF Editor",
@@ -110,27 +111,21 @@ export default defineConfig(({ mode }) => {
                   },
                 },
               },
-              {
-                // Preload — MUST be CommonJS because the window uses
-                // `sandbox: true`; sandboxed preloads cannot be ES modules.
-                // The `.cjs` extension forces CJS under a "type":"module" package.
-                entry: "electron/preload.ts",
-                onstart(args) {
-                  args.reload();
-                },
-                vite: {
-                  build: {
-                    outDir: "dist-electron",
-                    rollupOptions: {
-                      output: {
-                        format: "cjs",
-                        entryFileNames: "preload.cjs",
-                      },
-                    },
-                  },
-                },
-              },
             ]),
+            // Copy the hand-written preload.cjs (pure CommonJS, no bundler)
+            // into dist-electron so the sandboxed window can load it.
+            {
+              name: "copy-preload-cjs",
+              writeBundle() {
+                const src = path.resolve(__dirname, "electron", "preload.cjs");
+                const destDir = path.resolve(__dirname, "dist-electron");
+                mkdirSync(destDir, { recursive: true });
+                copyFileSync(src, path.resolve(destDir, "preload.cjs"));
+                console.log(
+                  "[copy-preload-cjs] Copied preload.cjs to dist-electron",
+                );
+              },
+            },
           ]
         : []),
     ],

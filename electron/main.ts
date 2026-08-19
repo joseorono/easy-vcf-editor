@@ -1,4 +1,4 @@
-import { app, BrowserWindow, shell } from "electron";
+import { app, BrowserWindow, ipcMain, shell } from "electron";
 import path from "node:path";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
@@ -10,12 +10,14 @@ const isDev = !app.isPackaged;
 
 let mainWindow: BrowserWindow | null = null;
 
-// Becomes true once the window has finished loading, so file delivery can be
-// deferred until the renderer is actually ready to receive IPC.
-let windowReady = false;
+// Becomes true once the renderer has sent the `renderer-ready` IPC, confirming
+// that React has mounted and the `vcf:open` listener is subscribed. File
+// delivery is deferred until this handshake completes.
+let rendererReady = false;
 
-// vCard paths opened before the renderer finished loading. They are flushed as
-// ONE `vcf:open` batch on `did-finish-load` (or on `second-instance` once ready).
+// vCard paths opened before the renderer signalled readiness. They are flushed
+// as ONE `vcf:open` batch when the `renderer-ready` handshake arrives (or on
+// `second-instance` once the renderer is already ready).
 const pendingFiles: string[] = [];
 
 function createWindow(): BrowserWindow {
@@ -47,12 +49,6 @@ function createWindow(): BrowserWindow {
   window.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url);
     return { action: "deny" };
-  });
-
-  // Deliver any files that were opened before the window finished loading.
-  window.webContents.on("did-finish-load", () => {
-    windowReady = true;
-    void flushPendingVcfFiles();
   });
 
   if (isDev) {
@@ -139,10 +135,18 @@ if (!gotTheLock) {
     const files = pickVcfArgvEntries(commandLine, process.execPath);
     if (files.length > 0) {
       pendingFiles.push(...files);
-      if (windowReady) {
+      if (rendererReady) {
         void flushPendingVcfFiles();
       }
     }
+  });
+
+  // The renderer sends this IPC once React has mounted and the `vcf:open`
+  // listener is subscribed. Only then do we flush any pending files, avoiding
+  // the race where `did-finish-load` fires before `useEffect` runs.
+  ipcMain.on("renderer-ready", () => {
+    rendererReady = true;
+    void flushPendingVcfFiles();
   });
 
   app.whenReady().then(() => {
@@ -155,6 +159,16 @@ if (!gotTheLock) {
     }
 
     createWindow();
+
+    // Fallback: if the renderer never sends renderer-ready (e.g. preload
+    // script fails, React crashes), flush anyway after 5 seconds so the user
+    // isn't left with a silently broken import.
+    setTimeout(() => {
+      if (!rendererReady && pendingFiles.length > 0) {
+        rendererReady = true;
+        void flushPendingVcfFiles();
+      }
+    }, 5000);
 
     app.on("activate", () => {
       if (BrowserWindow.getAllWindows().length === 0) {

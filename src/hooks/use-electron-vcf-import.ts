@@ -16,17 +16,24 @@ import { isElectron } from "@/lib/electron-detector";
  *   value is ignored; success/error toasts are handled inside the import path.
  */
 export function useElectronVcfImport(
-  onVcfText: (text: string) => boolean
+  onVcfText: (text: string) => boolean,
 ): void {
   const onVcfTextRef = useRef(onVcfText);
   onVcfTextRef.current = onVcfText;
 
   useEffect(() => {
-    if (!isElectron() || !window.electronAPI?.onOpenVcf) return;
+    if (!isElectron() || !window.electronAPI) return;
+
+    if (!window.electronAPI.onOpenVcf) return;
 
     const unsubscribe = window.electronAPI.onOpenVcf((payload) => {
       onVcfTextRef.current(payload.content);
     });
+
+    // Handshake: tell the main process the renderer is mounted and the
+    // `vcf:open` listener is subscribed. Must fire AFTER subscribing so
+    // pending cold-start files are not delivered before the listener is ready.
+    window.electronAPI.notifyReady?.();
 
     return unsubscribe;
   }, []);

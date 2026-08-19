@@ -1,7 +1,27 @@
 "use client";
 
-import { useState, useRef, useEffect, lazy, Suspense, useDeferredValue } from "react";
-import { ChevronLeft, ChevronRight, Upload, Download, QrCode, Image, ClipboardPaste, Sun, Moon, X, RotateCcw, Users } from "lucide-react";
+import {
+  useState,
+  useRef,
+  useEffect,
+  lazy,
+  Suspense,
+  useDeferredValue,
+} from "react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Upload,
+  Download,
+  QrCode,
+  Image,
+  ClipboardPaste,
+  Sun,
+  Moon,
+  X,
+  RotateCcw,
+  Users,
+} from "lucide-react";
 import { useForm, FormProvider } from "react-hook-form";
 import { useDropzone } from "react-dropzone";
 import { Button } from "@/components/ui/button";
@@ -56,19 +76,19 @@ import { useElectronVcfImport } from "@/hooks/use-electron-vcf-import";
 const PreviewTabs = lazy(() =>
   import("@/components/preview-tabs").then((m) => ({
     default: m.PreviewTabs,
-  }))
+  })),
 );
 
 const ImportVcardDialog = lazy(() =>
   import("@/components/import-vcard-dialog").then((m) => ({
     default: m.ImportVcardDialog,
-  }))
+  })),
 );
 
 const ExportContactImageDialog = lazy(() =>
   import("@/components/export-contact-image-dialog").then((m) => ({
     default: m.ExportContactImageDialog,
-  }))
+  })),
 );
 
 export function VcfEditor() {
@@ -130,14 +150,15 @@ export function VcfEditor() {
     }
 
     const contacts = parseVcfCollection(text).filter(
-      (contact) => !isVCardEmpty(contact)
+      (contact) => !isVCardEmpty(contact),
     );
 
     // Real vCards, just with no contact details in them. Nothing went wrong,
     // so say so plainly instead of reporting a failure.
     if (contacts.length === 0) {
       toast.info("Nothing to import", {
-        description: "Those are valid vCards, but they have no contact details.",
+        description:
+          "Those are valid vCards, but they have no contact details.",
       });
       return false;
     }
@@ -212,8 +233,8 @@ export function VcfEditor() {
     const result = findDuplicates(contacts, library ?? []);
     await Promise.all(
       result.duplicates.map(({ incoming, existingId }) =>
-        ContactDBQueries.replaceContact(existingId, incoming)
-      )
+        ContactDBQueries.replaceContact(existingId, incoming),
+      ),
     );
     const ids = await ContactDBQueries.bulkInsertContacts(result.unique);
 
@@ -225,7 +246,8 @@ export function VcfEditor() {
     // Prefer the first contact the user just force-replaced so the editor
     // visibly lands on the row that changed; otherwise select the first new
     // insertion so the editor isn't left dangling.
-    const focusId = result.duplicates[0]?.existingId ?? ids[0] ?? activeContactId;
+    const focusId =
+      result.duplicates[0]?.existingId ?? ids[0] ?? activeContactId;
     if (focusId && focusId !== activeContactId) {
       await selectContact(focusId);
     }
@@ -311,7 +333,7 @@ export function VcfEditor() {
               value: vcfContent,
               size: 512,
               level: "M",
-            })
+            }),
           );
 
           // Wait for render, then download
@@ -400,7 +422,9 @@ export function VcfEditor() {
     if (wasActive) {
       // Deleting the last contact re-seeds a blank one, so the editor always
       // has something to edit.
-      await selectContact(neighbourId ?? (await ContactDBQueries.ensureSeedContact()));
+      await selectContact(
+        neighbourId ?? (await ContactDBQueries.ensureSeedContact()),
+      );
     }
   };
 
@@ -517,7 +541,10 @@ export function VcfEditor() {
           </div>
 
           {/* Form Panel */}
-          <div id="contact-form-panel" className="flex flex-col flex-1 overflow-hidden">
+          <div
+            id="contact-form-panel"
+            className="flex flex-col flex-1 overflow-hidden"
+          >
             <div className="flex-1 overflow-auto px-4 py-2 [will-change:scroll-position] [contain:layout_style_paint]">
               <Card className="border-border/50 shadow-lg py-2">
                 <CardContent className="p-4 py-2">
@@ -559,11 +586,13 @@ export function VcfEditor() {
               "border-l border-border/50 bg-card/50 pl-1 flex flex-col h-full min-w-0",
               // Mobile transition styles (slide in from right)
               "fixed inset-0 z-50 bg-background transform transition-transform duration-300 ease-in-out",
-              showPreview ? "translate-x-0" : "translate-x-full pointer-events-none lg:pointer-events-auto",
+              showPreview
+                ? "translate-x-0"
+                : "translate-x-full pointer-events-none lg:pointer-events-auto",
               // Desktop overrides
               "lg:static lg:translate-x-0 lg:z-auto lg:w-[400px] lg:bg-transparent lg:transform-none lg:transition-none lg:border-l lg:border-border/50",
               isPreviewCollapsed &&
-                "lg:w-0 lg:overflow-hidden lg:pl-0 lg:opacity-0 lg:pointer-events-none lg:border-l-0"
+                "lg:w-0 lg:overflow-hidden lg:pl-0 lg:opacity-0 lg:pointer-events-none lg:border-l-0",
             )}
           >
             <div className="flex flex-col flex-1 h-full overflow-hidden">
@@ -597,7 +626,6 @@ export function VcfEditor() {
           </div>
         </div>
 
-
         <Footer />
       </div>
       <Suspense
@@ -627,7 +655,9 @@ export function VcfEditor() {
           if (!open) setPendingImport(null);
         }}
         contactCount={pendingImport?.length ?? 0}
-        incomingName={pendingImport?.[0] ? describeContact(pendingImport[0]) : ""}
+        incomingName={
+          pendingImport?.[0] ? describeContact(pendingImport[0]) : ""
+        }
         canReplace={pendingImport?.length === 1}
         // Duplicate count is computed upfront so the dialog can show a force
         // button only when there's something to replace. The matcher is pure
@@ -733,7 +763,9 @@ export function VcfEditor() {
       <div
         className={cn(
           "fixed inset-0 z-40 bg-black/40 backdrop-blur-xs transition-opacity duration-200 lg:hidden",
-          isMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+          isMenuOpen
+            ? "opacity-100 pointer-events-auto"
+            : "opacity-0 pointer-events-none",
         )}
         onClick={() => setIsMenuOpen(false)}
       />
@@ -743,7 +775,7 @@ export function VcfEditor() {
           "fixed top-14 right-4 w-72 z-50 bg-white dark:bg-neutral-950 border border-border shadow-xl rounded-lg flex flex-col p-5 gap-5 transition-all duration-200 ease-out origin-top-right transform lg:hidden",
           isMenuOpen
             ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
-            : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
+            : "opacity-0 scale-95 -translate-y-2 pointer-events-none",
         )}
       >
         <div className="flex items-center justify-between">
@@ -775,7 +807,7 @@ export function VcfEditor() {
                     "py-1.5 px-2 text-xs font-medium rounded-sm transition-all",
                     version === v
                       ? "bg-white dark:bg-neutral-800 text-foreground shadow-xs"
-                      : "text-muted-foreground hover:text-foreground"
+                      : "text-muted-foreground hover:text-foreground",
                   )}
                 >
                   v{v}
@@ -793,7 +825,9 @@ export function VcfEditor() {
               variant="outline"
               size="sm"
               type="button"
-              onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+              onClick={() =>
+                setTheme(resolvedTheme === "dark" ? "light" : "dark")
+              }
               className="w-full justify-between h-9"
             >
               {resolvedTheme === "dark" ? (
