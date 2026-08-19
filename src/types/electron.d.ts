@@ -8,6 +8,10 @@ interface Window {
   electronAPI?: {
     platform: string;
     isElectron: boolean;
+    // Subscribes to file-association opens; returns an unsubscribe function.
+    onOpenVcf?: (
+      cb: (payload: { name: string; content: string }) => void
+    ) => () => void;
   };
 }
 

@@ -49,6 +49,7 @@ import { useTheme } from "next-themes";
 import { Loader } from "@/components/loader";
 import { useIsDesktop } from "@/hooks/use-is-desktop";
 import { useWebMcp } from "@/hooks/use-webmcp";
+import { useElectronVcfImport } from "@/hooks/use-electron-vcf-import";
 
 // Lazy so react-qr-code and the rest of the preview code leave the initial
 // entry bundle — the panel is off-screen on mobile until the user opens it.
@@ -427,6 +428,10 @@ export function VcfEditor() {
     exportVCard: handleExportVcf,
     clearContact: handleClearContact,
   });
+
+  // Route `.vcf`/`.vcard` files opened from the OS (file association) into the
+  // same import seam as the dropzone and the modal. Inert outside Electron.
+  useElectronVcfImport(handleIncomingVcfText);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
