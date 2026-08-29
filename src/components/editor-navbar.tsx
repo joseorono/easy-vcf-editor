@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { SplitButton } from "@/components/shadcn-blocks/split-button";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { InstallPwaHint } from "@/components/install-pwa-hint";
 import type { QrDownloadFormat } from "@/lib/qr-utils";
 import type { VCardVersion } from "@/types/vcard-types";
 
@@ -207,6 +208,15 @@ export function EditorNavbar({
               />
             </div>
           </div>
+
+          <InstallPwaHint
+            variant="outline"
+            size="sm"
+            label="Install app"
+            hintText="Ready to install"
+            installedText="App installed"
+            className="hidden sm:flex"
+          />
 
           {/* Desktop ThemeToggle */}
           <div className="hidden lg:block">
