@@ -94,8 +94,11 @@ export function useContactAutosave(
 
     let id = store.get(activeContactIdAtom);
     if (id) {
-      rememberSaved(id, data);
+      // Record only after the write lands: `flushPendingSave` does the same,
+      // and marking it saved up front would let a failed write convince
+      // autosave that later edits are already persisted.
       await ContactDBQueries.updateContact(id, structuredClone(data));
+      rememberSaved(id, data);
     } else {
       // Cold-start race: the seed contact hasn't been created yet, so there
       // is no active id to update. Insert a new row and select it so the
