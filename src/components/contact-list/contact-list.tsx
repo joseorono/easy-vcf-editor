@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { ContactListFilters } from "@/components/contact-list/contact-list-filters";
 import { ContactListRow } from "@/components/contact-list/contact-list-row";
 import { useContacts } from "@/hooks/use-contacts";
@@ -122,7 +121,10 @@ export function ContactList({
 
         <ContactListFilters filters={filters} onFiltersChange={setFilters} />
 
-        {/* TEMP: removed ScrollArea to debug button visibility */}
+        {/* A plain overflow container rather than <ScrollArea>: Radix's
+            viewport wraps children in a `display: table` element that doesn't
+            constrain width, which breaks the rows' truncation and pushes the
+            delete button out of view. */}
         <div className="flex-1 overflow-auto">
           <div className="flex flex-col gap-0.5 p-2 pb-20 lg:pb-2">
             {filtered.map((contact) => (

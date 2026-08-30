@@ -32,7 +32,7 @@ function createWindow(): BrowserWindow {
     minHeight: 600,
     show: false,
     autoHideMenuBar: true,
-    title: "Easy VCF Editor",
+    title: "Easy vCard Manager",
     icon: iconPath,
     webPreferences: {
       preload: path.join(__dirname, "preload.cjs"),

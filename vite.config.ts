@@ -32,9 +32,10 @@ export default defineConfig(({ mode }) => {
           "favicon.ico",
         ],
         manifest: {
-          name: "Easy VCF Editor",
-          short_name: "VCF Editor",
-          description: "Offline-first editor for vCard (.vcf) contacts.",
+          name: "Easy vCard Manager",
+          short_name: "vCard Manager",
+          description:
+            "An offline-first contact library to import, edit, search, and bulk-export vCard files.",
           theme_color: "#020617",
           background_color: "#020617",
           display: "standalone",

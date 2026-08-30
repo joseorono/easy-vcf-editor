@@ -1,14 +1,15 @@
-# Easy VCF Editor
+# Easy vCard Manager
 
-> A free, offline-first web app for creating, editing, importing, and exporting vCard (.vcf) contact files. Everything runs in the browser — no account, no server, and no contact data ever leaves the user's device.
+> A free, offline-first contact library for importing, editing, searching, and bulk-exporting vCard (.vcf) contact files. Everything runs in the browser — no account, no server, and no contact data ever leaves the user's device.
 
-Easy VCF Editor builds a contact from a structured form (names, phone numbers, emails, postal addresses, organization details, URLs, instant-messaging handles, important dates, notes, and more) with a live preview. Contacts can be exported as a `.vcf` file (vCard 2.1, 3.0, or 4.0), a QR code (PNG or SVG), or a shareable contact-card image. Existing vCards can be imported by choosing a file, pasting text, or dragging a `.vcf` onto the window. The app is installable as a Progressive Web App and also ships as a desktop application.
+Easy vCard Manager keeps a library of contacts that persists in the browser between visits. Each contact is built from a structured form (names, phone numbers, emails, postal addresses, organization details, URLs, instant-messaging handles, important dates, notes, and more) with a live preview, and edits save automatically. The library can be searched and sorted, and multi-contact `.vcf` files are supported on both import and export. Contacts can be exported individually as a `.vcf` file (vCard 2.1, 3.0, or 4.0), a QR code (PNG or SVG), or a shareable contact-card image — or all at once as a single `.vcf` collection. Existing vCards can be imported by choosing one or more files, pasting text, or dragging a `.vcf` onto the window; duplicates are detected on import. The app is installable as a Progressive Web App and also ships as a desktop application that opens `.vcf` and `.vcard` files directly from the operating system.
 
 ## Features
 
 - [Live editor](https://easy-vcard-manager.vercel.app/): Create and edit a vCard through a detailed form with an instant live preview.
-- Import: Load a vCard from a file, from pasted text, or via drag-and-drop.
-- Export: Download as `.vcf` (vCard 2.1 / 3.0 / 4.0), as a QR code (PNG or SVG), or as a contact-card image.
+- Contact library: Keep many contacts side by side, with search, sorting, and automatic saving to on-device storage.
+- Import: Load vCards from one or more files, from pasted text, or via drag-and-drop, with duplicate detection.
+- Export: Download a single contact as `.vcf` (vCard 2.1 / 3.0 / 4.0), as a QR code (PNG or SVG), or as a contact-card image — or export the whole library as one `.vcf` file.
 - Offline-first: Works entirely offline; all processing happens locally in the browser.
 
 ## About

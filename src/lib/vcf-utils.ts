@@ -8,7 +8,10 @@ import type {
   VCardData,
   VCardVersion,
 } from "@/types/vcard-types";
-import { defaultVCardData } from "@/constants/vcard-constants";
+import {
+  defaultVCardData,
+  VCARD_PRODID,
+} from "@/constants/vcard-constants";
 import {
   PHONE_TYPE_KEYWORDS,
   IMPP_TYPE_KEYWORDS,
@@ -684,7 +687,7 @@ export function generateVcf(
   );
 
   // Product ID
-  lines.push(`PRODID:-//Easy-vCard-Editor//v0//EN`);
+  lines.push(`PRODID:${VCARD_PRODID}`);
 
   lines.push("END:VCARD");
 
