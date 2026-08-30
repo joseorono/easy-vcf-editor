@@ -1,6 +1,10 @@
 import type { StoredContact } from "@/types/contact-db";
 import type { ContactFilters } from "@/types/contact-filters";
 
+// Hoisted: `localeCompare` builds a collator per call, which is wasteful across
+// an O(n log n) sort. `numeric` keeps "Contact 10" after "Contact 2".
+const CONTACT_NAME_COLLATOR = new Intl.Collator(undefined, { numeric: true });
+
 /**
  * Filters and sorts contacts for the contact list.
  *
@@ -29,10 +33,12 @@ export function filterAndSortContacts(
   return [...matched].sort((a, b) => {
     const comparison =
       filters.sortBy === "displayName"
-        ? a.displayName.localeCompare(b.displayName)
+        ? CONTACT_NAME_COLLATOR.compare(a.displayName, b.displayName)
         : a[filters.sortBy].getTime() - b[filters.sortBy].getTime();
 
-    return comparison * direction;
+    // Tie-break on id so contacts with identical names or timestamps keep a
+    // stable order instead of inheriting whatever order Dexie handed us.
+    return (comparison || a.id.localeCompare(b.id)) * direction;
   });
 }
 

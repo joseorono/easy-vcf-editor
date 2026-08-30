@@ -142,6 +142,27 @@ describe("filterAndSortContacts sorting", () => {
     ]);
   });
 
+  it("orders contacts with the same name deterministically", () => {
+    const duplicates = [
+      makeContact({ id: "id-b", displayName: "Sam Reyes" }),
+      makeContact({ id: "id-a", displayName: "Sam Reyes" }),
+    ];
+
+    const ascending = filterAndSortContacts(
+      duplicates,
+      filters({ sortBy: "displayName", sortOrder: "asc" })
+    );
+    const reversedInput = filterAndSortContacts(
+      [...duplicates].reverse(),
+      filters({ sortBy: "displayName", sortOrder: "asc" })
+    );
+
+    // The id tie-break wins, so the source order Dexie happened to hand us
+    // cannot leak into the result.
+    expect(ascending.map((c) => c.id)).toEqual(["id-a", "id-b"]);
+    expect(reversedInput.map((c) => c.id)).toEqual(["id-a", "id-b"]);
+  });
+
   it("sorts by updatedAt, most recent first", () => {
     const result = filterAndSortContacts(
       contacts,
