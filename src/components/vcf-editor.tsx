@@ -49,6 +49,7 @@ import {
 import { ContactDBQueries } from "@/db/queries";
 import { useContactAutosave } from "@/hooks/use-contact-autosave";
 import { useContacts } from "@/hooks/use-contacts";
+import { useLibraryForDuplicates } from "@/hooks/use-library-for-duplicates";
 import { findDuplicates } from "@/lib/duplicate-detection";
 import { ContactList } from "@/components/contact-list/contact-list";
 import { ImportModeDialog } from "@/components/import-mode-dialog";
@@ -120,6 +121,7 @@ export function VcfEditor() {
   // first import into a fresh library is unaffected — it just finds nothing
   // to match against and writes the whole batch through.
   const library = useContacts();
+  const { getLibrary, getLibrarySync } = useLibraryForDuplicates(library);
   const [pendingImport, setPendingImport] = useState<VCardData[] | null>(null);
   const [isContactListOpen, setIsContactListOpen] = useState(false);
   const [isRailCollapsed, setIsRailCollapsed] = useState(false);
@@ -168,12 +170,12 @@ export function VcfEditor() {
     // existing library contact, hand off to the chooser dialog so the user can
     // decide (add as new / replace / force import) instead of silently loading.
     if (contacts.length === 1 && isVCardEmpty(methods.getValues())) {
-      // Only take the direct-apply shortcut once the library has loaded.
-      // Comparing against an empty array at cold start would silently skip
-      // duplicate detection; fall through to the dialog, which re-evaluates
-      // once the LiveQuery resolves.
-      if (library !== undefined) {
-        const result = findDuplicates(contacts, library);
+      // Check for duplicates using fresh library data (async in Electron,
+      // sync in web). In Electron, getLibrarySync returns [] as a signal to
+      // use the async path; in web, it returns the LiveQuery snapshot.
+      const libSnapshot = getLibrarySync();
+      if (libSnapshot.length > 0 || !getLibrarySync) {
+        const result = findDuplicates(contacts, libSnapshot);
         if (result.duplicates.length === 0) {
           void applyToActiveContact(contacts[0]);
           toast.success("Contact imported", {
@@ -183,6 +185,9 @@ export function VcfEditor() {
           });
           return true;
         }
+      } else {
+        // In Electron, fall through to the dialog which will use the async
+        // getLibrary path in handleImportAsNew/handleImportForce.
       }
     }
 
@@ -203,12 +208,10 @@ export function VcfEditor() {
 
     await flushPendingSave();
 
-    // Partition the batch against the live library before persisting. By
-    // default, duplicates are skipped — only unique contacts reach
-    // `bulkInsertContacts`, and the summary toast reports both counts. Fall
-    // back to a one-shot query if the LiveQuery hasn't resolved yet (cold
-    // start), so we never match against an empty array.
-    const currentLibrary = library ?? (await ContactDBQueries.getAllContacts());
+    // Partition the batch against fresh library data. In Electron, always
+    // query the DB to avoid stale LiveQuery data during rapid imports. In web,
+    // use the LiveQuery snapshot if available, otherwise query fresh.
+    const currentLibrary = await getLibrary();
     const result = findDuplicates(contacts, currentLibrary);
     const ids = await ContactDBQueries.bulkInsertContacts(result.unique);
 
@@ -244,7 +247,7 @@ export function VcfEditor() {
     // place (Dexie `put`, original `id` reused), and the unique contacts are
     // still added as new. The toast reports "0 duplicates skipped" because
     // every duplicate was overwritten rather than skipped.
-    const currentLibrary = library ?? (await ContactDBQueries.getAllContacts());
+    const currentLibrary = await getLibrary();
     const result = findDuplicates(contacts, currentLibrary);
     await Promise.all(
       result.duplicates.map(({ incoming, existingId }) =>
@@ -677,13 +680,12 @@ export function VcfEditor() {
         }
         canReplace={pendingImport?.length === 1}
         // Duplicate count is computed upfront so the dialog can show the
-        // force-import button only when there's something to overwrite. The
-        // matcher is pure and runs against the already-loaded library, so the
-        // cost is bounded by `pendingImport.length × library.length` —
-        // negligible while the dialog is on screen.
+        // force-import button only when there's something to overwrite. In web,
+        // uses the LiveQuery snapshot; in Electron, uses fresh DB data to avoid
+        // stale counts during rapid imports.
         duplicateCount={
           pendingImport
-            ? findDuplicates(pendingImport, library ?? []).duplicates.length
+            ? findDuplicates(pendingImport, getLibrarySync()).duplicates.length
             : 0
         }
         onAddNew={() => void handleImportAsNew()}

@@ -57,7 +57,7 @@ function normalizeName(name: string): string {
  * are dropped; a contact with no name parts at all yields "".
  */
 function normalizeFullName(
-  data: Pick<VCardData, "firstName" | "lastName">
+  data: Pick<VCardData, "firstName" | "lastName">,
 ): string {
   return [normalizeName(data.firstName), normalizeName(data.lastName)]
     .filter(Boolean)
@@ -74,11 +74,19 @@ function presentValues(values: string[] | undefined): string[] {
  *
  * Returns false when either side has no non-empty emails — the spec requires
  * the matcher to only compare a field when it is present on BOTH sides.
+ *
+ * Works with both StoredContact and VCardData (via overload).
  */
-function matchesEmail(incoming: VCardData, existing: StoredContact): boolean {
-  const incomingEmails = presentValues((incoming.emails ?? []).map((e) => e.value));
+function matchesEmail(
+  incoming: VCardData,
+  existing: StoredContact | VCardData,
+): boolean {
+  const incomingEmails = presentValues(
+    (incoming.emails ?? []).map((e) => e.value),
+  );
+  const existingData = "data" in existing ? existing.data : existing;
   const existingEmails = presentValues(
-    (existing.data.emails ?? []).map((e) => e.value)
+    (existingData.emails ?? []).map((e) => e.value),
   );
   if (incomingEmails.length === 0 || existingEmails.length === 0) return false;
 
@@ -95,10 +103,16 @@ function matchesEmail(incoming: VCardData, existing: StoredContact): boolean {
  * differs. Comparison is exact (case-sensitive) apart from trimming: UIDs
  * are opaque identifiers (URNs, UUIDs, hashes), not human text, and case
  * folding an opaque ID risks false positives.
+ *
+ * Works with both StoredContact and VCardData.
  */
-function matchesUid(incoming: VCardData, existing: StoredContact): boolean {
+function matchesUid(
+  incoming: VCardData,
+  existing: StoredContact | VCardData,
+): boolean {
   const incomingUid = (incoming.uid ?? "").trim();
-  const existingUid = (existing.data.uid ?? "").trim();
+  const existingData = "data" in existing ? existing.data : existing;
+  const existingUid = (existingData.uid ?? "").trim();
   if (!incomingUid || !existingUid) return false;
   return incomingUid === existingUid;
 }
@@ -117,18 +131,26 @@ function matchesUid(incoming: VCardData, existing: StoredContact): boolean {
  *
  * Returns false when either full name is empty, or when either side has no
  * non-empty phones.
+ *
+ * Works with both StoredContact and VCardData.
  */
-function matchesNamePlusPhone(incoming: VCardData, existing: StoredContact): boolean {
+function matchesNamePlusPhone(
+  incoming: VCardData,
+  existing: StoredContact | VCardData,
+): boolean {
   const incomingName = normalizeFullName(incoming);
-  const existingName = normalizeFullName(existing.data);
+  const existingData = "data" in existing ? existing.data : existing;
+  const existingName = normalizeFullName(existingData);
 
   if (!incomingName || !existingName || incomingName !== existingName) {
     return false;
   }
 
-  const incomingPhones = presentValues((incoming.phones ?? []).map((p) => p.value));
+  const incomingPhones = presentValues(
+    (incoming.phones ?? []).map((p) => p.value),
+  );
   const existingPhones = presentValues(
-    (existing.data.phones ?? []).map((p) => p.value)
+    (existingData.phones ?? []).map((p) => p.value),
   );
   if (incomingPhones.length === 0 || existingPhones.length === 0) return false;
 
@@ -154,9 +176,10 @@ function matchesNamePlusPhone(incoming: VCardData, existing: StoredContact): boo
  *   makes the oldest definition of a contact the canonical reference, and
  *   `id` asc guarantees a total order even when `createdAt` clashes (e.g.
  *   bulk-imported rows stamped with the same `Date`).
- * - Iterates incoming contacts in input order, so intra-file duplicates are
- *   each compared independently against the library (the matcher never
- *   cross-compares the incoming batch against itself).
+ * - Intra-batch dedup: if multiple incoming contacts match each other (e.g.,
+ *   three copies of "Garcia" in the same file), only the first is kept as
+ *   unique; the rest are marked as duplicates of the first incoming contact's
+ *   index (using a synthetic id like "incoming:0").
  * - Never throws when `uid`, `emails`, `phones`, `firstName`, or `lastName`
  *   are absent/empty on either side — it simply skips any rule that needs
  *   the missing field.
@@ -167,7 +190,7 @@ function matchesNamePlusPhone(incoming: VCardData, existing: StoredContact): boo
  */
 export function findDuplicates(
   incoming: VCardData[],
-  existing: StoredContact[]
+  existing: StoredContact[],
 ): DuplicateResult {
   // Defensive copy + sort so the caller's array reference and order are not
   // touched — important for the "pure / no-mutation" contract above.
@@ -182,8 +205,39 @@ export function findDuplicates(
 
   const unique: VCardData[] = [];
   const duplicates: DuplicateHit[] = [];
+  // Track which incoming contacts are duplicates of earlier incoming contacts.
+  // Key: index in incoming array. Value: index of the first occurrence.
+  const intraBatchDups = new Map<number, number>();
 
-  for (const contact of incoming) {
+  for (let i = 0; i < incoming.length; i++) {
+    const contact = incoming[i];
+
+    // Check if this contact is a duplicate of an earlier incoming contact.
+    let intraBatchMatch: number | null = null;
+    for (let j = 0; j < i; j++) {
+      const earlier = incoming[j];
+      if (
+        matchesUid(contact, earlier) ||
+        matchesEmail(contact, earlier) ||
+        matchesNamePlusPhone(contact, earlier)
+      ) {
+        intraBatchMatch = j;
+        break;
+      }
+    }
+
+    if (intraBatchMatch !== null) {
+      // This contact is a duplicate of an earlier incoming contact.
+      // Mark it as a duplicate with a synthetic id pointing to the first occurrence.
+      intraBatchDups.set(i, intraBatchMatch);
+      duplicates.push({
+        incoming: contact,
+        existingId: `incoming:${intraBatchMatch}`,
+      });
+      continue;
+    }
+
+    // Check against the existing library.
     let matchedId: string | null = null;
     for (const ex of sortedExisting) {
       if (
