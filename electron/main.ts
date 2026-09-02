@@ -44,6 +44,9 @@ function createWindow(): BrowserWindow {
 
   window.on("ready-to-show", () => {
     window.show();
+    if (isDev) {
+      window.webContents.openDevTools();
+    }
   });
 
   window.webContents.setWindowOpenHandler((details) => {

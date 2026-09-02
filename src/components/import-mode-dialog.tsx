@@ -91,7 +91,7 @@ export function ImportModeDialog({
           {/*
            * Force-import requires a SEPARATE, explicit overwrite confirmation.
            * The outer AlertDialog only asks "import at all?", so a nested
-           * AlertDialog gates the destructive "fully replace" action — two
+           * AlertDialog gates the destructive "fully overwrite" action — two
            * distinct confirmations before any existing row is overwritten, per
            * the contact-import spec's "Force-import requires explicit
            * confirmation" scenario.
@@ -100,18 +100,18 @@ export function ImportModeDialog({
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="destructive">
-                  Force import (replace {duplicateCount}{" "}
+                  Force import ({duplicateCount}{" "}
                   {duplicateCount === 1 ? "duplicate" : "duplicates"})
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>
-                    Replace existing contacts with incoming data?
+                    Overwrite existing contacts with incoming data?
                   </AlertDialogTitle>
                   <AlertDialogDescription>
                     All old fields will be lost. This cannot be undone. The
-                    incoming data fully replaces the existing{" "}
+                    incoming data fully overwrites the existing{" "}
                     {duplicateCount === 1 ? "contact" : "contacts"} — no fields
                     are merged.
                   </AlertDialogDescription>
@@ -122,7 +122,7 @@ export function ImportModeDialog({
                     onClick={onForceImport}
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                   >
-                    Replace and import
+                    Overwrite and import
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>

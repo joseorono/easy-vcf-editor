@@ -14,13 +14,19 @@ import { isElectron } from "@/lib/electron-detector";
  *
  * @param onVcfText - Receives the vCard text of each opened file. Its return
  *   value is ignored; success/error toasts are handled inside the import path.
+ * @param ready - Gates the `renderer-ready` handshake. The main process holds
+ *   pending files until this flips true, so pass `false` while the contact
+ *   library is still loading — otherwise the duplicate check in the import
+ *   path runs against an empty array at cold start.
  */
 export function useElectronVcfImport(
   onVcfText: (text: string) => boolean,
+  ready: boolean,
 ): void {
   const onVcfTextRef = useRef(onVcfText);
   onVcfTextRef.current = onVcfText;
 
+  // Subscribe once on mount, before any file can be delivered.
   useEffect(() => {
     if (!isElectron() || !window.electronAPI) return;
 
@@ -30,11 +36,15 @@ export function useElectronVcfImport(
       onVcfTextRef.current(payload.content);
     });
 
-    // Handshake: tell the main process the renderer is mounted and the
-    // `vcf:open` listener is subscribed. Must fire AFTER subscribing so
-    // pending cold-start files are not delivered before the listener is ready.
-    window.electronAPI.notifyReady?.();
-
     return unsubscribe;
   }, []);
+
+  // Signal readiness only once the library has loaded, so pending cold-start
+  // files are delivered after the duplicate check can see the real library.
+  useEffect(() => {
+    if (!ready) return;
+    if (!isElectron() || !window.electronAPI) return;
+
+    window.electronAPI.notifyReady?.();
+  }, [ready]);
 }

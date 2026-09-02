@@ -164,15 +164,26 @@ export function VcfEditor() {
     }
 
     // A single card landing on an untouched contact needs no decision — this is
-    // the original one-contact behavior, preserved.
+    // the original one-contact behavior, preserved. But if it collides with an
+    // existing library contact, hand off to the chooser dialog so the user can
+    // decide (add as new / replace / force import) instead of silently loading.
     if (contacts.length === 1 && isVCardEmpty(methods.getValues())) {
-      void applyToActiveContact(contacts[0]);
-      toast.success("Contact imported", {
-        description: describeContact(contacts[0])
-          ? `Successfully imported ${describeContact(contacts[0])}`
-          : "Contact data loaded",
-      });
-      return true;
+      // Only take the direct-apply shortcut once the library has loaded.
+      // Comparing against an empty array at cold start would silently skip
+      // duplicate detection; fall through to the dialog, which re-evaluates
+      // once the LiveQuery resolves.
+      if (library !== undefined) {
+        const result = findDuplicates(contacts, library);
+        if (result.duplicates.length === 0) {
+          void applyToActiveContact(contacts[0]);
+          toast.success("Contact imported", {
+            description: describeContact(contacts[0])
+              ? `Successfully imported ${describeContact(contacts[0])}`
+              : "Contact data loaded",
+          });
+          return true;
+        }
+      }
     }
 
     setPendingImport(contacts);
@@ -194,8 +205,11 @@ export function VcfEditor() {
 
     // Partition the batch against the live library before persisting. By
     // default, duplicates are skipped — only unique contacts reach
-    // `bulkInsertContacts`, and the summary toast reports both counts.
-    const result = findDuplicates(contacts, library ?? []);
+    // `bulkInsertContacts`, and the summary toast reports both counts. Fall
+    // back to a one-shot query if the LiveQuery hasn't resolved yet (cold
+    // start), so we never match against an empty array.
+    const currentLibrary = library ?? (await ContactDBQueries.getAllContacts());
+    const result = findDuplicates(contacts, currentLibrary);
     const ids = await ContactDBQueries.bulkInsertContacts(result.unique);
 
     if (shouldDropBlankActive && blankActiveId) {
@@ -230,7 +244,8 @@ export function VcfEditor() {
     // place (Dexie `put`, original `id` reused), and the unique contacts are
     // still added as new. The toast reports "0 duplicates skipped" because
     // every duplicate was overwritten rather than skipped.
-    const result = findDuplicates(contacts, library ?? []);
+    const currentLibrary = library ?? (await ContactDBQueries.getAllContacts());
+    const result = findDuplicates(contacts, currentLibrary);
     await Promise.all(
       result.duplicates.map(({ incoming, existingId }) =>
         ContactDBQueries.replaceContact(existingId, incoming),
@@ -455,7 +470,9 @@ export function VcfEditor() {
 
   // Route `.vcf`/`.vcard` files opened from the OS (file association) into the
   // same import seam as the dropzone and the modal. Inert outside Electron.
-  useElectronVcfImport(handleIncomingVcfText);
+  // `library !== undefined` defers the renderer-ready handshake until the
+  // library has loaded, so the duplicate check sees real contacts at cold start.
+  useElectronVcfImport(handleIncomingVcfText, library !== undefined);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -659,11 +676,11 @@ export function VcfEditor() {
           pendingImport?.[0] ? describeContact(pendingImport[0]) : ""
         }
         canReplace={pendingImport?.length === 1}
-        // Duplicate count is computed upfront so the dialog can show a force
-        // button only when there's something to replace. The matcher is pure
-        // and runs against the already-loaded library, so the cost is bounded
-        // by `pendingImport.length × library.length` — negligible while the
-        // dialog is on screen.
+        // Duplicate count is computed upfront so the dialog can show the
+        // force-import button only when there's something to overwrite. The
+        // matcher is pure and runs against the already-loaded library, so the
+        // cost is bounded by `pendingImport.length × library.length` —
+        // negligible while the dialog is on screen.
         duplicateCount={
           pendingImport
             ? findDuplicates(pendingImport, library ?? []).duplicates.length

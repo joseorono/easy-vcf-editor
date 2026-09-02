@@ -8,6 +8,7 @@ import { Provider } from "jotai";
 import { ThemeProvider } from "@/components/theme-provider";
 import { VcfEditor } from "@/components/vcf-editor";
 import { ContactDBQueries } from "@/db/queries";
+import { createBlankVCardData } from "@/lib/vcf-utils";
 
 type VcfOpenPayload = { name: string; content: string };
 type OnOpenVcf = NonNullable<Window["electronAPI"]>["onOpenVcf"];
@@ -57,7 +58,7 @@ function renderEditor() {
       <ThemeProvider>
         <VcfEditor />
       </ThemeProvider>
-    </Provider>
+    </Provider>,
   );
 }
 
@@ -75,6 +76,12 @@ describe("VcfEditor — Electron file-association import seam", () => {
   it("imports a single-contact file opened from the OS", async () => {
     const bridge = installOpenVcfBridge();
     renderEditor();
+
+    // OS file delivery is gated on the renderer-ready handshake, which flips
+    // once the contact library has loaded. Wait for the auto-seeded blank
+    // contact to render in the rail before firing, so the duplicate check
+    // sees real data instead of an empty array at cold start.
+    await screen.findByRole("button", { name: /delete/i });
 
     act(() => {
       bridge.fire({ name: "alice.vcf", content: SINGLE_CONTACT_VCF });
@@ -101,12 +108,42 @@ describe("VcfEditor — Electron file-association import seam", () => {
     // Multi-contact opens land in `setPendingImport`, which opens the mode
     // dialog instead of importing straight away.
     await user.click(
-      await screen.findByRole("button", { name: /import 2 contacts/i })
+      await screen.findByRole("button", { name: /import 2 contacts/i }),
     );
 
     await waitFor(() => {
       expect(bulkInsert).toHaveBeenCalledTimes(1);
       expect(bulkInsert.mock.calls[0][0]).toHaveLength(2);
     });
+  });
+
+  it("routes a duplicate single-contact file to the import dialog", async () => {
+    // Seed a matching contact so the incoming file is a duplicate (matched on
+    // the shared email).
+    await ContactDBQueries.insertContact({
+      ...createBlankVCardData(),
+      firstName: "Alice",
+      lastName: "Smith",
+      emails: [{ type: "home", value: "alice@example.com" }],
+    });
+
+    const bridge = installOpenVcfBridge();
+    renderEditor();
+
+    // Wait for the LiveQuery-backed library to load, otherwise `findDuplicates`
+    // runs against `[]` and the contact would apply directly.
+    await screen.findByText("Alice Smith");
+
+    act(() => {
+      bridge.fire({
+        name: "alice.vcf",
+        content:
+          "BEGIN:VCARD\r\nVERSION:4.0\r\nFN:Alice Smith\r\nN:Smith;Alice;;;\r\nEMAIL:alice@example.com\r\nEND:VCARD",
+      });
+    });
+
+    // The duplicate must NOT be applied directly — the mode dialog opens
+    // instead, offering "Add as new" (and force-import, since there's a hit).
+    await screen.findByRole("button", { name: /add as new/i });
   });
 });

@@ -50,6 +50,20 @@ function normalizeName(name: string): string {
   return (name ?? "").trim().toLowerCase();
 }
 
+/**
+ * Normalized full-name key used for comparison: `firstName` and `lastName`
+ * are normalized individually (trim + lowercase) and joined with a single
+ * space, so extra internal whitespace never leaks into the key. Empty parts
+ * are dropped; a contact with no name parts at all yields "".
+ */
+function normalizeFullName(
+  data: Pick<VCardData, "firstName" | "lastName">
+): string {
+  return [normalizeName(data.firstName), normalizeName(data.lastName)]
+    .filter(Boolean)
+    .join(" ");
+}
+
 /** Returns only non-empty, whitespace-trimmed strings. */
 function presentValues(values: string[] | undefined): string[] {
   return (values ?? []).map((v) => (v ?? "").trim()).filter((v) => v !== "");
@@ -73,28 +87,42 @@ function matchesEmail(incoming: VCardData, existing: StoredContact): boolean {
 }
 
 /**
- * True iff incoming and existing share BOTH `firstName` AND `lastName` AND at
+ * True iff both sides carry a non-empty `uid` and the values are equal after
+ * trimming.
+ *
+ * The vCard `UID` property is the exporter's stable identity for a contact,
+ * so a shared UID is a near-certain duplicate even when every other field
+ * differs. Comparison is exact (case-sensitive) apart from trimming: UIDs
+ * are opaque identifiers (URNs, UUIDs, hashes), not human text, and case
+ * folding an opaque ID risks false positives.
+ */
+function matchesUid(incoming: VCardData, existing: StoredContact): boolean {
+  const incomingUid = (incoming.uid ?? "").trim();
+  const existingUid = (existing.data.uid ?? "").trim();
+  if (!incomingUid || !existingUid) return false;
+  return incomingUid === existingUid;
+}
+
+/**
+ * True iff incoming and existing share the same normalized full name AND at
  * least one phone number (after normalization).
  *
- * Returns false when any of `firstName`/`lastName` is missing on either side,
- * or when either side has no non-empty phones. No field is required to be
- * present here by spec — missing on one side just means we cannot match on
- * this composite rule.
+ * The name is compared as a single full-name key — `firstName` and `lastName`
+ * normalized and joined — rather than requiring both parts separately.
+ * Minimal exports (e.g. messaging apps) often carry a single-part name in
+ * `FN:` with no structured `N:`, which would leave `lastName` empty and fail
+ * a per-part comparison. The joined key also matches the same name split
+ * differently between `FN:`/`N:` across exports. The shared phone remains
+ * the strong disambiguator, keeping the false-positive risk negligible.
+ *
+ * Returns false when either full name is empty, or when either side has no
+ * non-empty phones.
  */
 function matchesNamePlusPhone(incoming: VCardData, existing: StoredContact): boolean {
-  const incomingFirst = normalizeName(incoming.firstName);
-  const incomingLast = normalizeName(incoming.lastName);
-  const existingFirst = normalizeName(existing.data.firstName);
-  const existingLast = normalizeName(existing.data.lastName);
+  const incomingName = normalizeFullName(incoming);
+  const existingName = normalizeFullName(existing.data);
 
-  if (
-    !incomingFirst ||
-    !incomingLast ||
-    !existingFirst ||
-    !existingLast ||
-    incomingFirst !== existingFirst ||
-    incomingLast !== existingLast
-  ) {
+  if (!incomingName || !existingName || incomingName !== existingName) {
     return false;
   }
 
@@ -114,9 +142,9 @@ function matchesNamePlusPhone(incoming: VCardData, existing: StoredContact): boo
  * existing row).
  *
  * A contact is a duplicate of an existing row when, after normalization, it
- * shares at least one email OR shares both `firstName` AND `lastName` AND at
- * least one phone. The matcher performs no other matching (no UID, no
- * organization, no address).
+ * shares a non-empty `uid`, OR shares at least one email, OR shares the same
+ * full name (first and last joined) AND at least one phone. The matcher
+ * performs no other matching (no organization, no address).
  *
  * Behavior contract (per `duplicate-detection` spec):
  * - Pure: no inputs are mutated, no I/O is performed, no React dependency.
@@ -129,9 +157,9 @@ function matchesNamePlusPhone(incoming: VCardData, existing: StoredContact): boo
  * - Iterates incoming contacts in input order, so intra-file duplicates are
  *   each compared independently against the library (the matcher never
  *   cross-compares the incoming batch against itself).
- * - Never throws when `emails`, `phones`, `firstName`, or `lastName` are
- *   absent/empty on either side — it simply skips any rule that needs the
- *   missing field.
+ * - Never throws when `uid`, `emails`, `phones`, `firstName`, or `lastName`
+ *   are absent/empty on either side — it simply skips any rule that needs
+ *   the missing field.
  *
  * @param incoming - Parsed contacts the user is importing.
  * @param existing - All contacts currently in the library. May be empty.
@@ -158,7 +186,11 @@ export function findDuplicates(
   for (const contact of incoming) {
     let matchedId: string | null = null;
     for (const ex of sortedExisting) {
-      if (matchesEmail(contact, ex) || matchesNamePlusPhone(contact, ex)) {
+      if (
+        matchesUid(contact, ex) ||
+        matchesEmail(contact, ex) ||
+        matchesNamePlusPhone(contact, ex)
+      ) {
         matchedId = ex.id;
         break;
       }

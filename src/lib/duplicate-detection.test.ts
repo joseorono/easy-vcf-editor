@@ -341,3 +341,133 @@ describe("findDuplicates — Pure and Side-Effect Free", () => {
     expect(result.duplicates).toEqual([]);
   });
 });
+
+describe("findDuplicates — full-name matching (single-part names)", () => {
+  it("flags a single-part name (no lastName) + shared phone as a duplicate", () => {
+    const incoming = makeIncoming({
+      firstName: "Juan",
+      phones: [phone("+5491122334455")],
+    });
+    const existing = makeExisting({
+      id: "ex-11",
+      data: makeIncoming({
+        firstName: "Juan",
+        phones: [phone("+5491122334455")],
+      }),
+    });
+
+    const result = findDuplicates([incoming], [existing]);
+
+    expect(result.unique).toEqual([]);
+    expect(result.duplicates).toHaveLength(1);
+    expect(result.duplicates[0]?.existingId).toBe("ex-11");
+  });
+
+  it("does NOT flag a single-part name when the phones differ", () => {
+    const incoming = makeIncoming({
+      firstName: "Juan",
+      phones: [phone("+5491111000000")],
+    });
+    const existing = makeExisting({
+      id: "ex-12",
+      data: makeIncoming({
+        firstName: "Juan",
+        phones: [phone("+5491122334455")],
+      }),
+    });
+
+    const result = findDuplicates([incoming], [existing]);
+
+    expect(result.duplicates).toEqual([]);
+    expect(result.unique).toEqual([incoming]);
+  });
+
+  it("does NOT flag an empty name even when the phone is shared", () => {
+    const incoming = makeIncoming({ phones: [phone("+5491122334455")] });
+    const existing = makeExisting({
+      id: "ex-13",
+      data: makeIncoming({ phones: [phone("+5491122334455")] }),
+    });
+
+    const result = findDuplicates([incoming], [existing]);
+
+    expect(result.duplicates).toEqual([]);
+    expect(result.unique).toEqual([incoming]);
+  });
+
+  it("matches the same full name split differently between FN/N exports", () => {
+    // An FN-only export ("Alice Smith" lands entirely in firstName) vs a
+    // structured N: with given/family split — same person, same phone.
+    const incoming = makeIncoming({
+      firstName: "Alice Smith",
+      phones: [phone("+15551234")],
+    });
+    const existing = makeExisting({
+      id: "ex-14",
+      data: makeIncoming({
+        firstName: "Alice",
+        lastName: "Smith",
+        phones: [phone("+15551234")],
+      }),
+    });
+
+    const result = findDuplicates([incoming], [existing]);
+
+    expect(result.duplicates).toHaveLength(1);
+    expect(result.duplicates[0]?.existingId).toBe("ex-14");
+  });
+});
+
+describe("findDuplicates — UID matching", () => {
+  it("flags a shared non-empty uid even with no other field in common", () => {
+    const incoming = makeIncoming({
+      uid: "urn:uuid:8e0d9f9a-2f6c-4c9a-9b1d-1e2f3a4b5c6d",
+      firstName: "Alice",
+    });
+    const existing = makeExisting({
+      id: "ex-15",
+      data: makeIncoming({
+        uid: "urn:uuid:8e0d9f9a-2f6c-4c9a-9b1d-1e2f3a4b5c6d",
+        firstName: "Alicia",
+      }),
+    });
+
+    const result = findDuplicates([incoming], [existing]);
+
+    expect(result.duplicates).toHaveLength(1);
+    expect(result.duplicates[0]?.existingId).toBe("ex-15");
+  });
+
+  it("does not flag when only one side carries a uid", () => {
+    const incoming = makeIncoming({
+      uid: "urn:uuid:8e0d9f9a-2f6c-4c9a-9b1d-1e2f3a4b5c6d",
+      firstName: "Alice",
+    });
+    const existing = makeExisting({
+      id: "ex-16",
+      data: makeIncoming({ firstName: "Alice" }),
+    });
+
+    const result = findDuplicates([incoming], [existing]);
+
+    expect(result.duplicates).toEqual([]);
+    expect(result.unique).toEqual([incoming]);
+  });
+
+  it("does not flag different uids", () => {
+    const incoming = makeIncoming({
+      uid: "urn:uuid:aaaaaaaa-0000-0000-0000-000000000001",
+    });
+    const existing = makeExisting({
+      id: "ex-17",
+      data: makeIncoming({
+        uid: "urn:uuid:aaaaaaaa-0000-0000-0000-000000000002",
+      }),
+    });
+
+    const result = findDuplicates([incoming], [existing]);
+
+    expect(result.duplicates).toEqual([]);
+    expect(result.unique).toEqual([incoming]);
+  });
+});
