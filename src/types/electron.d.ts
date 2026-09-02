@@ -8,6 +8,13 @@ interface Window {
   electronAPI?: {
     platform: string;
     isElectron: boolean;
+    // Signals the main process that the renderer is mounted and ready to
+    // receive `vcf:open` IPC messages.
+    notifyReady?: () => void;
+    // Subscribes to file-association opens; returns an unsubscribe function.
+    onOpenVcf?: (
+      cb: (payload: { name: string; content: string }) => void,
+    ) => () => void;
   };
 }
 

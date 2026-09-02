@@ -1,11 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  splitPhoneNumber,
-  extractCountryCode,
-  formatPhoneNumber,
-  addCountryCode,
-  hasCountryCode,
-} from "./phone-helper";
+import { splitPhoneNumber, extractCountryCode } from "./phone-helper";
 
 describe("splitPhoneNumber", () => {
   it("splits a Venezuela country code (+58) and local number", () => {

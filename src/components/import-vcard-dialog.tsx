@@ -56,9 +56,11 @@ export function ImportVcardDialog({
   };
 
   const onDrop = async (acceptedFiles: File[]) => {
-    const file = acceptedFiles[0];
-    if (!file) return;
-    const succeeded = onImportText(await file.text());
+    if (acceptedFiles.length === 0) return;
+    // Concatenating is enough — the parser re-splits on BEGIN:VCARD, so several
+    // files behave exactly like one multi-contact file.
+    const texts = await Promise.all(acceptedFiles.map((file) => file.text()));
+    const succeeded = onImportText(texts.join("\r\n"));
     if (succeeded) {
       handleOpenChange(false);
     }
@@ -66,7 +68,7 @@ export function ImportVcardDialog({
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    multiple: false,
+    multiple: true,
     accept: {
       "text/vcard": [".vcf", ".vcard"],
       "text/directory": [".vcf"],
@@ -85,9 +87,9 @@ export function ImportVcardDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Import contact</DialogTitle>
+          <DialogTitle>Import contacts</DialogTitle>
           <DialogDescription>
-            Add a contact from a .vcf file or pasted vCard text.
+            Add contacts from .vcf files or pasted vCard text.
           </DialogDescription>
         </DialogHeader>
 
@@ -120,11 +122,11 @@ export function ImportVcardDialog({
               <div className="space-y-1">
                 <p className="font-medium">
                   {isDragActive
-                    ? "Drop your vCard here"
-                    : "Drag & drop your vCard here"}
+                    ? "Drop your vCards here"
+                    : "Drag & drop your vCards here"}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  or click to browse • .vcf, .vcard
+                  or click to browse • .vcf, .vcard • multiple files welcome
                 </p>
               </div>
             </div>

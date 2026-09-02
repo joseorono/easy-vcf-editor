@@ -9,6 +9,7 @@ import {
   Image,
   ClipboardPaste,
   Menu,
+  Users,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -31,15 +32,18 @@ import {
 } from "@/components/ui/alert-dialog";
 import { SplitButton } from "@/components/shadcn-blocks/split-button";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { InstallPwaHint } from "@/components/install-pwa-hint";
 import type { QrDownloadFormat } from "@/lib/qr-utils";
 import type { VCardVersion } from "@/types/vcard-types";
 
 interface EditorNavbarProps {
   version: VCardVersion;
   onVersionChange: (version: VCardVersion) => void;
-  onNew: () => void;
+  /** Blanks the contact being edited. Creating a new one lives in the rail. */
+  onClear: () => void;
   onOpenImport: (tab: "file" | "paste") => void;
   onExportVcf: () => void;
+  onExportAllVcf: () => void;
   onExportQr: (format: QrDownloadFormat) => void;
   onExportContactImage: () => void;
   showPreview: boolean;
@@ -50,9 +54,10 @@ interface EditorNavbarProps {
 export function EditorNavbar({
   version,
   onVersionChange,
-  onNew,
+  onClear,
   onOpenImport,
   onExportVcf,
+  onExportAllVcf,
   onExportQr,
   onExportContactImage,
   showPreview,
@@ -66,14 +71,14 @@ export function EditorNavbar({
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 sm:h-14 sm:w-14">
             <img
               src="vcf.svg"
-              alt="Easy VCF Editor Logo"
+              alt="Easy vCard Manager Logo"
               className="h-6 w-6 sm:h-10 sm:w-10"
             />
           </div>
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold sm:text-base md:text-lg">
-              <span className="inline sm:hidden">Easy VCF</span>
-              <span className="hidden sm:inline">Easy vCard Editor</span>
+              <span className="inline sm:hidden">Easy vCard</span>
+              <span className="hidden sm:inline">Easy vCard Manager</span>
             </p>
             <p className="hidden text-xs text-muted-foreground sm:block">
               Create and edit VCF contacts
@@ -106,7 +111,7 @@ export function EditorNavbar({
                 </p>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={onNew}>Clear</AlertDialogAction>
+                  <AlertDialogAction onClick={onClear}>Clear</AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
@@ -176,6 +181,12 @@ export function EditorNavbar({
                     onClick: onExportVcf,
                   },
                   {
+                    id: "vcf-all",
+                    label: "All contacts (.vcf)",
+                    icon: Users,
+                    onClick: onExportAllVcf,
+                  },
+                  {
                     id: "qr-png",
                     label: "QR Code (PNG)",
                     icon: QrCode,
@@ -197,6 +208,15 @@ export function EditorNavbar({
               />
             </div>
           </div>
+
+          <InstallPwaHint
+            variant="outline"
+            size="sm"
+            label="Install app"
+            hintText="Ready to install"
+            installedText="App installed"
+            className="hidden sm:flex"
+          />
 
           {/* Desktop ThemeToggle */}
           <div className="hidden lg:block">

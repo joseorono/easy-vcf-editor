@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { defaultVCardData } from "@/constants/vcard-constants";
 import type { VCardData } from "@/types/vcard-types";
-import { generateVcf, parseVcf } from "./vcf-utils";
+import {
+  generateVcf,
+  generateVcfCollection,
+  parseVcf,
+  parseVcfCollection,
+} from "./vcf-utils";
 
 function makeData(overrides: Partial<VCardData> = {}): VCardData {
   return {
@@ -224,6 +229,108 @@ describe("parseVcf quoted-printable decoding", () => {
     const vcf = `BEGIN:VCARD\nVERSION:2.1\nFN:Jane\nNOTE;ENCODING=QUOTED-PRINTABLE:Hello=\nWorld\nEND:VCARD`;
     const parsed = parseVcf(vcf);
     expect(parsed.note).toBe("HelloWorld");
+  });
+});
+
+describe("parseVcfCollection", () => {
+  const threeCards = [
+    "BEGIN:VCARD",
+    "VERSION:4.0",
+    "FN:First Person",
+    "N:Person;First;;;",
+    "EMAIL:first@example.com",
+    "END:VCARD",
+    "BEGIN:VCARD",
+    "VERSION:4.0",
+    "FN:Second Person",
+    "N:Person;Second;;;",
+    "TEL;TYPE=CELL:555-0002",
+    "END:VCARD",
+    "BEGIN:VCARD",
+    "VERSION:4.0",
+    "FN:Third Person",
+    "N:Person;Third;;;",
+    "ORG:Acme Corp",
+    "END:VCARD",
+  ].join("\n");
+
+  it("parses every card in the file", () => {
+    const parsed = parseVcfCollection(threeCards);
+
+    expect(parsed).toHaveLength(3);
+    expect(parsed.map((contact) => contact.firstName)).toEqual([
+      "First",
+      "Second",
+      "Third",
+    ]);
+  });
+
+  it("keeps each card's fields separate", () => {
+    const [first, second, third] = parseVcfCollection(threeCards);
+
+    expect(first.emails[0].value).toBe("first@example.com");
+    expect(second.phones[0].value).toBe("555-0002");
+    expect(second.emails[0].value).toBe("");
+    expect(third.organization).toBe("Acme Corp");
+  });
+
+  it("handles CRLF-separated cards", () => {
+    const parsed = parseVcfCollection(threeCards.replace(/\n/g, "\r\n"));
+    expect(parsed).toHaveLength(3);
+  });
+
+  it("returns a single-element array for a one-card file", () => {
+    const vcf = `BEGIN:VCARD\nVERSION:4.0\nFN:Jane Doe\nEND:VCARD`;
+    expect(parseVcfCollection(vcf)).toHaveLength(1);
+  });
+
+  it("returns an empty array for text with no vCards", () => {
+    expect(parseVcfCollection("not a vcard at all")).toEqual([]);
+  });
+
+  it("ignores preamble text before the first card", () => {
+    const parsed = parseVcfCollection(
+      `junk header line\nBEGIN:VCARD\nVERSION:4.0\nFN:Jane Doe\nEND:VCARD`
+    );
+
+    expect(parsed).toHaveLength(1);
+    expect(parsed[0].firstName).toBe("Jane");
+  });
+});
+
+describe("generateVcfCollection", () => {
+  it("round-trips a list of contacts", () => {
+    const list = [
+      makeData({
+        firstName: "Jane",
+        lastName: "Doe",
+        emails: [{ type: "work", value: "jane@acme.test" }],
+      }),
+      makeData({
+        firstName: "John",
+        lastName: "Smith",
+        phones: [{ type: "cell", value: "555-9876" }],
+      }),
+    ];
+
+    // Compared field by field rather than as text: generateVcf stamps a fresh
+    // UID and REV on every call, so the output is never byte-identical.
+    const parsed = parseVcfCollection(generateVcfCollection(list, "4.0"));
+
+    expect(parsed).toHaveLength(2);
+    expect(parsed[0].firstName).toBe("Jane");
+    expect(parsed[0].emails[0].value).toBe("jane@acme.test");
+    expect(parsed[1].lastName).toBe("Smith");
+    expect(parsed[1].phones[0].value).toBe("555-9876");
+  });
+
+  it("returns an empty string for an empty list", () => {
+    expect(generateVcfCollection([], "4.0")).toBe("");
+  });
+
+  it("emits one BEGIN:VCARD per contact", () => {
+    const vcf = generateVcfCollection([makeData(), makeData(), makeData()]);
+    expect(vcf.match(/BEGIN:VCARD/g)).toHaveLength(3);
   });
 });
 

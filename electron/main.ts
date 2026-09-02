@@ -1,24 +1,38 @@
-import { app, BrowserWindow, shell } from "electron";
+import { app, BrowserWindow, ipcMain, shell } from "electron";
 import path from "node:path";
+import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
+import { pickVcfArgvEntries } from "../src/lib/electron-argv";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const isDev = !app.isPackaged;
+
+let mainWindow: BrowserWindow | null = null;
+
+// Becomes true once the renderer has sent the `renderer-ready` IPC, confirming
+// that React has mounted and the `vcf:open` listener is subscribed. File
+// delivery is deferred until this handshake completes.
+let rendererReady = false;
+
+// vCard paths opened before the renderer signalled readiness. They are flushed
+// as ONE `vcf:open` batch when the `renderer-ready` handshake arrives (or on
+// `second-instance` once the renderer is already ready).
+const pendingFiles: string[] = [];
 
 function createWindow(): BrowserWindow {
   const iconPath = isDev
     ? path.join(__dirname, "..", "public", "pwa-192x192.png")
     : path.join(__dirname, "..", "dist", "pwa-192x192.png");
 
-  const mainWindow = new BrowserWindow({
+  const window = new BrowserWindow({
     width: 1200,
     height: 800,
     minWidth: 800,
     minHeight: 600,
     show: false,
     autoHideMenuBar: true,
-    title: "Easy VCF Editor",
+    title: "Easy vCard Manager",
     icon: iconPath,
     webPreferences: {
       preload: path.join(__dirname, "preload.cjs"),
@@ -28,36 +42,147 @@ function createWindow(): BrowserWindow {
     },
   });
 
-  mainWindow.on("ready-to-show", () => {
-    mainWindow.show();
+  window.on("ready-to-show", () => {
+    window.show();
+    if (isDev) {
+      window.webContents.openDevTools();
+    }
   });
 
-  mainWindow.webContents.setWindowOpenHandler((details) => {
+  window.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url);
     return { action: "deny" };
   });
 
   if (isDev) {
-    mainWindow.loadURL("http://localhost:5173");
+    window.loadURL("http://localhost:5173");
   } else {
-    mainWindow.loadFile(path.join(__dirname, "..", "dist", "index.html"));
+    window.loadFile(path.join(__dirname, "..", "dist", "index.html"));
   }
 
-  return mainWindow;
+  mainWindow = window;
+  return window;
 }
 
-app.whenReady().then(() => {
-  createWindow();
+/**
+ * Reads a single opened file and delivers its vCard text to the renderer.
+ * Read failures are surfaced over `vcf:open-error` instead of being thrown, so
+ * a bad file never blocks the rest of a batch.
+ */
+async function deliverVcf(filePath: string): Promise<void> {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
 
-  app.on("activate", () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow();
+  try {
+    const content = await readFile(filePath, "utf8");
+    mainWindow.webContents.send("vcf:open", {
+      name: path.basename(filePath),
+      content,
+    });
+  } catch (error) {
+    mainWindow.webContents.send("vcf:open-error", {
+      name: path.basename(filePath),
+      message: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
+
+/**
+ * Delivers every queued file as ONE `vcf:open` batch. Multiple files are
+ * concatenated with `\r\n` so the renderer parser treats them as a single
+ * multi-contact collection (mirroring the dropzone's `texts.join("\r\n")`).
+ * Individual read failures are reported over `vcf:open-error` and skipped.
+ */
+async function flushPendingVcfFiles(): Promise<void> {
+  const filePaths = pendingFiles.splice(0, pendingFiles.length);
+  if (filePaths.length === 0 || !mainWindow || mainWindow.isDestroyed()) return;
+
+  if (filePaths.length === 1) {
+    await deliverVcf(filePaths[0]);
+    return;
+  }
+
+  const contents: string[] = [];
+  for (const filePath of filePaths) {
+    try {
+      contents.push(await readFile(filePath, "utf8"));
+    } catch (error) {
+      mainWindow.webContents.send("vcf:open-error", {
+        name: path.basename(filePath),
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  if (contents.length > 0) {
+    mainWindow.webContents.send("vcf:open", {
+      name: "batch",
+      content: contents.join("\r\n"),
+    });
+  }
+}
+
+// Single-instance lock: a second launch (Windows delivers a double-clicked
+// `.vcf` to a NEW process) hands its file paths back to this instance instead
+// of starting another copy.
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on("second-instance", (_event, commandLine) => {
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+    }
+
+    const files = pickVcfArgvEntries(commandLine, process.execPath);
+    if (files.length > 0) {
+      pendingFiles.push(...files);
+      if (rendererReady) {
+        void flushPendingVcfFiles();
+      }
     }
   });
-});
 
-app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
-    app.quit();
-  }
-});
+  // The renderer sends this IPC once React has mounted and the `vcf:open`
+  // listener is subscribed. Only then do we flush any pending files, avoiding
+  // the race where `did-finish-load` fires before `useEffect` runs.
+  ipcMain.on("renderer-ready", () => {
+    rendererReady = true;
+    void flushPendingVcfFiles();
+  });
+
+  app.whenReady().then(() => {
+    // Cold start: files passed on the command line (e.g. double-clicking a
+    // `.vcf` while the app is not running). An empty result means a normal
+    // launch with no import.
+    const coldStartFiles = pickVcfArgvEntries(process.argv, process.execPath);
+    if (coldStartFiles.length > 0) {
+      pendingFiles.push(...coldStartFiles);
+    }
+
+    createWindow();
+
+    // Fallback: if the renderer never sends renderer-ready (e.g. preload
+    // script fails, React crashes), flush anyway after 5 seconds so the user
+    // isn't left with a silently broken import.
+    setTimeout(() => {
+      if (!rendererReady && pendingFiles.length > 0) {
+        rendererReady = true;
+        void flushPendingVcfFiles();
+      }
+    }, 5000);
+
+    app.on("activate", () => {
+      if (BrowserWindow.getAllWindows().length === 0) {
+        createWindow();
+      }
+    });
+  });
+
+  app.on("window-all-closed", () => {
+    if (process.platform !== "darwin") {
+      app.quit();
+    }
+  });
+}

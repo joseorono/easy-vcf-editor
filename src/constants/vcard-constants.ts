@@ -8,6 +8,12 @@ import type {
   VCardData,
 } from "@/types/vcard-types"
 
+/**
+ * Identifies this app as the product that generated a vCard, per RFC 6350's
+ * PRODID field. Written into every exported card.
+ */
+export const VCARD_PRODID = "-//Easy-vCard-Manager//v0//EN"
+
 export const defaultVCardData: VCardData = {
   firstName: "",
   lastName: "",

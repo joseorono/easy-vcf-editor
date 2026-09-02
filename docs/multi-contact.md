@@ -1,6 +1,6 @@
 # Multi-contact support — architecture & design
 
-_Last updated 2026-07-18. Status: **proposed** (no code written yet)._
+_Last updated 2026-08-01. Status: **implemented** — see [`multi-contact-2.md`](./multi-contact-2.md) for the plan as built, including where it deviates from this design._
 
 This is the technical design for turning Easy vCard Editor from a single-contact editor into a **contacts library**: import/manage/export many contacts, persisted locally in the browser (and in the Electron desktop app). It expands the one-liner in [`missing-features.md`](./missing-features.md) into an implementable spec. Related backlog: the multi-contact and bulk-operations sections of [`../ideas.md`](../ideas.md).
 

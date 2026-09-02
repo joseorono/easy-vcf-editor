@@ -26,7 +26,7 @@ export function PwaReloadPrompt() {
 
   useEffect(() => {
     if (offlineReady) {
-      toast.success("Easy VCF Editor is ready to work offline!", {
+      toast.success("Easy vCard Manager is ready to work offline!", {
         description: "You can access the app without an internet connection.",
         duration: 5000,
       });
@@ -36,7 +36,7 @@ export function PwaReloadPrompt() {
 
   useEffect(() => {
     if (needRefresh) {
-      toast.info("A new version of Easy VCF Editor is available!", {
+      toast.info("A new version of Easy vCard Manager is available!", {
         description: "Click reload to update and see the latest changes.",
         action: {
           label: "Reload",
