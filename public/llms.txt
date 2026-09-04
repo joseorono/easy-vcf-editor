@@ -6,7 +6,7 @@ Easy vCard Manager keeps a library of contacts that persists in the browser betw
 
 ## Features
 
-- [Live editor](https://easy-vcard-manager.vercel.app/): Create and edit a vCard through a detailed form with an instant live preview.
+- [Live editor](https://easy-vcard-manager-app.vercel.app/): Create and edit a vCard through a detailed form with an instant live preview.
 - Contact library: Keep many contacts side by side, with search, sorting, and automatic saving to on-device storage.
 - Import: Load vCards from one or more files, from pasted text, or via drag-and-drop, with duplicate detection.
 - Export: Download a single contact as `.vcf` (vCard 2.1 / 3.0 / 4.0), as a QR code (PNG or SVG), or as a contact-card image — or export the whole library as one `.vcf` file.
