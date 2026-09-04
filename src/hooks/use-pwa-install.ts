@@ -25,11 +25,39 @@ export function usePwaInstallPrompt(): UsePwaInstallPromptResult {
   const [isInstallReady, setIsInstallReady] = useState(false);
   const [hasInstalled, setHasInstalled] = useState(false);
 
+  const promptInstall = useCallback(async () => {
+    const promptEvent = deferredPromptRef.current;
+    if (!promptEvent) {
+      return;
+    }
+
+    try {
+      await promptEvent.prompt();
+      const choice = await promptEvent.userChoice;
+
+      if (choice.outcome === "accepted") {
+        setHasInstalled(true);
+      }
+
+      deferredPromptRef.current = null;
+      setIsInstallReady(false);
+    } catch {
+      setIsInstallReady(true);
+    }
+  }, []);
+
   useEffect(() => {
+    const shouldAutoPrompt =
+      new URLSearchParams(window.location.search).get("install") === "1";
+
     const handleBeforeInstallPrompt = (event: Event) => {
       event.preventDefault();
       deferredPromptRef.current = event as BeforeInstallPromptEvent;
       setIsInstallReady(true);
+
+      if (shouldAutoPrompt) {
+        void promptInstall();
+      }
     };
 
     const handleAppInstalled = () => {
@@ -48,24 +76,7 @@ export function usePwaInstallPrompt(): UsePwaInstallPromptResult {
       );
       window.removeEventListener("appinstalled", handleAppInstalled);
     };
-  }, []);
-
-  const promptInstall = useCallback(async () => {
-    const promptEvent = deferredPromptRef.current;
-    if (!promptEvent) {
-      return;
-    }
-
-    await promptEvent.prompt();
-    const choice = await promptEvent.userChoice;
-
-    if (choice.outcome === "accepted") {
-      setHasInstalled(true);
-    }
-
-    deferredPromptRef.current = null;
-    setIsInstallReady(false);
-  }, []);
+  }, [promptInstall]);
 
   return {
     isInstallReady,
